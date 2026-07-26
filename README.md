@@ -29,8 +29,9 @@ npm run dev
 
 Abrí http://localhost:3000
 
-Las variables van en `.env.local` (nunca se commitea). Los valores de Supabase
-salen de _Project Settings → API_.
+Las variables van en `.env.local` (nunca se commitea). Para crear el proyecto
+de Supabase, aplicar el esquema y cargar las credenciales, seguí
+[docs/configurar-supabase.md](docs/configurar-supabase.md).
 
 ## Scripts
 
