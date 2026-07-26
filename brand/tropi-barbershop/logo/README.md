@@ -20,3 +20,11 @@ grande en la portada, en un cartel o impreso.
 El original vectorial se perdió: el dueño lo mandó por WhatsApp y no hay acceso
 a la cuenta donde se generó. Si en algún momento aparece un `.svg` o un `.ai`,
 reemplaza a estos dos y el problema de escala desaparece.
+
+## Decidido: la portada no lleva logo grande
+
+En vez de agrandar un PNG de 500px, la portada se construye sobre el motivo de
+franjas diagonales rojo/blanco/azul que define el brand guide. Es CSS, así que
+escala infinito y no depende del archivo.
+
+El logo se usa chico —header, tarjetas, favicon— que es donde 500px alcanza.
