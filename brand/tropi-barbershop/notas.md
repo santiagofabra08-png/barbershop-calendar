@@ -53,12 +53,39 @@ Días y horas.
 Barberia para personas jovenes (pibes), entre 16 a 29 años aproxomadamente.
 
 
-### Fotos del local
+### Fotos del local — qué muestran
 
-La carpeta `fotos/` está vacía. Cinco o seis fotos —el local, los sillones,
-las herramientas, la luz— aportan textura que ninguna paleta transmite.
+Tres fotos, 1536×2048, todas del **mismo rincón** desde ángulos distintos. En
+la práctica es una sola vista, no tres.
 
-Achicalas a ~1500px antes de dejarlas.
+El espacio: un cuarto acondicionado, no un local a la calle. Un sillón, una
+estación, un espejo, un sillón de cuero de espera al costado.
+
+**La paleta real confirma el brand guide.** Lo que hay en el cuarto es crema
+(cortinas, paredes), arena cálida (piso), negro (la caja de herramientas, la
+base del sillón, los trípodes) y marrón cuero. El `#F5F0E8` y el `#111111` del
+brand guide describen bien el lugar.
+
+**El rojo y el azul no existen en el espacio.** Solo aparecen en el logo
+bordado en la capa. Son colores de marca, no del ambiente: hay que usarlos
+como acento puntual, nunca como superficie.
+
+**Lo más característico del lugar es la estación:** una caja de herramientas
+de mecánico usada como mueble de trabajo, con las máquinas doradas arriba. Es
+un objeto de oficio, no de decoración, y encaja con "sobrio, masculino,
+confiable" mejor que cualquier mueble de barbería comprado.
+
+Ese dorado de las máquinas es el único color cálido del lugar y no está en el
+brand guide. Queda anotado como posible acento, sin decidir.
+
+### Lo que NO conviene hacer con estas fotos
+
+No usarlas grandes en la página. Motivos concretos: la luz de los paneles LED
+es plana y dura, hay cables a la vista, el encuadre es de documentación, y el
+espejo refleja una cama — deja claro que es una casa.
+
+Sirven como referencia de materiales y para recortes chicos de detalle. La
+portada se sostiene con tipografía y el motivo de franjas, como ya se decidió.
 
 ---
 
