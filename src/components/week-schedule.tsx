@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import type { Day } from "@/lib/schedule";
@@ -19,10 +20,12 @@ export function WeekSchedule({
   days,
   service,
   tenant,
+  barberName,
 }: {
   days: Day[];
   service: Service;
   tenant: Tenant;
+  barberName: string;
 }) {
   const [elegido, setElegido] = useState<Seleccion | null>(null);
 
@@ -105,17 +108,18 @@ export function WeekSchedule({
                 {elegido.dayLabel} · <span className="tabular">{elegido.time}</span>
               </p>
               <p className="mt-0.5 text-sm text-muted">
-                {service.name} · {formatDuration(service.durationMinutes)} ·{" "}
+                {service.name} con {barberName} ·{" "}
+                {formatDuration(service.durationMinutes)} ·{" "}
                 {formatPrice(service.priceCents, tenant.currency)}
               </p>
             </div>
 
-            <button
-              type="button"
-              className="w-full bg-accent px-6 py-3 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 sm:w-auto"
+            <Link
+              href={`/reservar?fecha=${elegido.date}&hora=${elegido.time}`}
+              className="w-full bg-accent px-6 py-3 text-center text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 sm:w-auto"
             >
               Continuar
-            </button>
+            </Link>
           </div>
         </div>
       ) : null}

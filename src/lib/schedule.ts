@@ -210,8 +210,15 @@ export function buildWeek({
         if (stamp < earliest) continue;
         if (stamp >= latest) continue;
 
-        const time = toTime(m);
-        slots.push({ time, available: !busy.has(`${date} ${time}`) });
+        // Se revisa el turno entero, no solo su inicio: una reserva que
+        // arranca a las 14:20 pisa el hueco de las 14:00 aunque el hueco
+        // empiece libre.
+        let libre = true;
+        for (let t = m; t < m + service.durationMinutes && libre; t += 5) {
+          if (busy.has(`${date} ${toTime(t)}`)) libre = false;
+        }
+
+        slots.push({ time: toTime(m), available: libre });
       }
     }
 
@@ -236,6 +243,57 @@ export function buildWeek({
 // ---------------------------------------------------------------------------
 // Formato
 // ---------------------------------------------------------------------------
+
+/**
+ * El horario de atención en lenguaje humano.
+ *
+ * Junta los días que abren igual y comprime los tramos seguidos, para que
+ * cinco filas de base se lean como "Martes a sábado · 14:00 a 21:00" en vez de
+ * cinco líneas iguales. Se calcula del horario real: si mañana Facundo suma el
+ * lunes, el texto cambia solo.
+ */
+export function summarizeHours(
+  workingHours: WorkingHour[],
+): { dias: string; horas: string }[] {
+  // La semana se lee de lunes a domingo, aunque adentro 0 sea domingo.
+  const orden = [1, 2, 3, 4, 5, 6, 0];
+
+  const porDia = new Map<number, string>();
+  for (const weekday of orden) {
+    const tramos = workingHours
+      .filter((h) => h.weekday === weekday)
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+      .map((h) => `${h.startsAt} a ${h.endsAt}`);
+    if (tramos.length > 0) porDia.set(weekday, tramos.join(" y "));
+  }
+
+  const filas: { dias: string; horas: string }[] = [];
+  let corrida: number[] = [];
+
+  const cerrar = () => {
+    if (corrida.length === 0) return;
+    const horas = porDia.get(corrida[0])!;
+    const dias =
+      corrida.length === 1
+        ? DIAS[corrida[0]]
+        : `${DIAS[corrida[0]]} a ${DIAS[corrida[corrida.length - 1]].toLowerCase()}`;
+    filas.push({ dias, horas });
+    corrida = [];
+  };
+
+  for (const weekday of orden) {
+    const horas = porDia.get(weekday);
+    if (!horas) {
+      cerrar();
+      continue;
+    }
+    if (corrida.length > 0 && porDia.get(corrida[0]) !== horas) cerrar();
+    corrida.push(weekday);
+  }
+  cerrar();
+
+  return filas;
+}
 
 export function formatPrice(cents: number, currency: string): string {
   const amount = cents / 100;

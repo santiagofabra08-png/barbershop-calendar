@@ -13,6 +13,9 @@ export type Tenant = {
   timezone: string;
   currency: string;
 
+  address: string | null;
+  mapsUrl: string | null;
+
   logoLightUrl: string | null;
   logoDarkUrl: string | null;
 
