@@ -9,10 +9,15 @@ import { formatDuration, formatPrice } from "@/lib/schedule";
 import { createClient } from "@/lib/supabase/server";
 import { cargarBarberia } from "@/lib/tenant/load";
 import { currentTenantSlug } from "@/lib/tenant/resolve";
+import { type CamposCliente, validarCliente } from "@/lib/validation";
 
 export type EstadoReserva = {
+  /** Problema general: el horario se ocupó, la base falló. */
   error?: string;
-  valores?: { nombre: string; telefono: string; email: string };
+  /** Problema de un campo puntual, para mostrarlo debajo de ese campo. */
+  errores?: Partial<Record<"nombre" | "telefono" | "email", string>>;
+  /** Lo que la persona ya había escrito, para no hacerla escribir de nuevo. */
+  valores?: CamposCliente;
 };
 
 const DIAS = [
@@ -66,7 +71,7 @@ export async function reservar(
 
   const leer = (campo: string) => String(formData.get(campo) ?? "").trim();
 
-  const valores = {
+  const escrito: CamposCliente = {
     nombre: leer("nombre"),
     telefono: leer("telefono"),
     email: leer("email"),
@@ -77,9 +82,13 @@ export async function reservar(
   const serviceId = leer("serviceId");
   const barberId = leer("barberId");
 
-  if (!valores.nombre || !valores.telefono || !valores.email) {
-    return { error: "Completá tu nombre, teléfono y mail.", valores };
+  // El navegador ya avisó de estos errores, pero se vuelve a chequear acá:
+  // el formulario se puede saltear, la validación del servidor no.
+  const revisado = validarCliente(escrito);
+  if (!revisado.ok) {
+    return { errores: revisado.errores, valores: escrito };
   }
+  const valores = revisado.valores;
 
   const sb = await createClient();
   const { data, error } = await sb.rpc("crear_reserva", {
@@ -95,7 +104,7 @@ export async function reservar(
 
   if (error) {
     // Los mensajes de la función ya están escritos para leerse en pantalla.
-    return { error: error.message, valores };
+    return { error: error.message, valores: escrito };
   }
 
   const token = data as string;

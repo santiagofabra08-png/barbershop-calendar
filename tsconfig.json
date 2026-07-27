@@ -9,6 +9,10 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // Los tests corren con `node --test`, que ejecuta TypeScript directo y
+    // exige la extensión .ts en los imports relativos. Es seguro porque acá
+    // nunca se emite nada (noEmit).
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
