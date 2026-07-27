@@ -98,7 +98,7 @@ export function WeekSchedule({
 
       {/* Barra de confirmación: aparece recién cuando hay algo que confirmar. */}
       {elegido ? (
-        <div className="sticky bottom-0 z-10 -mx-5 mt-10 border-t border-ink/12 bg-surface px-5 py-4 sm:mx-0 sm:border sm:px-6">
+        <div className="slide-up sticky bottom-0 z-10 -mx-5 mt-10 border-t border-ink/12 bg-surface px-5 py-4 sm:mx-0 sm:border sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">

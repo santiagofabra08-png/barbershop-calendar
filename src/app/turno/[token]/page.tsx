@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { cancelar } from "@/app/reservar/actions";
+import { PoleRule } from "@/components/pole-rule";
 import { Masthead, ShopFooter } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import { formatDuration, formatPrice } from "@/lib/schedule";
@@ -84,30 +85,43 @@ export default async function PaginaDelTurno({
       <main className="mx-auto w-full max-w-lg flex-1 px-5 pt-10 pb-16 sm:px-8 sm:pt-14">
         <Masthead tenant={data.tenant} compact />
 
+        {/* La secuencia: el poste se desenrolla, y detrás sube el turno en
+            orden de importancia. Una sola vez, al llegar. */}
         <section className="mt-12">
-          <h2 className="text-xs font-semibold tracking-[0.14em] uppercase">
+          {!cancelado ? <PoleRule unroll className="mb-6 max-w-28" /> : null}
+
+          <h2 className="rise text-xs font-semibold tracking-[0.14em] uppercase">
             <span className={cancelado ? "text-muted" : "text-accent"}>
               {cancelado ? "Turno cancelado" : "Turno confirmado"}
             </span>
           </h2>
 
           <p
-            className={`mt-3 font-display text-3xl leading-tight font-bold ${
+            className={`rise mt-3 font-display text-3xl leading-tight font-bold ${
               cancelado ? "text-muted line-through" : ""
             }`}
+            style={{ "--delay": "0.1s" } as React.CSSProperties}
           >
             {DIAS[weekday]} {d} de {MESES[m - 1]}
             <br />
             <span className="tabular">{turno.hora.slice(0, 5)}</span>
           </p>
 
-          <p className="mt-3 text-[15px] text-muted">
+          <p
+            className="rise mt-3 text-[15px] text-muted"
+            style={{ "--delay": "0.2s" } as React.CSSProperties}
+          >
             {turno.servicio} con {turno.barbero} ·{" "}
             {formatDuration(turno.duracion_minutos)} ·{" "}
             {formatPrice(turno.precio_centavos, turno.moneda)}
           </p>
 
-          <p className="mt-1 text-[15px] text-muted">A nombre de {turno.cliente}</p>
+          <p
+            className="rise mt-1 text-[15px] text-muted"
+            style={{ "--delay": "0.26s" } as React.CSSProperties}
+          >
+            A nombre de {turno.cliente}
+          </p>
         </section>
 
         {cancelado ? (

@@ -69,7 +69,7 @@ export default async function PaginaDeReservas() {
           <>
             <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted">
               Corte con {barber.displayName}. Elegí una hora de esta semana y
-              reservá — no hace falta crear una cuenta.
+              reservá.
             </p>
 
             <div className="mt-10 flex items-baseline justify-between gap-4 border-y border-ink/12 py-4">

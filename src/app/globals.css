@@ -73,8 +73,67 @@ body {
   }
 }
 
+/*
+  La pantalla de confirmación es el único momento del flujo donde el cliente
+  siente algo: consiguió el turno. Ahí vale una secuencia, no efectos sueltos.
+
+  El poste se desenrolla de izquierda a derecha y el resto sube detrás, en
+  orden de importancia: primero que está confirmado, después cuándo, después
+  el detalle. Es una sola cosa que pasa una sola vez.
+*/
+.unroll {
+  transform-origin: left center;
+  animation: unroll 0.55s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+}
+
+@keyframes unroll {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* La barra de confirmación entra desde abajo, de donde viene el pulgar. */
+.slide-up {
+  animation: slide-up 0.28s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/*
+  Nada de lo de arriba es información: todo se puede apagar sin perder nada.
+  Quien pidió menos movimiento ve la página quieta y completa.
+*/
 @media (prefers-reduced-motion: reduce) {
-  .pole-rule > span {
+  .pole-rule > span,
+  .unroll,
+  .rise,
+  .slide-up {
     animation: none;
   }
 }
