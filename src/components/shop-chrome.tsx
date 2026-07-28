@@ -6,79 +6,81 @@ import { summarizeHours } from "@/lib/schedule";
 import type { Tenant, WorkingHour } from "@/lib/tenant/types";
 
 /**
- * El nombre de la barbería, partido en dos como en el logo: la primera
- * palabra en versalitas espaciadas, el resto en serif.
+ * La franja oscura de arriba.
  *
- * `compact` lo achica para las pantallas que no son la portada, donde el
- * protagonista es el turno y no la marca.
+ * Antes el nombre iba sobre el mismo crema que el resto y la página entera
+ * quedaba en un solo plano. Arrancar en negro le da un borde superior claro,
+ * hace que el poste y el rojo del logo salten, y deja el crema para lo que
+ * importa: elegir el turno.
  */
-export function Masthead({
+export function ShopHeader({
   tenant,
   compact = false,
+  children,
 }: {
   tenant: Tenant;
   compact?: boolean;
+  children?: React.ReactNode;
 }) {
   const [primera, ...resto] = tenant.name.split(" ");
   const segunda = resto.join(" ");
 
-  const texto = (
-    <span className="block">
-      <span
-        className={`block font-semibold tracking-[0.4em] text-ink uppercase ${
-          compact ? "text-[10px]" : "text-xs"
-        }`}
-      >
-        {primera}
-      </span>
-      {segunda ? (
+  const marca = (
+    <span className="flex items-center gap-4">
+      {tenant.logoDarkUrl ? (
+        <Image
+          src={tenant.logoDarkUrl}
+          alt=""
+          width={128}
+          height={145}
+          priority={!compact}
+          className={compact ? "h-10 w-auto" : "h-20 w-auto sm:h-24"}
+        />
+      ) : null}
+
+      <span className="block">
         <span
-          className={`mt-1 block font-display font-bold leading-none ${
-            compact ? "text-2xl" : "text-5xl sm:text-6xl"
+          className={`block font-semibold tracking-[0.4em] uppercase opacity-70 ${
+            compact ? "text-[10px]" : "text-xs"
           }`}
         >
-          {segunda}
+          {primera}
         </span>
-      ) : null}
+        {segunda ? (
+          <span
+            className={`mt-1 block font-display leading-[0.95] font-bold ${
+              compact ? "text-2xl" : "text-5xl sm:text-7xl"
+            }`}
+          >
+            {segunda}
+          </span>
+        ) : null}
+      </span>
     </span>
   );
-
-  // La marca es el poste recortado del logo: el nombre ya está escrito al
-  // lado, así que repetirlo dentro de la imagen sobraría.
-  const contenido = tenant.logoLightUrl ? (
-    <span className="flex items-center gap-3 sm:gap-4">
-      <Image
-        src={tenant.logoLightUrl}
-        alt=""
-        width={128}
-        height={145}
-        priority={!compact}
-        className={compact ? "h-9 w-auto" : "h-16 w-auto sm:h-20"}
-      />
-      {texto}
-    </span>
-  ) : (
-    texto
-  );
-
-  if (compact) {
-    return (
-      <header>
-        <Link
-          href="/"
-          className="inline-block transition-opacity duration-150 ease-out hover:opacity-70"
-        >
-          <h1>{contenido}</h1>
-        </Link>
-        <PoleRule className="mt-3 max-w-24" />
-      </header>
-    );
-  }
 
   return (
-    <header>
-      <h1>{contenido}</h1>
-      <PoleRule className="mt-5 max-w-40" />
+    <header className="bg-ink text-bg">
+      <div
+        className={`mx-auto w-full max-w-3xl px-5 sm:px-8 ${
+          compact ? "py-6" : "pt-14 pb-12 sm:pt-20"
+        }`}
+      >
+        {compact ? (
+          <Link
+            href="/"
+            className="inline-block transition-opacity duration-150 ease-out hover:opacity-70"
+          >
+            <h1>{marca}</h1>
+          </Link>
+        ) : (
+          <h1>{marca}</h1>
+        )}
+
+        <PoleRule className={compact ? "mt-4 max-w-20" : "mt-8 max-w-48"} />
+
+        {children ? <div className="mt-8">{children}</div> : null}
+      </div>
     </header>
   );
 }
@@ -97,33 +99,22 @@ export function ShopFooter({
   const horario = summarizeHours(workingHours);
 
   return (
-    <footer className="mt-auto bg-ink text-bg">
-      <div className="mx-auto grid w-full max-w-3xl gap-8 px-5 py-12 sm:grid-cols-[10rem_1fr] sm:px-8">
-        <div className="flex flex-col gap-6">
-          {photoUrl ? (
-            <Image
-              src={photoUrl}
-              alt={photoAlt ?? ""}
-              width={320}
-              height={320}
-              className="h-40 w-40 object-cover"
-            />
-          ) : null}
-          {tenant.logoDarkUrl ? (
-            <Image
-              src={tenant.logoDarkUrl}
-              alt=""
-              width={128}
-              height={145}
-              className="h-12 w-auto opacity-80"
-            />
-          ) : null}
-        </div>
+    <footer className="mt-auto border-t border-ink/10">
+      <div className="mx-auto grid w-full max-w-3xl gap-8 px-5 py-14 sm:grid-cols-[9rem_1fr] sm:px-8">
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt={photoAlt ?? ""}
+            width={320}
+            height={320}
+            className="h-36 w-36 rounded-xl object-cover"
+          />
+        ) : null}
 
         <div className="grid gap-8 sm:grid-cols-2">
           {tenant.address ? (
             <div>
-              <h2 className="text-xs font-semibold tracking-[0.14em] uppercase opacity-60">
+              <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
                 Dónde
               </h2>
               {tenant.mapsUrl ? (
@@ -131,12 +122,12 @@ export function ShopFooter({
                   href={tenant.mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-block text-[15px] leading-relaxed underline decoration-1 underline-offset-4 transition-opacity duration-150 ease-out hover:opacity-70"
+                  className="mt-2 inline-block text-[15px] leading-relaxed text-ink underline decoration-1 underline-offset-4 transition-opacity duration-150 ease-out hover:opacity-60"
                 >
                   {tenant.address}
                 </a>
               ) : (
-                <p className="mt-2 text-[15px] leading-relaxed">
+                <p className="mt-2 text-[15px] leading-relaxed text-ink">
                   {tenant.address}
                 </p>
               )}
@@ -144,10 +135,10 @@ export function ShopFooter({
           ) : null}
 
           <div>
-            <h2 className="text-xs font-semibold tracking-[0.14em] uppercase opacity-60">
+            <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
               Cuándo
             </h2>
-            <dl className="mt-2 text-[15px] leading-relaxed">
+            <dl className="mt-2 text-[15px] leading-relaxed text-ink">
               {horario.map((fila) => (
                 <div key={fila.dias}>
                   <dt className="inline">{fila.dias}</dt>
@@ -157,7 +148,7 @@ export function ShopFooter({
             </dl>
           </div>
 
-          <p className="text-sm opacity-60 sm:col-span-2">
+          <p className="text-sm leading-relaxed text-muted sm:col-span-2">
             Se paga en el local, en efectivo o por transferencia. Podés cancelar
             hasta una hora antes del turno.
           </p>

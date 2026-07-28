@@ -133,7 +133,8 @@ body {
   .pole-rule > span,
   .unroll,
   .rise,
-  .slide-up {
+  .slide-up,
+  .swap {
     animation: none;
   }
 }
@@ -141,6 +142,42 @@ body {
 /* Las horas son datos: alineadas en columna, todas del mismo ancho. */
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+  La tarjeta que sostiene la reserva.
+
+  La guía de marca pide sombras mínimas, y tiene razón para una barbería
+  clásica. Pero un plano único de bordes finos es justo lo que hace que la
+  página se lea antigua. Esta sombra es lo mínimo para que la tarjeta se
+  despegue del fondo: casi invisible de cerca, decisiva de lejos.
+*/
+.card {
+  border-radius: 14px;
+  background-color: var(--tenant-surface);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--tenant-ink) 5%, transparent),
+    0 12px 32px -16px color-mix(in oklab, var(--tenant-ink) 22%, transparent);
+}
+
+/*
+  Cuando cambiás de día, los horarios de abajo cambian enteros. Sin transición
+  el cambio se pierde: parece que no pasó nada. Esto lo hace visible sin
+  llamar la atención.
+*/
+.swap {
+  animation: swap 0.26s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+}
+
+@keyframes swap {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Un solo estilo de foco en toda la app, visible sobre cualquier color. */

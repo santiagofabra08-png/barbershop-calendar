@@ -128,12 +128,12 @@ export function BookingForm({
                   }
                 }}
                 className={[
-                  "mt-2 w-full border bg-surface px-4 py-3 text-[15px] text-ink",
-                  "transition-colors duration-150 ease-out placeholder:text-ink/30",
-                  "focus:outline-none",
+                  "mt-2 w-full rounded-lg border bg-ink/[0.03] px-4 py-3.5 text-[15px] text-ink",
+                  "transition-[background-color,border-color] duration-150 ease-out",
+                  "placeholder:text-ink/30 focus:bg-surface focus:outline-none",
                   error
-                    ? "border-accent focus:border-accent"
-                    : "border-ink/20 hover:border-ink/40 focus:border-ink",
+                    ? "border-accent"
+                    : "border-transparent hover:border-ink/15 focus:border-ink",
                 ].join(" ")}
               />
 
@@ -154,7 +154,7 @@ export function BookingForm({
       {estado.error ? (
         <p
           role="alert"
-          className="mt-6 border-l-2 border-accent bg-surface px-4 py-3 text-sm text-ink"
+          className="mt-6 rounded-lg border-l-2 border-accent bg-accent/[0.06] px-4 py-3 text-sm text-ink"
         >
           {estado.error}
         </p>
@@ -163,7 +163,7 @@ export function BookingForm({
       <button
         type="submit"
         disabled={pendiente}
-        className="mt-6 w-full bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60"
+        className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60"
       >
         {pendiente ? "Reservando…" : "Reservar turno"}
       </button>

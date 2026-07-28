@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Masthead, ShopFooter } from "@/components/shop-chrome";
+import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import { WeekSchedule } from "@/components/week-schedule";
 import {
@@ -18,8 +18,7 @@ import { currentTenantSlug } from "@/lib/tenant/resolve";
 // dejaría mostrando turnos de otro día.
 export const dynamic = "force-dynamic";
 
-// TODO: la foto de la barbería va a Supabase Storage, como el logo. Hasta
-// entonces vive en public/dev/.
+// TODO: la foto de la barbería va a Supabase Storage, como la marca.
 const FOTO_PROVISORIA = "/dev/tropi-estacion.jpg";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -62,49 +61,51 @@ export default async function PaginaDeReservas() {
     <>
       <TenantTheme tenant={tenant} />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-14 pb-16 sm:px-8 sm:pt-20">
-        <Masthead tenant={tenant} />
+      {/* El servicio va en la franja oscura, junto al nombre: es el dato que
+          define todo lo de abajo, no una sección aparte. */}
+      <ShopHeader tenant={tenant}>
+        {service ? (
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="font-display text-2xl font-bold">
+              {service.name}
+            </span>
+            <span className="tabular text-sm opacity-70">
+              {formatDuration(service.durationMinutes)} ·{" "}
+              {formatPrice(service.priceCents, tenant.currency)}
+            </span>
+          </div>
+        ) : null}
+      </ShopHeader>
 
-        {activos.length > 0 && service ? (
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-16 sm:px-8">
+        {service && activos.length > 0 ? (
           <>
-            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted">
-              {activos.length === 1
-                ? `Corte con ${activos[0].displayName}. Elegí una hora de esta semana y reservá.`
-                : "Elegí barbero, día y hora. Los turnos son de esta semana."}
-            </p>
-
-            <div className="mt-10 flex items-baseline justify-between gap-4 border-y border-ink/12 py-4">
-              <span className="font-display text-xl font-bold">
-                {service.name}
-              </span>
-              <span className="tabular text-sm font-medium text-muted">
-                {formatDuration(service.durationMinutes)} ·{" "}
-                {formatPrice(service.priceCents, tenant.currency)}
-              </span>
-            </div>
-
-            <div className="mt-12">
+            <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-3xl leading-tight font-bold sm:text-4xl">
+                Reservá tu turno
+              </h2>
               {tenant.bookingWindow.mode === "weekly" ? (
-                <p className="mb-8 text-sm text-muted">
-                  Los horarios de la semana que viene se abren el sábado a las{" "}
+                <p className="text-sm text-muted">
+                  La semana que viene se abre el sábado{" "}
                   <span className="tabular">
                     {tenant.bookingWindow.releaseTime}
                   </span>
-                  .
                 </p>
               ) : null}
-
-              <WeekSchedule
-                agendas={agendas}
-                service={service}
-                tenant={tenant}
-              />
             </div>
+
+            <WeekSchedule
+              agendas={agendas}
+              service={service}
+              tenant={tenant}
+            />
           </>
         ) : (
-          <p className="mt-10 border border-ink/12 bg-surface px-5 py-8 text-center text-sm text-muted">
-            La agenda todavía no está abierta. Volvé en un rato.
-          </p>
+          <div className="card px-6 py-12 text-center">
+            <p className="text-sm text-muted">
+              La agenda todavía no está abierta. Volvé en un rato.
+            </p>
+          </div>
         )}
       </main>
 

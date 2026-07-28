@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BookingForm } from "@/app/reservar/booking-form";
-import { Masthead, ShopFooter } from "@/components/shop-chrome";
+import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import {
   bookingWindowEnd,
@@ -28,11 +28,7 @@ export default async function PaginaDeConfirmacion({
 }: {
   searchParams: Promise<{ fecha?: string; hora?: string; barbero?: string }>;
 }) {
-  const {
-    fecha = "",
-    hora = "",
-    barbero = "cualquiera",
-  } = await searchParams;
+  const { fecha = "", hora = "", barbero = "cualquiera" } = await searchParams;
 
   const slug = await currentTenantSlug();
   if (!slug) notFound();
@@ -60,12 +56,8 @@ export default async function PaginaDeConfirmacion({
     busy: ocupados,
   });
 
-  // Con un solo barbero no hay nada que elegir: se toma el que hay, venga lo
-  // que venga en la URL.
   const elegido =
-    activos.length === 1
-      ? activos[0]
-      : activos.find((b) => b.id === barbero);
+    activos.length === 1 ? activos[0] : activos.find((b) => b.id === barbero);
 
   const days = elegido
     ? (agendas.find((a) => a.barber.id === elegido.id)?.days ?? [])
@@ -77,13 +69,12 @@ export default async function PaginaDeConfirmacion({
   return (
     <>
       <TenantTheme tenant={tenant} />
+      <ShopHeader tenant={tenant} compact />
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-5 pt-10 pb-16 sm:px-8 sm:pt-14">
-        <Masthead tenant={tenant} compact />
-
+      <main className="mx-auto w-full max-w-lg flex-1 px-5 pt-10 pb-16 sm:px-8">
         {!dia || !slot ? (
-          <div className="mt-12">
-            <h2 className="font-display text-3xl font-bold">
+          <div className="card px-6 py-10 sm:px-8">
+            <h2 className="font-display text-3xl leading-tight font-bold">
               Ese horario ya no está
             </h2>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
@@ -92,15 +83,15 @@ export default async function PaginaDeConfirmacion({
             </p>
             <Link
               href="/"
-              className="mt-6 inline-block bg-accent px-6 py-3 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90"
+              className="mt-6 inline-block rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90"
             >
               Ver los horarios
             </Link>
           </div>
         ) : (
-          <>
-            <section className="mt-12">
-              <h2 className="text-xs font-semibold tracking-[0.14em] text-ink uppercase">
+          <div className="card overflow-hidden">
+            <section className="border-b border-ink/[0.07] px-5 py-6 sm:px-7">
+              <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
                 Tu turno
               </h2>
 
@@ -130,8 +121,8 @@ export default async function PaginaDeConfirmacion({
               </Link>
             </section>
 
-            <div className="mt-10 border-t border-ink/12 pt-8">
-              <h2 className="text-xs font-semibold tracking-[0.14em] text-ink uppercase">
+            <section className="px-5 py-6 sm:px-7">
+              <h2 className="text-[11px] font-semibold tracking-[0.16em] text-ink uppercase">
                 Tus datos
               </h2>
               <BookingForm
@@ -140,8 +131,8 @@ export default async function PaginaDeConfirmacion({
                 serviceId={service.id}
                 barberId={elegido?.id ?? ""}
               />
-            </div>
-          </>
+            </section>
+          </div>
         )}
       </main>
 
