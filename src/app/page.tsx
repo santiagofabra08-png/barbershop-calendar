@@ -66,7 +66,7 @@ export default async function PaginaDeReservas() {
       <ShopHeader tenant={tenant}>
         {service ? (
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-display text-2xl font-bold">
+            <span className="font-display text-xl font-bold">
               {service.name}
             </span>
             <span className="tabular text-sm opacity-70">
@@ -77,11 +77,11 @@ export default async function PaginaDeReservas() {
         ) : null}
       </ShopHeader>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-10 pb-16 sm:px-8">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-7 pb-16 sm:px-8">
         {service && activos.length > 0 ? (
           <>
-            <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-display text-3xl leading-tight font-bold sm:text-4xl">
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-2xl leading-tight font-bold sm:text-3xl">
                 Reservá tu turno
               </h2>
               {tenant.bookingWindow.mode === "weekly" ? (

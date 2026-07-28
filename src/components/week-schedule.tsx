@@ -112,7 +112,7 @@ export function WeekSchedule({
               {nombreElegido} no tiene horarios esta semana.
             </p>
           ) : (
-            <ul className="grid grid-cols-5 gap-2">
+            <ul className="grid max-w-sm grid-cols-5 gap-1.5">
               {days.map((day) => {
                 const libres = day.slots.filter((s) => s.available).length;
                 const activo = diaActivo?.date === day.date;
@@ -128,21 +128,21 @@ export function WeekSchedule({
                         setHora(null);
                       }}
                       className={[
-                        "flex w-full flex-col items-center gap-1 rounded-xl px-1 py-3.5",
+                        "flex w-full flex-col items-center rounded-lg px-1 py-2",
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:shadow-none",
                         activo
-                          ? "bg-ink text-bg shadow-[0_6px_16px_-8px] shadow-ink/60"
+                          ? "bg-ink text-bg shadow-[0_5px_14px_-8px] shadow-ink/60"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
-                      <span className="text-[10px] font-semibold tracking-[0.1em] uppercase opacity-60">
+                      <span className="text-[9px] font-semibold tracking-[0.08em] uppercase opacity-60">
                         {ABREV[day.weekday]}
                       </span>
-                      <span className="tabular font-display text-2xl leading-none font-bold">
+                      <span className="tabular font-display text-lg leading-tight font-bold">
                         {day.dayNumber}
                       </span>
-                      <span className="tabular text-[10px] opacity-55">
+                      <span className="tabular text-[9px] leading-none opacity-50">
                         {libres === 0 ? "—" : libres}
                       </span>
                     </button>
@@ -169,12 +169,16 @@ export function WeekSchedule({
           {diaActivo ? (
             <ul
               key={`${barberoId}-${diaActivo.date}`}
-              className="swap grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5"
+              className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5"
             >
-              {diaActivo.slots.map((slot) => {
+              {diaActivo.slots.map((slot, i) => {
                 const activo = slotElegido?.time === slot.time;
                 return (
-                  <li key={slot.time}>
+                  <li
+                    key={slot.time}
+                    className="slot-in"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
                     <button
                       type="button"
                       disabled={!slot.available}

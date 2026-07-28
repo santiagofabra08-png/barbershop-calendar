@@ -25,8 +25,10 @@ export function ShopHeader({
   const [primera, ...resto] = tenant.name.split(" ");
   const segunda = resto.join(" ");
 
+  // La franja del poste va DENTRO de la columna de texto, no debajo de todo:
+  // así mide exactamente lo que mide la palabra más larga del nombre.
   const marca = (
-    <span className="flex items-center gap-4">
+    <span className="inline-flex items-center gap-3 sm:gap-4">
       {tenant.logoDarkUrl ? (
         <Image
           src={tenant.logoDarkUrl}
@@ -34,27 +36,28 @@ export function ShopHeader({
           width={128}
           height={145}
           priority={!compact}
-          className={compact ? "h-10 w-auto" : "h-20 w-auto sm:h-24"}
+          className={compact ? "h-9 w-auto" : "h-14 w-auto sm:h-16"}
         />
       ) : null}
 
       <span className="block">
         <span
           className={`block font-semibold tracking-[0.4em] uppercase opacity-70 ${
-            compact ? "text-[10px]" : "text-xs"
+            compact ? "text-[10px]" : "text-[11px]"
           }`}
         >
           {primera}
         </span>
         {segunda ? (
           <span
-            className={`mt-1 block font-display leading-[0.95] font-bold ${
-              compact ? "text-2xl" : "text-5xl sm:text-7xl"
+            className={`mt-0.5 block font-display leading-[0.95] font-bold ${
+              compact ? "text-2xl" : "text-4xl sm:text-5xl"
             }`}
           >
             {segunda}
           </span>
         ) : null}
+        <PoleRule className={compact ? "mt-2 w-full" : "mt-2.5 w-full"} />
       </span>
     </span>
   );
@@ -63,7 +66,7 @@ export function ShopHeader({
     <header className="bg-ink text-bg">
       <div
         className={`mx-auto w-full max-w-3xl px-5 sm:px-8 ${
-          compact ? "py-6" : "pt-14 pb-12 sm:pt-20"
+          compact ? "py-5" : "py-7 sm:py-8"
         }`}
       >
         {compact ? (
@@ -77,9 +80,7 @@ export function ShopHeader({
           <h1>{marca}</h1>
         )}
 
-        <PoleRule className={compact ? "mt-4 max-w-20" : "mt-8 max-w-48"} />
-
-        {children ? <div className="mt-8">{children}</div> : null}
+        {children ? <div className="mt-5">{children}</div> : null}
       </div>
     </header>
   );
