@@ -22,15 +22,15 @@ export function Masthead({
   const [primera, ...resto] = tenant.name.split(" ");
   const segunda = resto.join(" ");
 
-  const contenido = (
-    <>
-      <p
-        className={`font-semibold tracking-[0.4em] text-ink uppercase ${
+  const texto = (
+    <span className="block">
+      <span
+        className={`block font-semibold tracking-[0.4em] text-ink uppercase ${
           compact ? "text-[10px]" : "text-xs"
         }`}
       >
         {primera}
-      </p>
+      </span>
       {segunda ? (
         <span
           className={`mt-1 block font-display font-bold leading-none ${
@@ -40,7 +40,25 @@ export function Masthead({
           {segunda}
         </span>
       ) : null}
-    </>
+    </span>
+  );
+
+  // La marca es el poste recortado del logo: el nombre ya está escrito al
+  // lado, así que repetirlo dentro de la imagen sobraría.
+  const contenido = tenant.logoLightUrl ? (
+    <span className="flex items-center gap-3 sm:gap-4">
+      <Image
+        src={tenant.logoLightUrl}
+        alt=""
+        width={128}
+        height={145}
+        priority={!compact}
+        className={compact ? "h-9 w-auto" : "h-16 w-auto sm:h-20"}
+      />
+      {texto}
+    </span>
+  ) : (
+    texto
   );
 
   if (compact) {
@@ -81,15 +99,26 @@ export function ShopFooter({
   return (
     <footer className="mt-auto bg-ink text-bg">
       <div className="mx-auto grid w-full max-w-3xl gap-8 px-5 py-12 sm:grid-cols-[10rem_1fr] sm:px-8">
-        {photoUrl ? (
-          <Image
-            src={photoUrl}
-            alt={photoAlt ?? ""}
-            width={320}
-            height={320}
-            className="h-40 w-40 object-cover"
-          />
-        ) : null}
+        <div className="flex flex-col gap-6">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={photoAlt ?? ""}
+              width={320}
+              height={320}
+              className="h-40 w-40 object-cover"
+            />
+          ) : null}
+          {tenant.logoDarkUrl ? (
+            <Image
+              src={tenant.logoDarkUrl}
+              alt=""
+              width={128}
+              height={145}
+              className="h-12 w-auto opacity-80"
+            />
+          ) : null}
+        </div>
 
         <div className="grid gap-8 sm:grid-cols-2">
           {tenant.address ? (

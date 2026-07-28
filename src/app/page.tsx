@@ -6,7 +6,7 @@ import { TenantTheme } from "@/components/tenant-theme";
 import { WeekSchedule } from "@/components/week-schedule";
 import {
   bookingWindowEnd,
-  buildWeek,
+  buildAgendas,
   formatDuration,
   formatPrice,
   nowInTimeZone,
@@ -41,22 +41,22 @@ export default async function PaginaDeReservas() {
   if (!data) notFound();
 
   const { tenant, barbers, services, workingHours } = data;
-  const barber = barbers.find((b) => b.acceptsBookings);
+  const activos = barbers.filter((b) => b.acceptsBookings);
   const service = services[0];
 
   const { date: hoy, time: ahora } = nowInTimeZone(tenant.timezone);
   const fin = bookingWindowEnd(tenant, hoy, ahora);
   const ocupados = await cargarOcupados(slug, tenant.timezone, hoy, fin.date);
 
-  const days =
-    barber && service
-      ? buildWeek({
-          tenant,
-          service,
-          workingHours: workingHours.filter((h) => h.barberId === barber.id),
-          busy: ocupados,
-        })
-      : [];
+  const agendas = service
+    ? buildAgendas({
+        tenant,
+        service,
+        barbers: activos,
+        workingHours,
+        busy: ocupados,
+      })
+    : [];
 
   return (
     <>
@@ -65,11 +65,12 @@ export default async function PaginaDeReservas() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-14 pb-16 sm:px-8 sm:pt-20">
         <Masthead tenant={tenant} />
 
-        {barber && service ? (
+        {activos.length > 0 && service ? (
           <>
             <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted">
-              Corte con {barber.displayName}. Elegí una hora de esta semana y
-              reservá.
+              {activos.length === 1
+                ? `Corte con ${activos[0].displayName}. Elegí una hora de esta semana y reservá.`
+                : "Elegí barbero, día y hora. Los turnos son de esta semana."}
             </p>
 
             <div className="mt-10 flex items-baseline justify-between gap-4 border-y border-ink/12 py-4">
@@ -82,15 +83,9 @@ export default async function PaginaDeReservas() {
               </span>
             </div>
 
-            <section className="mt-12" aria-labelledby="esta-semana">
-              <h2
-                id="esta-semana"
-                className="text-xs font-semibold tracking-[0.14em] text-ink uppercase"
-              >
-                Esta semana
-              </h2>
+            <div className="mt-12">
               {tenant.bookingWindow.mode === "weekly" ? (
-                <p className="mt-2 text-sm text-muted">
+                <p className="mb-8 text-sm text-muted">
                   Los horarios de la semana que viene se abren el sábado a las{" "}
                   <span className="tabular">
                     {tenant.bookingWindow.releaseTime}
@@ -99,15 +94,12 @@ export default async function PaginaDeReservas() {
                 </p>
               ) : null}
 
-              <div className="mt-8">
-                <WeekSchedule
-                  days={days}
-                  service={service}
-                  tenant={tenant}
-                  barberName={barber.displayName}
-                />
-              </div>
-            </section>
+              <WeekSchedule
+                agendas={agendas}
+                service={service}
+                tenant={tenant}
+              />
+            </div>
           </>
         ) : (
           <p className="mt-10 border border-ink/12 bg-surface px-5 py-8 text-center text-sm text-muted">
@@ -120,7 +112,7 @@ export default async function PaginaDeReservas() {
         tenant={tenant}
         workingHours={workingHours}
         photoUrl={FOTO_PROVISORIA}
-        photoAlt={`La estación de trabajo de ${barber?.displayName ?? tenant.name}`}
+        photoAlt={`La estación de trabajo de ${tenant.name}`}
       />
     </>
   );

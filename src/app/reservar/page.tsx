@@ -7,9 +7,10 @@ import { Masthead, ShopFooter } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import {
   bookingWindowEnd,
-  buildWeek,
+  buildAgendas,
   formatDuration,
   formatPrice,
+  mergeAgendas,
   nowInTimeZone,
 } from "@/lib/schedule";
 import { cargarBarberia, cargarOcupados } from "@/lib/tenant/load";
@@ -25,9 +26,13 @@ export const metadata: Metadata = {
 export default async function PaginaDeConfirmacion({
   searchParams,
 }: {
-  searchParams: Promise<{ fecha?: string; hora?: string }>;
+  searchParams: Promise<{ fecha?: string; hora?: string; barbero?: string }>;
 }) {
-  const { fecha = "", hora = "" } = await searchParams;
+  const {
+    fecha = "",
+    hora = "",
+    barbero = "cualquiera",
+  } = await searchParams;
 
   const slug = await currentTenantSlug();
   if (!slug) notFound();
@@ -36,9 +41,9 @@ export default async function PaginaDeConfirmacion({
   if (!data) notFound();
 
   const { tenant, barbers, services, workingHours } = data;
-  const barber = barbers.find((b) => b.acceptsBookings);
+  const activos = barbers.filter((b) => b.acceptsBookings);
   const service = services[0];
-  if (!barber || !service) notFound();
+  if (activos.length === 0 || !service) notFound();
 
   // El horario que llega por la URL se vuelve a calcular acá: que exista en la
   // grilla, que siga libre y que siga dentro de la ventana. Alguien puede
@@ -47,12 +52,24 @@ export default async function PaginaDeConfirmacion({
   const fin = bookingWindowEnd(tenant, hoy, ahora);
   const ocupados = await cargarOcupados(slug, tenant.timezone, hoy, fin.date);
 
-  const days = buildWeek({
+  const agendas = buildAgendas({
     tenant,
     service,
-    workingHours: workingHours.filter((h) => h.barberId === barber.id),
+    barbers: activos,
+    workingHours,
     busy: ocupados,
   });
+
+  // Con un solo barbero no hay nada que elegir: se toma el que hay, venga lo
+  // que venga en la URL.
+  const elegido =
+    activos.length === 1
+      ? activos[0]
+      : activos.find((b) => b.id === barbero);
+
+  const days = elegido
+    ? (agendas.find((a) => a.barber.id === elegido.id)?.days ?? [])
+    : mergeAgendas(agendas);
 
   const dia = days.find((d) => d.date === fecha);
   const slot = dia?.slots.find((s) => s.time === hora && s.available);
@@ -94,10 +111,16 @@ export default async function PaginaDeConfirmacion({
               </p>
 
               <p className="mt-3 text-[15px] text-muted">
-                {service.name} con {barber.displayName} ·{" "}
+                {service.name}
+                {elegido ? ` con ${elegido.displayName}` : ""} ·{" "}
                 {formatDuration(service.durationMinutes)} ·{" "}
                 {formatPrice(service.priceCents, tenant.currency)}
               </p>
+              {!elegido ? (
+                <p className="mt-1 text-sm text-muted">
+                  Te va a atender el barbero que esté libre a esa hora.
+                </p>
+              ) : null}
 
               <Link
                 href="/"
@@ -115,7 +138,7 @@ export default async function PaginaDeConfirmacion({
                 fecha={fecha}
                 hora={hora}
                 serviceId={service.id}
-                barberId={barber.id}
+                barberId={elegido?.id ?? ""}
               />
             </div>
           </>

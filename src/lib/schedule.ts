@@ -11,7 +11,7 @@
  * Estas funciones son puras: mismas entradas, mismas salidas. No leen el reloj
  * ni la base. El `now` entra como argumento para poder probarlas.
  */
-import type { Service, Tenant, WorkingHour } from "@/lib/tenant/types";
+import type { Barber, Service, Tenant, WorkingHour } from "@/lib/tenant/types";
 
 const DIAS = [
   "Domingo",
@@ -243,6 +243,87 @@ export function buildWeek({
 // ---------------------------------------------------------------------------
 // Formato
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Varios barberos
+// ---------------------------------------------------------------------------
+
+/** La semana de un barbero. */
+export type Agenda = {
+  barber: Barber;
+  days: Day[];
+};
+
+/**
+ * Una agenda por barbero.
+ *
+ * Cada uno tiene sus propios horarios de trabajo y sus propios turnos tomados,
+ * así que las grillas no tienen por qué coincidir: uno puede abrir los martes
+ * y otro no.
+ */
+export function buildAgendas({
+  tenant,
+  service,
+  barbers,
+  workingHours,
+  now = new Date(),
+  busy = new Map<string, ReadonlySet<string>>(),
+}: {
+  tenant: Tenant;
+  service: Service;
+  barbers: Barber[];
+  workingHours: WorkingHour[];
+  now?: Date;
+  /** Ocupados por barbero: barberId → claves "YYYY-MM-DD HH:MM". */
+  busy?: ReadonlyMap<string, ReadonlySet<string>>;
+}): Agenda[] {
+  return barbers
+    .filter((b) => b.acceptsBookings)
+    .map((barber) => ({
+      barber,
+      days: buildWeek({
+        tenant,
+        service,
+        workingHours: workingHours.filter((h) => h.barberId === barber.id),
+        now,
+        busy: busy.get(barber.id) ?? new Set<string>(),
+      }),
+    }));
+}
+
+/**
+ * Todas las agendas fundidas en una: el cliente que no tiene preferencia.
+ *
+ * Un horario aparece libre si CUALQUIER barbero lo tiene libre. A qué barbero
+ * termina yendo lo decide el servidor al confirmar, no el navegador: si dos
+ * personas eligen el mismo horario a la vez, quien reparte tiene que ser uno
+ * solo.
+ */
+export function mergeAgendas(agendas: Agenda[]): Day[] {
+  const porFecha = new Map<string, Day>();
+
+  for (const { days } of agendas) {
+    for (const day of days) {
+      const existente = porFecha.get(day.date);
+      if (!existente) {
+        porFecha.set(day.date, { ...day, slots: day.slots.map((s) => ({ ...s })) });
+        continue;
+      }
+
+      const porHora = new Map(existente.slots.map((s) => [s.time, s]));
+      for (const slot of day.slots) {
+        const previo = porHora.get(slot.time);
+        if (!previo) porHora.set(slot.time, { ...slot });
+        else if (slot.available) previo.available = true;
+      }
+      existente.slots = [...porHora.values()].sort((a, b) =>
+        a.time.localeCompare(b.time),
+      );
+    }
+  }
+
+  return [...porFecha.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
 
 /**
  * El horario de atención en lenguaje humano.

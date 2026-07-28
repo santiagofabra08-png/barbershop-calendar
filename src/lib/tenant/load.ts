@@ -151,7 +151,7 @@ export async function cargarOcupados(
   timezone: string,
   desde: string,
   hasta: string,
-): Promise<Set<string>> {
+): Promise<Map<string, Set<string>>> {
   const sb = await createClient();
 
   const { data, error } = await sb.rpc("horarios_ocupados", {
@@ -160,7 +160,8 @@ export async function cargarOcupados(
     p_hasta: hasta,
   });
 
-  if (error || !data) return new Set();
+  const porBarbero = new Map<string, Set<string>>();
+  if (error || !data) return porBarbero;
 
   const fmt = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
@@ -172,11 +173,21 @@ export async function cargarOcupados(
     hourCycle: "h23",
   });
 
-  const ocupados = new Set<string>();
+  const filas = data as {
+    barber_id: string;
+    starts_at: string;
+    ends_at: string;
+  }[];
 
-  for (const fila of data as { starts_at: string; ends_at: string }[]) {
-    // Un turno de 40 min puede tapar más de un hueco de la grilla si las
-    // duraciones cambiaron, así que se marca minuto a minuto en pasos de 5.
+  for (const fila of filas) {
+    let ocupados = porBarbero.get(fila.barber_id);
+    if (!ocupados) {
+      ocupados = new Set<string>();
+      porBarbero.set(fila.barber_id, ocupados);
+    }
+
+    // Un turno puede tapar más de un hueco de la grilla si las duraciones
+    // cambiaron, así que se marca de a 5 minutos de punta a punta.
     const inicio = new Date(fila.starts_at).getTime();
     const fin = new Date(fila.ends_at).getTime();
 
@@ -190,5 +201,5 @@ export async function cargarOcupados(
     }
   }
 
-  return ocupados;
+  return porBarbero;
 }

@@ -94,12 +94,14 @@ export async function reservar(
   const { data, error } = await sb.rpc("crear_reserva", {
     p_tenant_slug: slug,
     p_service_id: serviceId,
-    p_barber_id: barberId,
     p_fecha: fecha,
     p_hora: hora,
     p_nombre: valores.nombre,
     p_telefono: valores.telefono,
     p_email: valores.email,
+    // Vacío significa "el primero que haya": a quién le toca lo decide el
+    // servidor, que es el único que puede repartir sin carreras.
+    p_barber_id: barberId === "cualquiera" || barberId === "" ? null : barberId,
   });
 
   if (error) {
@@ -116,8 +118,18 @@ export async function reservar(
   after(async () => {
     const barberia = await cargarBarberia(slug);
     const service = barberia?.services.find((s) => s.id === serviceId);
-    const barber = barberia?.barbers.find((b) => b.id === barberId);
-    if (!barberia || !service || !barber) return;
+    if (!barberia || !service) return;
+
+    // Con "el primero que haya", quién atiende recién se sabe ahora: lo
+    // decidió la base al insertar.
+    const sbMail = await createClient();
+    const { data: filas } = await sbMail.rpc("turno_por_token", {
+      p_token: token,
+    });
+    const nombreBarbero =
+      (filas as { barbero?: string }[] | null)?.[0]?.barbero ??
+      barberia.barbers.find((b) => b.id === barberId)?.displayName;
+    if (!nombreBarbero) return;
 
     const [anio, mes, dia] = fecha.split("-").map(Number);
     const weekday = new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay();
@@ -126,7 +138,7 @@ export async function reservar(
       tenant: barberia.tenant,
       para: valores.email,
       cliente: valores.nombre,
-      barbero: barber.displayName,
+      barbero: nombreBarbero,
       servicio: service.name,
       cuando: `${DIAS[weekday]} ${dia} de ${MESES[mes - 1]}, ${hora}`,
       precio: formatPrice(service.priceCents, barberia.tenant.currency),
