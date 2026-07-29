@@ -341,11 +341,30 @@ export function summarizeHours(
 
   const porDia = new Map<number, string>();
   for (const weekday of orden) {
+    // Esto es el horario del LOCAL, no el turno de cada barbero. Si uno entra
+    // a las 14 y otro a las 16, la barbería abre a las 14: los tramos se
+    // funden en vez de listarse uno atrás de otro.
     const tramos = workingHours
       .filter((h) => h.weekday === weekday)
-      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-      .map((h) => `${h.startsAt} a ${h.endsAt}`);
-    if (tramos.length > 0) porDia.set(weekday, tramos.join(" y "));
+      .map((h) => ({ desde: toMinutes(h.startsAt), hasta: toMinutes(h.endsAt) }))
+      .sort((a, b) => a.desde - b.desde);
+
+    const fundidos: { desde: number; hasta: number }[] = [];
+    for (const tramo of tramos) {
+      const ultimo = fundidos[fundidos.length - 1];
+      if (ultimo && tramo.desde <= ultimo.hasta) {
+        ultimo.hasta = Math.max(ultimo.hasta, tramo.hasta);
+      } else {
+        fundidos.push({ ...tramo });
+      }
+    }
+
+    if (fundidos.length > 0) {
+      porDia.set(
+        weekday,
+        fundidos.map((t) => `${toTime(t.desde)} a ${toTime(t.hasta)}`).join(" y "),
+      );
+    }
   }
 
   const filas: { dias: string; horas: string }[] = [];

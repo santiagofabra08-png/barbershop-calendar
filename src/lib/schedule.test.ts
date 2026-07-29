@@ -241,6 +241,28 @@ describe("resumen del horario", () => {
     ]);
   });
 
+  test("es el horario del local, no el turno de cada barbero", () => {
+    // Facundo 14–21 y Jaimito 16–21 el jueves: la barbería abre 14–21, no
+    // "14 a 21 y 16 a 21".
+    const filas = summarizeHours(horarios);
+    const jueves = filas.find((f) => f.dias.includes("jueves") || f.dias.includes("Jueves"));
+    assert.ok(
+      filas.every((f) => !f.horas.includes(" y ")),
+      `no debería listar tramos sueltos: ${JSON.stringify(filas)}`,
+    );
+    assert.ok(jueves === undefined || jueves.horas === "14:00 a 21:00");
+  });
+
+  test("dos tramos que no se tocan sí quedan separados", () => {
+    const filas = summarizeHours([
+      { barberId: "x", weekday: 1, startsAt: "09:00", endsAt: "13:00" },
+      { barberId: "y", weekday: 1, startsAt: "15:00", endsAt: "19:00" },
+    ]);
+    assert.deepEqual(filas, [
+      { dias: "Lunes", horas: "09:00 a 13:00 y 15:00 a 19:00" },
+    ]);
+  });
+
   test("separa los tramos distintos", () => {
     const filas = summarizeHours([
       { barberId: "x", weekday: 1, startsAt: "09:00", endsAt: "13:00" },

@@ -65,7 +65,7 @@ export function ShopHeader({
   return (
     <header className="bg-ink text-bg">
       <div
-        className={`mx-auto w-full max-w-3xl px-5 sm:px-8 ${
+        className={`mx-auto w-full max-w-3xl px-5 text-center sm:px-8 ${
           compact ? "py-5" : "py-7 sm:py-8"
         }`}
       >
@@ -80,7 +80,9 @@ export function ShopHeader({
           <h1>{marca}</h1>
         )}
 
-        {children ? <div className="mt-5">{children}</div> : null}
+        {children ? (
+          <div className="mt-5 flex justify-center">{children}</div>
+        ) : null}
       </div>
     </header>
   );
@@ -99,9 +101,21 @@ export function ShopFooter({
 }) {
   const horario = summarizeHours(workingHours);
 
+  // Si la barbería no cargó un link propio, se arma uno de búsqueda con su
+  // dirección. Así toda barbería tiene mapa sin que nadie complete nada.
+  const mapa =
+    tenant.mapsUrl ??
+    (tenant.address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tenant.address)}`
+      : null);
+
   return (
     <footer className="mt-auto border-t border-ink/10">
-      <div className="mx-auto grid w-full max-w-3xl gap-8 px-5 py-14 sm:grid-cols-[9rem_1fr] sm:px-8">
+      <div
+        className={`mx-auto grid w-full max-w-3xl gap-8 px-5 py-14 sm:px-8 ${
+          photoUrl ? "sm:grid-cols-[9rem_1fr]" : ""
+        }`}
+      >
         {photoUrl ? (
           <Image
             src={photoUrl}
@@ -118,20 +132,20 @@ export function ShopFooter({
               <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
                 Dónde
               </h2>
-              {tenant.mapsUrl ? (
+              <p className="mt-2 text-[15px] leading-relaxed text-ink">
+                {tenant.address}
+              </p>
+              {mapa ? (
                 <a
-                  href={tenant.mapsUrl}
+                  href={mapa}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-block text-[15px] leading-relaxed text-ink underline decoration-1 underline-offset-4 transition-opacity duration-150 ease-out hover:opacity-60"
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-ink/[0.05] py-1.5 pr-3 pl-2.5 text-[13px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-ink/[0.1] active:bg-ink/[0.15]"
                 >
-                  {tenant.address}
+                  <IconoUbicacion />
+                  Ver en el mapa
                 </a>
-              ) : (
-                <p className="mt-2 text-[15px] leading-relaxed text-ink">
-                  {tenant.address}
-                </p>
-              )}
+              ) : null}
             </div>
           ) : null}
 
@@ -156,5 +170,24 @@ export function ShopFooter({
         </div>
       </div>
     </footer>
+  );
+}
+
+/** Chinche de mapa. Trazo fino y color heredado, como pide la guía. */
+function IconoUbicacion() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="size-4 shrink-0 opacity-70"
+    >
+      <path d="M13 6.8c0 3.3-5 8.2-5 8.2S3 10.1 3 6.8a5 5 0 0 1 10 0Z" />
+      <circle cx="8" cy="6.7" r="1.8" />
+    </svg>
   );
 }
