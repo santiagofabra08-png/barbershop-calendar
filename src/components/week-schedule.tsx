@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 
+import { IconoReloj, IconoTijera } from "@/components/icons";
 import type { Agenda, Day } from "@/lib/schedule";
 import { formatDuration, formatPrice, mergeAgendas } from "@/lib/schedule";
 import type { Service, Tenant } from "@/lib/tenant/types";
@@ -11,6 +12,22 @@ import type { Service, Tenant } from "@/lib/tenant/types";
 const CUALQUIERA = "cualquiera";
 
 const ABREV = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+/** A partir de acá, el día se marca como que queda poco. */
+const POCOS = 2;
+
+const MEMORIA = "barbero-preferido";
+
+/** El único que escribe la preferencia es esta pantalla: no hay a qué suscribirse. */
+const sinSuscripcion = () => () => {};
+
+function leerPreferido(slug: string): string | null {
+  try {
+    return window.localStorage.getItem(`${MEMORIA}:${slug}`);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Elegir turno en tres pasos: barbero → día → hora.
@@ -33,11 +50,43 @@ export function WeekSchedule({
 }) {
   const variosBarberos = agendas.length > 1;
 
-  const [barberoId, setBarberoId] = useState<string>(
-    agendas.length === 1 ? agendas[0].barber.id : CUALQUIERA,
-  );
+  const [elegidoAMano, setElegidoAMano] = useState<string | null>(null);
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
+
+  // Quien ya se cortó con alguien suele querer volver con el mismo.
+  //
+  // El servidor no puede saber qué eligió este visitante la vez pasada, así
+  // que devuelve null y el navegador completa después. `useSyncExternalStore`
+  // existe justo para esto: mantiene el HTML del servidor y el del navegador
+  // iguales en el primer render, sin efectos que encadenen renders.
+  const preferido = useSyncExternalStore(
+    sinSuscripcion,
+    () => leerPreferido(tenant.slug),
+    () => null,
+  );
+
+  const barberoId =
+    elegidoAMano ??
+    (preferido && agendas.some((a) => a.barber.id === preferido)
+      ? preferido
+      : agendas.length === 1
+        ? agendas[0].barber.id
+        : CUALQUIERA);
+
+  const elegirBarbero = (id: string) => {
+    setElegidoAMano(id);
+    setHora(null);
+    try {
+      if (id === CUALQUIERA) {
+        window.localStorage.removeItem(`${MEMORIA}:${tenant.slug}`);
+      } else {
+        window.localStorage.setItem(`${MEMORIA}:${tenant.slug}`, id);
+      }
+    } catch {
+      // Navegador con el almacenamiento bloqueado: se elige a mano y listo.
+    }
+  };
 
   const days: Day[] = useMemo(() => {
     if (barberoId === CUALQUIERA) return mergeAgendas(agendas);
@@ -82,10 +131,7 @@ export function WeekSchedule({
                 <TarjetaBarbero
                   nombre={barber.displayName}
                   activo={barberoId === barber.id}
-                  onClick={() => {
-                    setBarberoId(barber.id);
-                    setHora(null);
-                  }}
+                  onClick={() => elegirBarbero(barber.id)}
                 />
               </li>
             ))}
@@ -95,10 +141,7 @@ export function WeekSchedule({
                   nombre="El primero que haya"
                   sinInicial
                   activo={barberoId === CUALQUIERA}
-                  onClick={() => {
-                    setBarberoId(CUALQUIERA);
-                    setHora(null);
-                  }}
+                  onClick={() => elegirBarbero(CUALQUIERA)}
                 />
               </li>
             ) : null}
@@ -142,7 +185,17 @@ export function WeekSchedule({
                       <span className="tabular font-display text-lg leading-tight font-bold">
                         {day.dayNumber}
                       </span>
-                      <span className="tabular text-[9px] leading-none opacity-50">
+                      <span
+                        key={libres}
+                        className="count-in tabular flex items-center gap-1 text-[9px] leading-none opacity-55"
+                      >
+                        {/* Quedan pocos: se marca, pero solo cuando es cierto. */}
+                        {libres > 0 && libres <= POCOS ? (
+                          <span
+                            className={`size-1 rounded-full ${activo ? "bg-bg" : "bg-accent"}`}
+                            aria-hidden="true"
+                          />
+                        ) : null}
                         {libres === 0 ? "—" : libres}
                       </span>
                     </button>
@@ -216,10 +269,20 @@ export function WeekSchedule({
                 {diaActivo.dayName} {diaActivo.dayNumber} ·{" "}
                 <span className="tabular">{slotElegido.time}</span>
               </p>
-              <p className="mt-1 text-sm text-muted">
-                {nombreElegido ? `Con ${nombreElegido} · ` : ""}
-                {formatDuration(service.durationMinutes)} ·{" "}
-                {formatPrice(service.priceCents, tenant.currency)}
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+                {nombreElegido ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <IconoTijera className="size-3.5 opacity-70" />
+                    {nombreElegido}
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center gap-1.5">
+                  <IconoReloj className="size-3.5 opacity-70" />
+                  {formatDuration(service.durationMinutes)}
+                </span>
+                <span className="tabular">
+                  {formatPrice(service.priceCents, tenant.currency)}
+                </span>
               </p>
             </div>
 

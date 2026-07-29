@@ -79,6 +79,48 @@ export function nowInTimeZone(timeZone: string, at: Date = new Date()) {
   };
 }
 
+/**
+ * De hora local de la barbería al instante real.
+ *
+ * Es el camino inverso a `nowInTimeZone`. Se necesita para el archivo de
+ * calendario, que exige el instante en UTC.
+ *
+ * Cómo funciona: se interpreta la fecha como si fuera UTC, se mide cuánto se
+ * desvía eso de la zona pedida y se corrige. Se repite una vez porque cerca
+ * de un cambio de horario de verano el desvío del primer intento puede ser el
+ * del otro lado del salto.
+ */
+export function localToUtc(date: string, time: string, timeZone: string): Date {
+  const comoSiFueraUtc = Date.parse(`${date}T${time}:00Z`);
+
+  const desvio = (instante: number): number => {
+    const p = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date(instante));
+    const g = (t: string) => Number(p.find((x) => x.type === t)?.value ?? 0);
+    const comoLocal = Date.UTC(
+      g("year"),
+      g("month") - 1,
+      g("day"),
+      g("hour"),
+      g("minute"),
+      g("second"),
+    );
+    return comoLocal - instante;
+  };
+
+  let utc = comoSiFueraUtc - desvio(comoSiFueraUtc);
+  utc = comoSiFueraUtc - desvio(utc);
+  return new Date(utc);
+}
+
 function toMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;

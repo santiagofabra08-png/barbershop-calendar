@@ -134,7 +134,11 @@ body {
   .unroll,
   .rise,
   .slide-up,
-  .slot-in {
+  .slot-in,
+  .count-in,
+  .pole-burst,
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
     animation: none;
   }
 }
@@ -181,6 +185,70 @@ body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/*
+  ---- Transición entre pantallas -------------------------------------------
+  De la portada al formulario y del formulario al turno confirmado. Lo hace
+  el navegador con la View Transitions API: no hay librería ni JavaScript
+  propio, y si el navegador no la soporta simplemente no pasa nada.
+
+  La entrante sube apenas mientras la saliente se va: da dirección al paso,
+  como pasar de página.
+*/
+::view-transition-old(root) {
+  animation: salir 0.18s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: entrar 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes salir {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Un número que cambia solo: entra desde donde venía en vez de saltar. */
+.count-in {
+  animation: count-in 0.24s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/*
+  El poste acelera al confirmar y va frenando hasta su ritmo.
+
+  El envoltorio corre una vuelta rápida con desaceleración mientras el poste
+  de adentro sigue girando a su velocidad de siempre. Los dos movimientos se
+  suman: arranca rápido, termina normal, sin corte.
+*/
+.pole-burst {
+  animation: pole-burst 2.4s cubic-bezier(0.05, 0.75, 0.25, 1) both;
+}
+
+@keyframes pole-burst {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Tres patrones completos: 3 × 45.255px, para que no quede costura. */
+    transform: translateX(-135.765px);
   }
 }
 

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { IconoCalendario, IconoUbicacion } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { summarizeHours } from "@/lib/schedule";
 import type { Tenant, WorkingHour } from "@/lib/tenant/types";
@@ -129,7 +130,8 @@ export function ShopFooter({
         <div className="grid gap-8 sm:grid-cols-2">
           {tenant.address ? (
             <div>
-              <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
+              <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
+                <IconoUbicacion className="size-3.5" />
                 Dónde
               </h2>
               <p className="mt-2 text-[15px] leading-relaxed text-ink">
@@ -142,7 +144,7 @@ export function ShopFooter({
                   rel="noreferrer"
                   className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-ink/[0.05] py-1.5 pr-3 pl-2.5 text-[13px] font-medium text-ink transition-colors duration-150 ease-out hover:bg-ink/[0.1] active:bg-ink/[0.15]"
                 >
-                  <IconoUbicacion />
+                  <IconoUbicacion className="size-4 opacity-70" />
                   Ver en el mapa
                 </a>
               ) : null}
@@ -150,7 +152,8 @@ export function ShopFooter({
           ) : null}
 
           <div>
-            <h2 className="text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
+            <h2 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">
+              <IconoCalendario className="size-3.5" />
               Cuándo
             </h2>
             <dl className="mt-2 text-[15px] leading-relaxed text-ink">
@@ -173,21 +176,3 @@ export function ShopFooter({
   );
 }
 
-/** Chinche de mapa. Trazo fino y color heredado, como pide la guía. */
-function IconoUbicacion() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className="size-4 shrink-0 opacity-70"
-    >
-      <path d="M13 6.8c0 3.3-5 8.2-5 8.2S3 10.1 3 6.8a5 5 0 0 1 10 0Z" />
-      <circle cx="8" cy="6.7" r="1.8" />
-    </svg>
-  );
-}

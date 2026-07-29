@@ -8,6 +8,11 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : undefined;
 
 const nextConfig: NextConfig = {
+  // Transiciones entre pantallas: al tocar "Continuar", la página no salta,
+  // se funde con la siguiente. Lo maneja el navegador, no una librería.
+  experimental: {
+    viewTransition: true,
+  },
   images: {
     remotePatterns: supabaseHost
       ? [

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { IconoEtiqueta, IconoReloj } from "@/components/icons";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import { WeekSchedule } from "@/components/week-schedule";
@@ -65,12 +66,16 @@ export default async function PaginaDeReservas() {
           define todo lo de abajo, no una sección aparte. */}
       <ShopHeader tenant={tenant}>
         {service ? (
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <span className="font-display text-xl font-bold">
               {service.name}
             </span>
-            <span className="tabular text-sm opacity-70">
-              {formatDuration(service.durationMinutes)} ·{" "}
+            <span className="inline-flex items-center gap-1.5 text-sm opacity-70">
+              <IconoReloj className="size-3.5" />
+              {formatDuration(service.durationMinutes)}
+            </span>
+            <span className="tabular inline-flex items-center gap-1.5 text-sm opacity-70">
+              <IconoEtiqueta className="size-3.5" />
               {formatPrice(service.priceCents, tenant.currency)}
             </span>
           </div>

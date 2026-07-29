@@ -5,7 +5,9 @@ import {
   bookingWindowEnd,
   buildAgendas,
   buildWeek,
+  localToUtc,
   mergeAgendas,
+  nowInTimeZone,
   summarizeHours,
 } from "./schedule.ts";
 import type { Barber, Service, Tenant, WorkingHour } from "./tenant/types.ts";
@@ -230,6 +232,39 @@ describe("varios barberos", () => {
     const juntas = mergeAgendas(agendas);
     const jueves = juntas.find((d) => d.date === "2026-07-30")!;
     assert.equal(jueves.slots.find((s) => s.time === "14:00")?.available, true);
+  });
+});
+
+describe("hora local a UTC", () => {
+  test("Montevideo está tres horas atrás de UTC", () => {
+    const utc = localToUtc("2026-08-01", "16:00", "America/Montevideo");
+    assert.equal(utc.toISOString(), "2026-08-01T19:00:00.000Z");
+  });
+
+  test("es exactamente el camino inverso de nowInTimeZone", () => {
+    for (const fecha of ["2026-01-15", "2026-07-01", "2026-12-31"]) {
+      for (const hora of ["00:00", "14:00", "20:40", "23:59"]) {
+        const utc = localToUtc(fecha, hora, "America/Montevideo");
+        const vuelta = nowInTimeZone("America/Montevideo", utc);
+        assert.deepEqual(
+          vuelta,
+          { date: fecha, time: hora },
+          `no cerró el ida y vuelta con ${fecha} ${hora}`,
+        );
+      }
+    }
+  });
+
+  test("funciona en una zona que sí cambia con el horario de verano", () => {
+    // Buenos Aires no cambia, pero Madrid sí: enero y julio dan desvíos
+    // distintos y las dos conversiones tienen que cerrar igual.
+    for (const [fecha, esperado] of [
+      ["2026-01-15", "2026-01-15T11:00:00.000Z"],
+      ["2026-07-15", "2026-07-15T10:00:00.000Z"],
+    ] as const) {
+      const utc = localToUtc(fecha, "12:00", "Europe/Madrid");
+      assert.equal(utc.toISOString(), esperado);
+    }
   });
 });
 

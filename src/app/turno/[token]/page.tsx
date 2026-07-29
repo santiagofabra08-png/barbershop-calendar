@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { cancelar } from "@/app/reservar/actions";
+import { IconoDescarga } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
@@ -88,7 +89,11 @@ export default async function PaginaDelTurno({
           {/* La secuencia: el poste se desenrolla y detrás sube el turno, en
               orden de importancia. Una sola vez, al llegar. */}
           <section className="border-b border-ink/[0.07] px-5 py-7 sm:px-7">
-            {!cancelado ? <PoleRule unroll className="mb-6 max-w-24" /> : null}
+            {!cancelado ? (
+              <div className="pole-burst mb-6 max-w-24">
+                <PoleRule unroll />
+              </div>
+            ) : null}
 
             <h2 className="rise text-[11px] font-semibold tracking-[0.16em] uppercase">
               <span className={cancelado ? "text-muted" : "text-accent"}>
@@ -140,7 +145,18 @@ export default async function PaginaDelTurno({
               </>
             ) : (
               <>
-                <p className="text-[15px] leading-relaxed text-muted">
+                <a
+                  href={`/turno/${token}/calendario.ics`}
+                  className="inline-flex items-center gap-2 rounded-lg bg-ink px-6 py-3.5 text-sm font-semibold tracking-[0.06em] text-bg uppercase transition-colors duration-150 ease-out hover:bg-accent active:bg-accent/90"
+                >
+                  <IconoDescarga className="size-4" />
+                  Agregar al calendario
+                </a>
+                <p className="mt-3 text-sm text-muted">
+                  Te avisa dos horas antes.
+                </p>
+
+                <p className="mt-6 text-[15px] leading-relaxed text-muted">
                   Guardá este link: es el que te deja ver o cancelar el turno.
                   Te lo mandamos también por mail.
                 </p>

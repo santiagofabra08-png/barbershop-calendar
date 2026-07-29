@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Poste de barbero">
+  <!--
+    El poste de barbero, dibujado. No es el logo de ninguna barbería en
+    particular: el rojo, el blanco y el azul en diagonal son del oficio, no de
+    un cliente. Así sirve para todas las barberías de la plataforma.
+  -->
+  <rect width="64" height="64" rx="14" fill="#111111"/>
+
+  <defs>
+    <clipPath id="cilindro">
+      <rect x="21" y="17" width="22" height="30" rx="3"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#cilindro)">
+    <rect x="21" y="17" width="22" height="30" fill="#F5F0E8"/>
+    <g stroke-width="7" stroke-linecap="square">
+      <path d="M6 52 40 6M24 52 58 6" stroke="#D0021B"/>
+      <path d="M15 52 49 6M33 52 67 6" stroke="#1D3FA3"/>
+    </g>
+  </g>
+
+  <rect x="21" y="17" width="22" height="30" rx="3" fill="none" stroke="#111111" stroke-width="2.5"/>
+  <rect x="17" y="12" width="30" height="6" rx="3" fill="#F5F0E8"/>
+  <rect x="17" y="46" width="30" height="6" rx="3" fill="#F5F0E8"/>
+</svg>
