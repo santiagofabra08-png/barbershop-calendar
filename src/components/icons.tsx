@@ -72,6 +72,24 @@ export function IconoUbicacion({ className = "size-4" }: Props) {
   );
 }
 
+/**
+ * Cualquiera del equipo.
+ *
+ * Dos personas, una apenas detrás de la otra: no es "nadie en particular",
+ * es "cualquiera de estos". La de adelante va entera y la de atrás asomando,
+ * que es lo que hace que se lea como grupo y no como una figura sola.
+ */
+export function IconoGrupo({ className = "size-4" }: Props) {
+  return (
+    <svg {...svg} className={`${base} ${className}`}>
+      <circle cx="6.3" cy="5.6" r="2.5" />
+      <path d="M1.9 13.6a4.4 4.4 0 0 1 8.8 0" />
+      <path d="M10.6 3.5a2.5 2.5 0 0 1 1.3 4.5" />
+      <path d="M12.4 9.7a4.4 4.4 0 0 1 1.7 3.5" />
+    </svg>
+  );
+}
+
 /** Agregar el turno al calendario del teléfono. */
 export function IconoDescarga({ className = "size-4" }: Props) {
   return (

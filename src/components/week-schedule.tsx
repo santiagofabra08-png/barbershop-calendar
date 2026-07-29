@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 
-import { IconoReloj, IconoTijera } from "@/components/icons";
+import { IconoGrupo, IconoReloj, IconoTijera } from "@/components/icons";
 import type { Agenda, Day } from "@/lib/schedule";
 import { formatDuration, formatPrice, mergeAgendas } from "@/lib/schedule";
 import type { Service, Tenant } from "@/lib/tenant/types";
@@ -365,7 +365,11 @@ function TarjetaBarbero({
           activo ? "bg-bg/15 text-bg" : "bg-ink/[0.07] text-ink",
         ].join(" ")}
       >
-        {sinInicial ? "·" : nombre.charAt(0).toUpperCase()}
+        {sinInicial ? (
+          <IconoGrupo className="size-4 opacity-80" />
+        ) : (
+          nombre.charAt(0).toUpperCase()
+        )}
       </span>
       {nombre}
     </button>
