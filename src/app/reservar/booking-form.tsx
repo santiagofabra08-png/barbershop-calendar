@@ -128,7 +128,7 @@ export function BookingForm({
                   }
                 }}
                 className={[
-                  "mt-2 w-full rounded-lg border bg-ink/[0.03] px-4 py-3.5 text-[15px] text-ink",
+                  "mt-2 w-full rounded-lg border bg-ink/[0.03] px-4 py-3.5 text-ink",
                   "transition-[background-color,border-color] duration-150 ease-out",
                   "placeholder:text-ink/30 focus:bg-surface focus:outline-none",
                   error

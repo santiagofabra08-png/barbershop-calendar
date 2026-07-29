@@ -257,3 +257,24 @@ body {
   outline: 2px solid var(--tenant-ink);
   outline-offset: 3px;
 }
+
+/*
+  En el celular, tocar dos veces seguidas hace zoom. Elegir un horario son
+  varios toques rápidos en botones chicos y pegados, así que el navegador lo
+  interpretaba como doble toque y hacía zoom en vez de responder.
+
+  `manipulation` deja el gesto de pellizcar para hacer zoom, que es el que la
+  gente usa a propósito, y descarta el doble toque. De paso saca los 300 ms
+  que el navegador esperaba para distinguirlos.
+*/
+:where(a, button, [role="button"], label, summary) {
+  touch-action: manipulation;
+}
+
+/*
+  Safari en iPhone hace zoom al enfocar un campo con letra menor a 16px, y no
+  vuelve atrás solo. Los campos van en 16px exactos por eso, no por estética.
+*/
+:where(input, select, textarea) {
+  font-size: 16px;
+}
