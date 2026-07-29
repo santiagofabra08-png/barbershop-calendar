@@ -60,3 +60,56 @@ Apply the `frontend-design` skill, plus:
 - Never hardcode a tenant, domain, timezone, or brand color.
 - Never use `transition-all` or the Tailwind CDN.
 - When a scheduling edge case is unclear, ask instead of guessing.
+
+---
+
+# Cómo está construido
+
+Lo de arriba son las reglas. Lo de acá abajo es el estado real del proyecto,
+para no tener que reconstruirlo leyendo todo.
+
+## Dónde está cada cosa
+- `src/lib/schedule.ts` — cálculo de la grilla de horarios. Funciones puras,
+  sin base ni reloj: `now` entra como argumento para poder probarlas.
+- `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
+- `src/lib/tenant/` — `resolve` saca la barbería del subdominio, `load`
+  traduce las filas de Supabase a la forma que usa la pantalla.
+- `src/components/` — piezas compartidas de la página pública.
+- `supabase/migrations/` — el esquema, en SQL versionado y numerado.
+- `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
+
+## Convenciones que ya están tomadas
+- **El público nunca toca `appointments`.** Ni para leer: esa tabla tiene
+  teléfonos y mails. Todo entra y sale por funciones `SECURITY DEFINER`
+  (`crear_reserva`, `horarios_ocupados`, `turno_por_token`, `cancelar_turno`).
+- **Los horarios semanales se guardan en hora local** (`time`), porque "abro a
+  las 14" no cambia con el horario de verano. UTC es solo para instantes
+  concretos (`appointments.starts_at`).
+- **Validación en tres capas**: el formulario avisa, el servidor revalida, y
+  Postgres tiene los CHECK como última línea. No es redundancia: cada capa
+  tapa un agujero distinto.
+- **Los teléfonos se guardan normalizados** como `+598XXXXXXXX`, que es lo que
+  necesita el link de WhatsApp.
+- **Precio y duración se congelan en cada turno**: si el precio sube, los
+  turnos viejos conservan lo pactado.
+- **Un barbero no se borra, se desactiva** (`is_active = false`).
+
+## Tests
+`npm test` corre `node --test` sobre `src/**/*.test.ts`. Node 24 ejecuta
+TypeScript directo, así que no hay ninguna dependencia de testing instalada.
+Los imports relativos dentro de los tests llevan la extensión `.ts`.
+
+Lo que está cubierto: generación de la grilla, ventana de reserva, agendas de
+varios barberos, conversión de hora local a UTC y validación de datos.
+
+## Migraciones
+Se escriben a mano en `supabase/migrations/` con nombre `<timestamp>_<qué>.sql`
+y se aplican pegándolas en el SQL Editor de Supabase. Van siempre envueltas en
+`begin; … commit;` para que un error no deje el esquema a medias.
+
+## Sobre el diseño
+La guía de marca de Tropi describe un local "clásico-vintage" y pide bordes
+finos, sin sombras y radios chicos. Eso se apartó a pedido del dueño: la página
+usa superficies suaves, radios de 8 a 14px y una sombra mínima. Se mantienen
+intactos la paleta, la tipografía y el poste. Si alguna vez se quiere volver al
+look clásico, son esas tres cosas y nada más.
