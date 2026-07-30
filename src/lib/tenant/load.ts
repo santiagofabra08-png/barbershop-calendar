@@ -84,20 +84,32 @@ function aTenant(fila: FilaTenant): Tenant {
   };
 }
 
+/**
+ * Solo la barbería: marca, zona horaria y políticas de agenda.
+ *
+ * El panel la necesita sin el resto —tiene su propia idea de qué es un barbero,
+ * porque ve el mail y cómo cobra, que el público no ve.
+ */
+export async function cargarTenant(slug: string): Promise<Tenant | null> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("tenants")
+    .select(CAMPOS_TENANT)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return data ? aTenant(data as unknown as FilaTenant) : null;
+}
+
 /** Todo lo que la página pública necesita, en una sola ida a la base. */
 export async function cargarBarberia(
   slug: string,
 ): Promise<BarberiaCompleta | null> {
   const sb = await createClient();
 
-  const { data: filaTenant } = await sb
-    .from("tenants")
-    .select(CAMPOS_TENANT)
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (!filaTenant) return null;
-  const tenant = aTenant(filaTenant as unknown as FilaTenant);
+  const tenant = await cargarTenant(slug);
+  if (!tenant) return null;
 
   const [{ data: barbers }, { data: services }, { data: hours }] =
     await Promise.all([

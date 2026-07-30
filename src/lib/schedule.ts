@@ -451,3 +451,27 @@ export function formatDuration(minutes: number): string {
   const m = minutes % 60;
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
+
+/** "2026-07-30" → "Jueves 30 de julio". */
+export function formatDateLong(date: string): string {
+  const [, m, d] = date.split("-").map(Number);
+  return `${DIAS[weekdayOf(date)]} ${d} de ${MESES[m - 1]}`;
+}
+
+/** "2026-07-27" y "2026-08-02" → "27 de julio al 2 de agosto". */
+export function formatDateRange(from: string, to: string): string {
+  const [, mDesde, dDesde] = from.split("-").map(Number);
+  const [, mHasta, dHasta] = to.split("-").map(Number);
+
+  // Dentro del mismo mes no hace falta repetirlo: "27 al 31 de julio".
+  if (mDesde === mHasta) {
+    return `${dDesde} al ${dHasta} de ${MESES[mHasta - 1]}`;
+  }
+  return `${dDesde} de ${MESES[mDesde - 1]} al ${dHasta} de ${MESES[mHasta - 1]}`;
+}
+
+/** Suma días a una fecha local sin pasar por la zona horaria. */
+export function addDays(date: string, days: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
