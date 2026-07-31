@@ -1,3 +1,4 @@
+import { borrarBloqueo, marcarAsistencia } from "@/app/panel/actions";
 import { IconoTijera } from "@/components/icons";
 import { armarTira } from "@/lib/panel/day-strip";
 import type { TurnoDelPanel } from "@/lib/panel/data";
@@ -21,12 +22,15 @@ export function Ledger({
   turnos,
   tenant,
   ahora,
+  diaPasado,
   nombrePorBarbero,
 }: {
   turnos: TurnoDelPanel[];
   tenant: Tenant;
   /** "HH:MM" si el día que se mira es hoy; null si no. */
   ahora: string | null;
+  /** El día que se mira ya terminó. */
+  diaPasado: boolean;
   /** Con más de un barbero a la vista, cada turno dice de quién es. */
   nombrePorBarbero: Map<string, string> | null;
 }) {
@@ -85,6 +89,13 @@ export function Ledger({
                 turno={a.turno}
                 tenant={tenant}
                 nombrePorBarbero={nombrePorBarbero}
+                // Un turno que todavía no empezó no puede haber faltado: el
+                // botón aparece recién cuando la pregunta tiene sentido.
+                yaEmpezo={
+                  diaPasado ||
+                  (ahora !== null &&
+                    enMinutos(a.turno.startLocal) <= enMinutos(ahora))
+                }
               />
             </div>
           </li>
@@ -98,22 +109,37 @@ function Turno({
   turno,
   tenant,
   nombrePorBarbero,
+  yaEmpezo,
 }: {
   turno: TurnoDelPanel;
   tenant: Tenant;
   nombrePorBarbero: Map<string, string> | null;
+  yaEmpezo: boolean;
 }) {
   const barbero = nombrePorBarbero?.get(turno.barberId) ?? null;
 
   if (turno.kind === "block") {
     return (
-      <div className="rounded-lg border border-dashed border-ink/20 px-4 py-3">
-        <p className="text-sm font-medium text-muted">
-          {turno.reason ?? "Bloqueado"}
-        </p>
-        {barbero ? (
-          <p className="mt-0.5 text-xs text-muted">{barbero}</p>
-        ) : null}
+      <div className="flex items-start gap-3 rounded-lg border border-dashed border-ink/20 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-muted">
+            {turno.reason ?? "Bloqueado"}
+          </p>
+          {barbero ? (
+            <p className="mt-0.5 text-xs text-muted">{barbero}</p>
+          ) : null}
+        </div>
+
+        <form action={borrarBloqueo}>
+          <input type="hidden" name="id" value={turno.id} />
+          <button
+            type="submit"
+            aria-label="Quitar el bloqueo"
+            className="flex size-6 items-center justify-center rounded-md text-muted transition-colors duration-150 ease-out hover:bg-ink/10 hover:text-ink active:bg-ink/15"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </form>
       </div>
     );
   }
@@ -162,6 +188,19 @@ function Turno({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {falto ? <Chip>No vino</Chip> : null}
         {turno.source === "panel" ? <Chip>Cargado a mano</Chip> : null}
+
+        {yaEmpezo ? (
+          <form action={marcarAsistencia}>
+            <input type="hidden" name="id" value={turno.id} />
+            <input type="hidden" name="vino" value={falto ? "1" : "0"} />
+            <button
+              type="submit"
+              className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"
+            >
+              {falto ? "Sí vino" : "No vino"}
+            </button>
+          </form>
+        ) : null}
 
         {turno.clientPhone ? (
           <a

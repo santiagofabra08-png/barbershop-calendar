@@ -137,6 +137,56 @@ export async function cargarTurnos(
   return (data ?? []).map((f) => aTurno(f as unknown as FilaTurno, tenant.timezone));
 }
 
+/** Los servicios que se pueden cargar a mano, con su precio de hoy. */
+export async function cargarServicios(tenant: Tenant) {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("services")
+    .select("id, name, duration_minutes, price_cents")
+    .eq("tenant_id", tenant.id)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  return (data ?? []).map((s) => ({
+    id: s.id as string,
+    name: s.name as string,
+    durationMinutes: s.duration_minutes as number,
+    priceCents: s.price_cents as number,
+  }));
+}
+
+export type TramoDeHorario = {
+  id: string;
+  weekday: number;
+  startsAt: string; // "HH:MM"
+  endsAt: string;
+};
+
+/** El horario habitual de un barbero, tramo por tramo. */
+export async function cargarHorarios(
+  tenant: Tenant,
+  barberId: string,
+): Promise<TramoDeHorario[]> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("working_hours")
+    .select("id, weekday, starts_at, ends_at")
+    .eq("tenant_id", tenant.id)
+    .eq("barber_id", barberId)
+    .order("weekday")
+    .order("starts_at");
+
+  return (data ?? []).map((f) => ({
+    id: f.id as string,
+    weekday: f.weekday as number,
+    // Postgres devuelve "14:00:00"; la pantalla usa "14:00".
+    startsAt: (f.starts_at as string).slice(0, 5),
+    endsAt: (f.ends_at as string).slice(0, 5),
+  }));
+}
+
 /**
  * El equipo.
  *

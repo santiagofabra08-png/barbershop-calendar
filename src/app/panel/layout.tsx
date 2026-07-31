@@ -32,6 +32,10 @@ export default async function PanelLayout({
   const secciones: Seccion[] = [
     { href: "/panel", label: "Agenda" },
     { href: "/panel/semana", label: "Semana" },
+    { href: "/panel/horarios", label: "Horarios" },
+    // El equipo lo maneja el dueño. Para un barbero la sección no existe: no
+    // está escondida, no está.
+    ...(esDuenio ? [{ href: "/panel/equipo", label: "Equipo" }] : []),
   ];
 
   return (

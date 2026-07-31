@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Ledger } from "@/app/panel/ledger";
-import { cargarEquipo, cargarTurnos } from "@/lib/panel/data";
+import { QuickAdd } from "@/app/panel/quick-add";
+import { cargarEquipo, cargarServicios, cargarTurnos } from "@/lib/panel/data";
 import { sesionDelPanel } from "@/lib/panel/session";
 import {
   addDays,
@@ -23,15 +24,16 @@ export default async function AgendaPage({
   const sesion = await sesionDelPanel();
   if (!sesion) redirect("/entrar");
 
-  const { tenant } = sesion;
+  const { tenant, barbero, esDuenio } = sesion;
   const hoy = nowInTimeZone(tenant.timezone);
 
   const { d } = await searchParams;
   const fecha = d && FECHA.test(d) ? d : hoy.date;
 
-  const [turnos, equipo] = await Promise.all([
+  const [turnos, equipo, servicios] = await Promise.all([
     cargarTurnos(tenant, fecha, fecha),
     cargarEquipo(tenant),
+    cargarServicios(tenant),
   ]);
 
   // Los cancelados no se dibujan: liberaron el horario, así que el hueco que
@@ -93,8 +95,26 @@ export default async function AgendaPage({
         turnos={delDia}
         tenant={tenant}
         ahora={fecha === hoy.date ? hoy.time : null}
+        diaPasado={fecha < hoy.date}
         nombrePorBarbero={nombrePorBarbero}
       />
+
+      {servicios.length > 0 ? (
+        <QuickAdd
+          fecha={fecha}
+          servicios={servicios}
+          moneda={tenant.currency}
+          // El dueño puede cargar en la agenda de cualquiera; un barbero, solo
+          // en la suya, así que ni siquiera ve el selector.
+          barberos={
+            esDuenio
+              ? equipo
+                  .filter((b) => b.isActive && b.acceptsBookings)
+                  .map((b) => ({ id: b.id, displayName: b.displayName }))
+              : [{ id: barbero.id, displayName: barbero.displayName }]
+          }
+        />
+      ) : null}
     </>
   );
 }
