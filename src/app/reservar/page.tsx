@@ -26,9 +26,19 @@ export const metadata: Metadata = {
 export default async function PaginaDeConfirmacion({
   searchParams,
 }: {
-  searchParams: Promise<{ fecha?: string; hora?: string; barbero?: string }>;
+  searchParams: Promise<{
+    fecha?: string;
+    hora?: string;
+    barbero?: string;
+    servicio?: string;
+  }>;
 }) {
-  const { fecha = "", hora = "", barbero = "cualquiera" } = await searchParams;
+  const {
+    fecha = "",
+    hora = "",
+    barbero = "cualquiera",
+    servicio = "",
+  } = await searchParams;
 
   const slug = await currentTenantSlug();
   if (!slug) notFound();
@@ -38,7 +48,11 @@ export default async function PaginaDeConfirmacion({
 
   const { tenant, barbers, services, workingHours } = data;
   const activos = barbers.filter((b) => b.acceptsBookings);
-  const service = services[0];
+
+  // El servicio llega por la URL. Si no viene o ya no existe se usa el primero,
+  // que es lo que hacía esta página cuando había uno solo: así un link viejo
+  // sigue andando en vez de mostrar un error.
+  const service = services.find((s) => s.id === servicio) ?? services[0];
   if (activos.length === 0 || !service) notFound();
 
   // El horario que llega por la URL se vuelve a calcular acá: que exista en la
@@ -82,7 +96,7 @@ export default async function PaginaDeConfirmacion({
               quedado muy cerca de la hora. Elegí otro y seguimos.
             </p>
             <Link
-              href="/"
+              href={`/?servicio=${service.id}`}
               className="mt-6 inline-block rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90"
             >
               Ver los horarios
@@ -114,7 +128,7 @@ export default async function PaginaDeConfirmacion({
               ) : null}
 
               <Link
-                href="/"
+                href={`/?servicio=${service.id}`}
                 className="mt-4 inline-block text-sm text-muted underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-ink"
               >
                 Cambiar horario

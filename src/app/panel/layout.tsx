@@ -33,9 +33,14 @@ export default async function PanelLayout({
     { href: "/panel", label: "Agenda" },
     { href: "/panel/semana", label: "Semana" },
     { href: "/panel/horarios", label: "Horarios" },
-    // El equipo lo maneja el dueño. Para un barbero la sección no existe: no
-    // está escondida, no está.
-    ...(esDuenio ? [{ href: "/panel/equipo", label: "Equipo" }] : []),
+    // Equipo y servicios los maneja el dueño. Para un barbero esas secciones
+    // no existen: no están escondidas, no están.
+    ...(esDuenio
+      ? [
+          { href: "/panel/servicios", label: "Servicios" },
+          { href: "/panel/equipo", label: "Equipo" },
+        ]
+      : []),
   ];
 
   return (

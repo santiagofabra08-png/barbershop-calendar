@@ -6,17 +6,7 @@ import {
   agregarTramo,
   type EstadoHorarios,
 } from "@/app/panel/horarios/actions";
-
-/** Lunes primero: la semana de trabajo no empieza el domingo. */
-export const DIAS_ORDENADOS = [
-  { weekday: 1, corto: "Lu", largo: "Lunes" },
-  { weekday: 2, corto: "Ma", largo: "Martes" },
-  { weekday: 3, corto: "Mi", largo: "Miércoles" },
-  { weekday: 4, corto: "Ju", largo: "Jueves" },
-  { weekday: 5, corto: "Vi", largo: "Viernes" },
-  { weekday: 6, corto: "Sá", largo: "Sábado" },
-  { weekday: 0, corto: "Do", largo: "Domingo" },
-];
+import { DIAS_ORDENADOS } from "@/lib/panel/dias";
 
 export function AddForm({ barberId }: { barberId: string }) {
   const [estado, accion, pendiente] = useActionState<EstadoHorarios, FormData>(

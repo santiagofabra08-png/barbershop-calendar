@@ -21,6 +21,14 @@ const MEMORIA = "barbero-preferido";
 /** El único que escribe la preferencia es esta pantalla: no hay a qué suscribirse. */
 const sinSuscripcion = () => () => {};
 
+/**
+ * Una sola instancia para el caso sin agendas.
+ *
+ * Escrito como `?? []` sería un array nuevo en cada render, y el `useMemo` que
+ * depende de él se recalcularía siempre aunque no haya cambiado nada.
+ */
+const SIN_AGENDAS: Agenda[] = [];
+
 function leerPreferido(slug: string): string | null {
   try {
     return window.localStorage.getItem(`${MEMORIA}:${slug}`);
@@ -29,30 +37,57 @@ function leerPreferido(slug: string): string | null {
   }
 }
 
+/** Un servicio con la grilla de horarios que le corresponde. */
+export type OpcionDeServicio = { service: Service; agendas: Agenda[] };
+
 /**
- * Elegir turno en tres pasos: barbero → día → hora.
+ * Elegir turno paso a paso: servicio → barbero → día → hora.
  *
- * Los tres están siempre a la vista, numerados. Un acordeón que abre y cierra
- * escondería lo que ya elegiste justo cuando querés revisarlo, y en un flujo
- * de tres pasos no hay nada que ahorrar.
+ * Están todos a la vista, numerados. Un acordeón que abre y cierra escondería
+ * lo que ya elegiste justo cuando querés revisarlo, y en un flujo tan corto no
+ * hay nada que ahorrar.
  *
- * El paso del barbero se muestra incluso con uno solo: saber quién te va a
- * atender es parte de decidir, no un trámite.
+ * El paso del servicio aparece solo si hay más de uno: una barbería que hace
+ * una sola cosa no tiene por qué preguntar cuál. El del barbero se muestra
+ * siempre, incluso con uno solo, porque saber quién te va a atender es parte de
+ * decidir y no un trámite.
  */
 export function WeekSchedule({
-  agendas,
-  service,
+  opciones,
   tenant,
+  servicioInicial,
 }: {
-  agendas: Agenda[];
-  service: Service;
+  opciones: OpcionDeServicio[];
   tenant: Tenant;
+  /** Con cuál llegar elegido. Sirve para volver desde el formulario. */
+  servicioInicial?: string;
 }) {
-  const variosBarberos = agendas.length > 1;
+  const variosServicios = opciones.length > 1;
 
+  const [servicioId, setServicioId] = useState(
+    opciones.find((o) => o.service.id === servicioInicial)?.service.id ??
+      opciones[0]?.service.id ??
+      "",
+  );
   const [elegidoAMano, setElegidoAMano] = useState<string | null>(null);
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
+
+  const opcion = opciones.find((o) => o.service.id === servicioId) ?? opciones[0];
+  const service = opcion?.service;
+  const agendas = opcion?.agendas ?? SIN_AGENDAS;
+  const variosBarberos = agendas.length > 1;
+
+  // Con los pasos numerados, sacar uno tiene que correr los demás: nadie
+  // entiende una lista que va 2, 3, 4.
+  const paso = (n: number) => (variosServicios ? n : n - 1);
+
+  const elegirServicio = (id: string) => {
+    setServicioId(id);
+    // La hora deja de valer: cada servicio tiene su propia grilla, y las 14:20
+    // de la barba no existen en la del corte.
+    setHora(null);
+  };
 
   // Quien ya se cortó con alguien suele querer volver con el mismo.
   //
@@ -110,7 +145,7 @@ export function WeekSchedule({
       ? null
       : agendas.find((a) => a.barber.id === barberoId)?.barber.displayName;
 
-  if (agendas.length === 0) {
+  if (!service || agendas.length === 0) {
     return (
       <div className="card px-6 py-12 text-center">
         <p className="text-sm text-muted">
@@ -123,8 +158,46 @@ export function WeekSchedule({
   return (
     <>
       <div className="card overflow-hidden">
-        {/* ---- ① Barbero ---- */}
-        <Paso numero={1} titulo="Barbero">
+        {/* ---- ① Servicio ---- */}
+        {variosServicios ? (
+          <Paso numero={1} titulo="Servicio">
+            <ul className="space-y-1.5">
+              {opciones.map(({ service: s }) => {
+                const activo = s.id === service.id;
+                return (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      aria-pressed={activo}
+                      onClick={() => elegirServicio(s.id)}
+                      className={[
+                        "flex w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-xl px-4 py-3 text-left",
+                        "transition-[background-color,color,box-shadow] duration-150 ease-out",
+                        activo
+                          ? "bg-ink text-bg shadow-[0_6px_16px_-8px] shadow-ink/60"
+                          : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
+                      ].join(" ")}
+                    >
+                      <span className="text-sm font-medium">{s.name}</span>
+                      <span
+                        className={`tabular text-sm ${activo ? "opacity-75" : "text-muted"}`}
+                      >
+                        {formatPrice(s.priceCents, tenant.currency)}
+                        <span className="opacity-60">
+                          {" · "}
+                          {formatDuration(s.durationMinutes)}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </Paso>
+        ) : null}
+
+        {/* ---- ② Barbero ---- */}
+        <Paso numero={paso(2)} titulo="Barbero">
           <ul className="flex flex-wrap gap-2.5">
             {agendas.map(({ barber }) => (
               <li key={barber.id}>
@@ -148,8 +221,8 @@ export function WeekSchedule({
           </ul>
         </Paso>
 
-        {/* ---- ② Día ---- */}
-        <Paso numero={2} titulo="Día">
+        {/* ---- ③ Día ---- */}
+        <Paso numero={paso(3)} titulo="Día">
           {days.length === 0 ? (
             <p className="text-sm text-muted">
               {nombreElegido} no tiene horarios esta semana.
@@ -206,9 +279,9 @@ export function WeekSchedule({
           )}
         </Paso>
 
-        {/* ---- ③ Hora ---- */}
+        {/* ---- ④ Hora ---- */}
         <Paso
-          numero={3}
+          numero={paso(4)}
           titulo="Hora"
           nota={
             diaActivo
@@ -221,7 +294,7 @@ export function WeekSchedule({
         >
           {diaActivo ? (
             <ul
-              key={`${barberoId}-${diaActivo.date}`}
+              key={`${service.id}-${barberoId}-${diaActivo.date}`}
               className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5"
             >
               {diaActivo.slots.map((slot, i) => {
@@ -270,6 +343,9 @@ export function WeekSchedule({
                 <span className="tabular">{slotElegido.time}</span>
               </p>
               <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+                {variosServicios ? (
+                  <span className="text-ink">{service.name}</span>
+                ) : null}
                 {nombreElegido ? (
                   <span className="inline-flex items-center gap-1.5">
                     <IconoTijera className="size-3.5 opacity-70" />
@@ -287,7 +363,7 @@ export function WeekSchedule({
             </div>
 
             <Link
-              href={`/reservar?fecha=${diaActivo.date}&hora=${slotElegido.time}&barbero=${barberoId}`}
+              href={`/reservar?fecha=${diaActivo.date}&hora=${slotElegido.time}&barbero=${barberoId}&servicio=${service.id}`}
               className="w-full rounded-lg bg-accent px-7 py-3.5 text-center text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 sm:w-auto"
             >
               Continuar

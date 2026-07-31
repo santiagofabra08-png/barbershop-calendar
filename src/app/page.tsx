@@ -33,7 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function PaginaDeReservas() {
+export default async function PaginaDeReservas({
+  searchParams,
+}: {
+  searchParams: Promise<{ servicio?: string }>;
+}) {
+  const { servicio } = await searchParams;
   const slug = await currentTenantSlug();
   if (!slug) notFound();
 
@@ -42,21 +47,33 @@ export default async function PaginaDeReservas() {
 
   const { tenant, barbers, services, workingHours } = data;
   const activos = barbers.filter((b) => b.acceptsBookings);
-  const service = services[0];
 
   const { date: hoy, time: ahora } = nowInTimeZone(tenant.timezone);
   const fin = bookingWindowEnd(tenant, hoy, ahora);
   const ocupados = await cargarOcupados(slug, tenant.timezone, hoy, fin.date);
 
-  const agendas = service
-    ? buildAgendas({
-        tenant,
-        service,
-        barbers: activos,
-        workingHours,
-        busy: ocupados,
-      })
-    : [];
+  // Una grilla por servicio, calculadas todas de una.
+  //
+  // Cada servicio arma su propia grilla porque la duración la define: un corte
+  // de 40 minutos y una barba de 20 no caen en las mismas horas. Se calculan
+  // todas acá, sobre los mismos ratos ocupados, para que cambiar de servicio en
+  // la pantalla sea instantáneo en vez de otra ida al servidor. Son funciones
+  // puras sobre datos que ya están en memoria: sale casi gratis.
+  const opciones = services.map((service) => ({
+    service,
+    agendas: buildAgendas({
+      tenant,
+      service,
+      barbers: activos,
+      workingHours,
+      busy: ocupados,
+    }),
+  }));
+
+  // La franja oscura muestra el servicio solo cuando hay uno: con varios, cuál
+  // es lo decide el cliente más abajo, y adelantarlo sería mentir.
+  const service = services.length === 1 ? services[0] : null;
+  const hayAgenda = opciones.length > 0 && activos.length > 0;
 
   return (
     <>
@@ -83,7 +100,7 @@ export default async function PaginaDeReservas() {
       </ShopHeader>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-7 pb-16 sm:px-8">
-        {service && activos.length > 0 ? (
+        {hayAgenda ? (
           <>
             <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-display text-2xl leading-tight font-bold sm:text-3xl">
@@ -100,9 +117,9 @@ export default async function PaginaDeReservas() {
             </div>
 
             <WeekSchedule
-              agendas={agendas}
-              service={service}
+              opciones={opciones}
               tenant={tenant}
+              servicioInicial={servicio}
             />
           </>
         ) : (

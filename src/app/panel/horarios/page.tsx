@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { borrarTramo } from "@/app/panel/horarios/actions";
-import { AddForm, DIAS_ORDENADOS } from "@/app/panel/horarios/add-form";
+import { AddForm } from "@/app/panel/horarios/add-form";
 import { cargarEquipo, cargarHorarios } from "@/lib/panel/data";
+import { DIAS_ORDENADOS } from "@/lib/panel/dias";
 import { sesionDelPanel } from "@/lib/panel/session";
 
 export const dynamic = "force-dynamic";

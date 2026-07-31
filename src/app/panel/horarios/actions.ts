@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { NOMBRE_DIA } from "@/lib/panel/dias";
 import { sesionDelPanel } from "@/lib/panel/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -106,13 +107,3 @@ export async function borrarTramo(formData: FormData) {
   revalidatePath("/panel/horarios");
   revalidatePath("/panel");
 }
-
-const NOMBRE_DIA = [
-  "domingo",
-  "lunes",
-  "martes",
-  "miércoles",
-  "jueves",
-  "viernes",
-  "sábado",
-];

@@ -156,6 +156,39 @@ export async function cargarServicios(tenant: Tenant) {
   }));
 }
 
+export type ServicioDelPanel = {
+  id: string;
+  name: string;
+  description: string | null;
+  durationMinutes: number;
+  priceCents: number;
+  isActive: boolean;
+  sortOrder: number;
+};
+
+/** Todos los servicios, también los que están fuera de la página. */
+export async function cargarServiciosDelPanel(
+  tenant: Tenant,
+): Promise<ServicioDelPanel[]> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("services")
+    .select("id, name, description, duration_minutes, price_cents, is_active, sort_order")
+    .eq("tenant_id", tenant.id)
+    .order("sort_order");
+
+  return (data ?? []).map((s) => ({
+    id: s.id as string,
+    name: s.name as string,
+    description: (s.description as string | null) ?? null,
+    durationMinutes: s.duration_minutes as number,
+    priceCents: s.price_cents as number,
+    isActive: s.is_active as boolean,
+    sortOrder: s.sort_order as number,
+  }));
+}
+
 export type TramoDeHorario = {
   id: string;
   weekday: number;
