@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type Seccion = { href: string; label: string };
+export type Seccion = {
+  href: string;
+  label: string;
+  /** Otras rutas que dejan esta sección marcada como la actual. */
+  matches?: string[];
+};
 
 /**
  * Las secciones del panel.
@@ -20,9 +25,14 @@ export function PanelNav({
   variante: "barra" | "linea";
 }) {
   const pathname = usePathname();
-  // "/panel/semana" activa Semana, y "/panel" solo activa Agenda.
-  const activo = (href: string) =>
+
+  // "/panel/semana" activa Semana, y "/panel" solo activa Agenda —si no, la
+  // agenda quedaría marcada estando en cualquier otra pantalla.
+  const cubre = (href: string) =>
     href === "/panel" ? pathname === "/panel" : pathname.startsWith(href);
+
+  const activo = (s: Seccion) =>
+    cubre(s.href) || (s.matches?.some(cubre) ?? false);
 
   if (variante === "linea") {
     return (
@@ -31,10 +41,10 @@ export function PanelNav({
           <Link
             key={s.href}
             href={s.href}
-            aria-current={activo(s.href) ? "page" : undefined}
+            aria-current={activo(s) ? "page" : undefined}
             className={[
               "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150 ease-out",
-              activo(s.href)
+              activo(s)
                 ? "bg-ink/[0.07] text-ink"
                 : "text-muted hover:bg-ink/[0.04] hover:text-ink active:bg-ink/[0.08]",
             ].join(" ")}
@@ -56,12 +66,12 @@ export function PanelNav({
           <li key={s.href}>
             <Link
               href={s.href}
-              aria-current={activo(s.href) ? "page" : undefined}
+              aria-current={activo(s) ? "page" : undefined}
               className={[
                 "flex flex-col items-center gap-1 px-2 pt-3 text-xs font-semibold tracking-[0.06em] uppercase",
                 "pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
                 "transition-colors duration-150 ease-out active:bg-ink/[0.05]",
-                activo(s.href) ? "text-ink" : "text-muted",
+                activo(s) ? "text-ink" : "text-muted",
               ].join(" ")}
             >
               {/* La marca de la sección activa: una barra corta arriba del
@@ -70,7 +80,7 @@ export function PanelNav({
                 aria-hidden="true"
                 className={[
                   "h-0.5 w-6 rounded-full transition-colors duration-150 ease-out",
-                  activo(s.href) ? "bg-accent" : "bg-transparent",
+                  activo(s) ? "bg-accent" : "bg-transparent",
                 ].join(" ")}
               />
               {s.label}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { salir } from "@/app/entrar/actions";
@@ -29,19 +30,38 @@ export default async function PanelLayout({
 
   const { tenant, barbero, esDuenio } = sesion;
 
-  const secciones: Seccion[] = [
+  // Lo que se usa todos los días.
+  const trabajo: Seccion[] = [
     { href: "/panel", label: "Agenda" },
     { href: "/panel/semana", label: "Semana" },
     { href: "/panel/horarios", label: "Horarios" },
-    // Equipo y servicios los maneja el dueño. Para un barbero esas secciones
-    // no existen: no están escondidas, no están.
-    ...(esDuenio
-      ? [
-          { href: "/panel/servicios", label: "Servicios" },
-          { href: "/panel/equipo", label: "Equipo" },
-        ]
-      : []),
   ];
+
+  // Lo que se configura una vez y casi no se toca. Solo el dueño: para un
+  // barbero estas secciones no están escondidas, no existen.
+  const administracion: Seccion[] = esDuenio
+    ? [
+        { href: "/panel/servicios", label: "Servicios" },
+        { href: "/panel/equipo", label: "Equipo" },
+        { href: "/panel/ajustes", label: "Ajustes" },
+      ]
+    : [];
+
+  // En pantalla grande entran todas. En el celular no: seis nombres en una
+  // barra dejan a cada uno con un sexto de pantalla, y "Servicios" no entra.
+  // Así que ahí las tres de administración se pliegan detrás de una sola
+  // entrada, que además es la separación real: trabajo diario contra
+  // configuración.
+  const enBarra: Seccion[] = esDuenio
+    ? [
+        ...trabajo,
+        {
+          href: "/panel/local",
+          label: "Local",
+          matches: administracion.map((s) => s.href),
+        },
+      ]
+    : trabajo;
 
   return (
     <>
@@ -58,16 +78,25 @@ export default async function PanelLayout({
             </div>
 
             <div className="ml-auto flex items-center gap-3">
-              <PanelNav secciones={secciones} variante="linea" />
+              <PanelNav
+                secciones={[...trabajo, ...administracion]}
+                variante="linea"
+              />
 
-              <div className="text-right">
-                <p className="truncate text-sm font-medium text-ink">
+              {/* El nombre propio es la puerta a la cuenta propia. Va acá y no
+                  en la navegación: la navegación es del trabajo, esto es de
+                  quien lo hace. */}
+              <Link
+                href="/panel/cuenta"
+                className="rounded-lg px-2 py-1 text-right transition-colors duration-150 ease-out hover:bg-ink/[0.05]"
+              >
+                <span className="block truncate text-sm font-medium text-ink">
                   {barbero.displayName}
-                </p>
-                <p className="text-xs text-muted">
+                </span>
+                <span className="block text-xs text-muted">
                   {esDuenio ? "Dueño" : "Barbero"}
-                </p>
-              </div>
+                </span>
+              </Link>
 
               <form action={salir}>
                 <button
@@ -86,7 +115,7 @@ export default async function PanelLayout({
           {children}
         </main>
 
-        <PanelNav secciones={secciones} variante="barra" />
+        <PanelNav secciones={enBarra} variante="barra" />
       </div>
     </>
   );
