@@ -141,6 +141,92 @@ describe("alquiler de silla", () => {
     assert.equal(r.toBarbersCents, 70000);
     assert.equal(r.shopCents, 30000);
   });
+
+  test("lo que cambia de manos es la cuota, y va hacia la barbería", () => {
+    // Lo que corta es suyo y nunca pasa por la caja: el único movimiento real
+    // es la cuota, y para el otro lado que un sueldo.
+    const r = summarizePayroll(
+      soloUno({ model: "chair_rent", amountCents: 30000, period: "week" }),
+      [corte("b1"), corte("b1")],
+      "week",
+    );
+
+    assert.deepEqual(r.barbers[0].settlement, {
+      direction: "in",
+      cents: 30000,
+    });
+    assert.equal(r.dueInCents, 30000);
+    assert.equal(r.dueOutCents, 0);
+  });
+});
+
+describe("lo que hay que saldar", () => {
+  test("a comisión, se paga la comisión", () => {
+    const r = summarizePayroll(
+      soloUno({ model: "commission", percent: 50 }),
+      [corte("b1", { commissionPercent: 50 })],
+      "week",
+    );
+
+    assert.deepEqual(r.barbers[0].settlement, {
+      direction: "out",
+      cents: 25000,
+    });
+    assert.equal(r.dueOutCents, 25000);
+  });
+
+  test("a sueldo, se paga el sueldo aunque no haya cortado", () => {
+    const r = summarizePayroll(
+      soloUno({ model: "salary", amountCents: 80000, period: "week" }),
+      [],
+      "week",
+    );
+
+    assert.deepEqual(r.barbers[0].settlement, {
+      direction: "out",
+      cents: 80000,
+    });
+  });
+
+  test("el dueño no salda nada consigo mismo", () => {
+    const r = summarizePayroll(
+      soloUno({ model: "revenue_only" }),
+      [corte("b1")],
+      "week",
+    );
+
+    assert.equal(r.barbers[0].settlement, null);
+    assert.equal(r.dueOutCents, 0);
+    assert.equal(r.dueInCents, 0);
+  });
+
+  test("un fijo de otro período no se salda a medias", () => {
+    const r = summarizePayroll(
+      soloUno({ model: "salary", amountCents: 3000000, period: "month" }),
+      [corte("b1")],
+      "week",
+    );
+
+    assert.equal(r.barbers[0].settlement, null);
+    assert.equal(r.dueOutCents, 0);
+  });
+
+  test("los dos lados conviven en el mismo equipo", () => {
+    const r = summarizePayroll(
+      [
+        { id: "nico", pay: { model: "commission", percent: 50 } },
+        {
+          id: "sabados",
+          pay: { model: "chair_rent", amountCents: 20000, period: "week" },
+        },
+      ],
+      [corte("nico", { commissionPercent: 50 }), corte("sabados")],
+      "week",
+    );
+
+    assert.equal(r.dueOutCents, 25000);
+    assert.equal(r.dueInCents, 20000);
+  });
 });
 
 describe("solo recaudación", () => {

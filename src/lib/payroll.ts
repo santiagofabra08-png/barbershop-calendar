@@ -63,6 +63,18 @@ export type BarberSummary = {
   /** Lo que le queda al local de lo que produjo este barbero. */
   shopCents: number | null;
 
+  /**
+   * La plata que tiene que cambiar de manos entre la barbería y esta persona.
+   *
+   * No es lo mismo que `barberCents`. El que alquila la silla se lleva lo que
+   * cortó —esa plata nunca pasa por la caja de la barbería—, y lo único que
+   * cambia de manos es la cuota, que va para el otro lado. Por eso lleva
+   * dirección: 'out' es la barbería pagando, 'in' es la barbería cobrando.
+   *
+   * Null cuando no hay nada que saldar, que es el caso del dueño.
+   */
+  settlement: { direction: "out" | "in"; cents: number } | null;
+
   /** Por qué un número quedó en null, si quedó. */
   note: "fuera-del-periodo" | null;
 };
@@ -76,6 +88,11 @@ export type PayrollSummary = {
   lostCents: number;
   toBarbersCents: number;
   shopCents: number;
+
+  /** Lo que la barbería tiene que pagar en este período. */
+  dueOutCents: number;
+  /** Lo que la barbería tiene que cobrar: las cuotas de las sillas. */
+  dueInCents: number;
 
   /**
    * false cuando algún barbero tiene un fijo que no cae en este período —un
@@ -112,40 +129,52 @@ function split(
   producedCents: number,
   commissionCents: number,
   period: PayPeriod,
-): Pick<BarberSummary, "barberCents" | "shopCents" | "note"> {
+): Pick<BarberSummary, "barberCents" | "shopCents" | "settlement" | "note"> {
+  const fueraDelPeriodo = {
+    barberCents: null,
+    shopCents: null,
+    settlement: null,
+    note: "fuera-del-periodo" as const,
+  };
+
   switch (pay.model) {
     case "commission":
       return {
         barberCents: commissionCents,
         shopCents: producedCents - commissionCents,
+        settlement: { direction: "out", cents: commissionCents },
         note: null,
       };
 
     case "salary":
-      if (pay.period !== period) {
-        return { barberCents: null, shopCents: null, note: "fuera-del-periodo" };
-      }
+      if (pay.period !== period) return fueraDelPeriodo;
       return {
         barberCents: pay.amountCents,
         shopCents: producedCents - pay.amountCents,
+        settlement: { direction: "out", cents: pay.amountCents },
         note: null,
       };
 
     case "chair_rent":
-      if (pay.period !== period) {
-        return { barberCents: null, shopCents: null, note: "fuera-del-periodo" };
-      }
+      if (pay.period !== period) return fueraDelPeriodo;
       // Al revés que el sueldo: el barbero se queda con lo que cortó menos la
-      // cuota, y lo del local es la cuota y nada más.
+      // cuota, y lo del local es la cuota y nada más. Y lo que cambia de manos
+      // también va al revés: acá la barbería cobra, no paga.
       return {
         barberCents: producedCents - pay.amountCents,
         shopCents: pay.amountCents,
+        settlement: { direction: "in", cents: pay.amountCents },
         note: null,
       };
 
     case "revenue_only":
       // No hay reparto: no es que le toque cero, es que no aplica.
-      return { barberCents: null, shopCents: producedCents, note: null };
+      return {
+        barberCents: null,
+        shopCents: producedCents,
+        settlement: null,
+        note: null,
+      };
   }
 }
 
@@ -190,6 +219,12 @@ export function summarizePayroll(
     lostCents: suma((b) => b.lostCents),
     toBarbersCents: suma((b) => b.barberCents ?? 0),
     shopCents: suma((b) => b.shopCents ?? 0),
+    dueOutCents: suma((b) =>
+      b.settlement?.direction === "out" ? b.settlement.cents : 0,
+    ),
+    dueInCents: suma((b) =>
+      b.settlement?.direction === "in" ? b.settlement.cents : 0,
+    ),
     complete: resumen.every((b) => b.note === null),
   };
 }

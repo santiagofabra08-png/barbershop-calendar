@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { cargarEquipo, cargarTurnos } from "@/lib/panel/data";
+import { borrarPago } from "@/app/panel/semana/actions";
+import { PayForm } from "@/app/panel/semana/pay-form";
+import { cargarEquipo, cargarPagos, cargarTurnos } from "@/lib/panel/data";
 import {
   NOMBRE_MODELO,
   detalleDelPago,
@@ -41,17 +43,16 @@ export default async function SemanaPage({
       ? monthRange(hoy.date, corrimiento)
       : weekRange(hoy.date, corrimiento);
 
-  const [turnos, equipo] = await Promise.all([
+  const [turnos, equipo, pagos] = await Promise.all([
     cargarTurnos(tenant, rango.from, rango.to),
     cargarEquipo(tenant),
+    cargarPagos(tenant, rango.from, rango.to),
   ]);
 
   // El barbero empleado se ve solo a sí mismo. No es solo la pantalla: RLS ya
   // le negó los turnos de los demás, así que sin este filtro vería a sus
   // compañeros en cero, que es peor que no verlos.
-  const visibles = esDuenio
-    ? equipo.filter((b) => b.isActive)
-    : [barbero];
+  const visibles = esDuenio ? equipo.filter((b) => b.isActive) : [barbero];
 
   const cortes: Cut[] = turnos
     .filter((t) => t.kind === "booking" && t.status !== "cancelled")
@@ -68,6 +69,25 @@ export default async function SemanaPage({
     periodo,
   );
 
+  // Lo efectivamente pagado, por persona. Es la suma de las filas: un período
+  // puede tener varios pagos, que es como se anota un adelanto.
+  const pagadoPor = new Map<string, number>();
+  for (const pago of pagos) {
+    pagadoPor.set(
+      pago.barberId,
+      (pagadoPor.get(pago.barberId) ?? 0) + pago.amountCents,
+    );
+  }
+  const pagadoTotal = pagos
+    .filter((x) => x.direction === "out")
+    .reduce((t, x) => t + x.amountCents, 0);
+  const cobradoTotal = pagos
+    .filter((x) => x.direction === "in")
+    .reduce((t, x) => t + x.amountCents, 0);
+
+  const faltaPagar = resumen.dueOutCents - pagadoTotal;
+  const faltaCobrar = resumen.dueInCents - cobradoTotal;
+
   const plata = (cents: number) => formatPrice(cents, tenant.currency);
   const otroPeriodo = periodo === "week" ? "mes" : "semana";
   const link = (cambios: { p?: string; o?: number }) => {
@@ -79,6 +99,9 @@ export default async function SemanaPage({
     const q = qp.toString();
     return q ? `/panel/semana?${q}` : "/panel/semana";
   };
+
+  const nombreDe = (id: string) =>
+    equipo.find((b) => b.id === id)?.displayName ?? "—";
 
   return (
     <>
@@ -129,7 +152,7 @@ export default async function SemanaPage({
       {/* ---- El número grande ------------------------------------------- */}
       <section className="card mt-6 px-5 py-6 sm:px-7">
         <p className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">
-          {esDuenio ? "Entró a la caja" : "Cortaste por"}
+          {esDuenio ? "Entró por cortes" : "Cortaste por"}
         </p>
         <p className="tabular mt-1 font-display text-4xl leading-none text-ink sm:text-5xl">
           {plata(resumen.producedCents)}
@@ -144,26 +167,60 @@ export default async function SemanaPage({
           />
           {esDuenio ? (
             <>
-              <Dato titulo="Para el equipo" valor={plata(resumen.toBarbersCents)} />
-              <Dato titulo="Queda al local" valor={plata(resumen.shopCents)} />
+              <Dato titulo="A pagar al equipo" valor={plata(resumen.dueOutCents)} />
+              <Dato
+                titulo="Pagado"
+                valor={plata(pagadoTotal)}
+                pie={faltaPagar > 0 ? `Falta ${plata(faltaPagar)}` : undefined}
+              />
             </>
           ) : (
-            <Dato
-              titulo={tituloDeLoQueLeToca(barbero.pay)}
-              valor={
-                resumen.barbers[0]?.barberCents === null
-                  ? "—"
-                  : plata(resumen.barbers[0]?.barberCents ?? 0)
-              }
-            />
+            <>
+              <Dato
+                titulo={tituloDeLoQueLeToca(barbero.pay)}
+                valor={
+                  resumen.barbers[0]?.settlement === null ||
+                  resumen.barbers[0]?.settlement === undefined
+                    ? "—"
+                    : plata(resumen.barbers[0].settlement.cents)
+                }
+              />
+              <Dato
+                titulo={
+                  resumen.barbers[0]?.settlement?.direction === "in"
+                    ? "Pagaste"
+                    : "Te pagaron"
+                }
+                valor={plata(pagadoPor.get(barbero.id) ?? 0)}
+              />
+            </>
           )}
         </dl>
 
+        {esDuenio ? (
+          <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 rounded-lg bg-ink/[0.04] px-4 py-3.5">
+            <p className="text-sm text-muted">
+              Queda al local
+              {resumen.dueInCents > 0 ? ", contando los alquileres de silla" : ""}
+            </p>
+            <p className="tabular text-lg font-semibold text-ink">
+              {plata(resumen.shopCents)}
+            </p>
+          </div>
+        ) : null}
+
         {!resumen.complete ? (
-          <p className="mt-5 rounded-lg border-l-2 border-accent bg-accent/[0.06] px-4 py-3 text-sm text-ink">
+          <p className="mt-4 rounded-lg border-l-2 border-accent bg-accent/[0.06] px-4 py-3 text-sm text-ink">
             Hay alguien con un fijo {periodo === "week" ? "mensual" : "semanal"}
             , que no entra en {periodo === "week" ? "una semana" : "un mes"} sin
             partirlo al medio. Mirá el {otroPeriodo} para verlo completo.
+          </p>
+        ) : null}
+
+        {esDuenio ? (
+          <p className="mt-4 text-sm text-muted">
+            Este balance es de cortes y pagos a barberos. El alquiler del local,
+            la luz y los productos no entran acá.
           </p>
         ) : null}
       </section>
@@ -179,14 +236,15 @@ export default async function SemanaPage({
             {resumen.barbers.map((b) => {
               const persona = visibles.find((v) => v.id === b.barberId);
               if (!persona) return null;
+
               const detalle = detalleDelPago(persona.pay, tenant.currency);
+              const pagado = pagadoPor.get(b.barberId) ?? 0;
+              const saldo = (b.settlement?.cents ?? 0) - pagado;
 
               return (
                 <li key={b.barberId} className="card px-5 py-4">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <p className="font-medium text-ink">
-                      {persona.displayName}
-                    </p>
+                    <p className="font-medium text-ink">{persona.displayName}</p>
                     <p className="tabular text-sm text-muted">
                       <span className="font-semibold text-ink">{b.cuts}</span>{" "}
                       {b.cuts === 1 ? "corte" : "cortes"} ·{" "}
@@ -208,9 +266,7 @@ export default async function SemanaPage({
                         {tituloDeLoQueLeToca(persona.pay)}:{" "}
                       </span>
                       <span className="font-semibold text-ink">
-                        {b.barberCents === null
-                          ? "—"
-                          : plata(b.barberCents)}
+                        {b.barberCents === null ? "—" : plata(b.barberCents)}
                       </span>
                     </p>
                   </div>
@@ -221,10 +277,109 @@ export default async function SemanaPage({
                       {plata(b.lostCents)} sin cobrar
                     </p>
                   ) : null}
+
+                  {b.settlement ? (
+                    <>
+                      <p className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+                        <span className="text-muted">
+                          {b.settlement.direction === "out"
+                            ? "Hay que pagarle"
+                            : "Tiene que pagar la silla"}{" "}
+                          <span className="tabular text-ink">
+                            {plata(b.settlement.cents)}
+                          </span>
+                          {pagado > 0 ? (
+                            <>
+                              {" · "}
+                              <span className="tabular">
+                                {plata(pagado)} anotado
+                              </span>
+                            </>
+                          ) : null}
+                        </span>
+                        <span
+                          className={[
+                            "tabular font-semibold",
+                            saldo > 0 ? "text-accent" : "text-muted",
+                          ].join(" ")}
+                        >
+                          {saldo > 0
+                            ? `Falta ${plata(saldo)}`
+                            : saldo < 0
+                              ? `${plata(-saldo)} de más`
+                              : "Al día"}
+                        </span>
+                      </p>
+
+                      <PayForm
+                        barberId={b.barberId}
+                        nombre={persona.displayName}
+                        direction={b.settlement.direction}
+                        sugerido={Math.max(0, saldo) / 100}
+                        periodFrom={rango.from}
+                        periodTo={rango.to}
+                        hoy={hoy.date}
+                      />
+                    </>
+                  ) : null}
                 </li>
               );
             })}
           </ul>
+        </>
+      ) : null}
+
+      {/* ---- Lo anotado --------------------------------------------------- */}
+      {pagos.length > 0 ? (
+        <>
+          <h2 className="mt-10 text-xs font-semibold tracking-[0.18em] text-muted uppercase">
+            {esDuenio ? "Movimientos anotados" : "Lo que te pagaron"}
+          </h2>
+
+          <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
+            {pagos.map((pago) => (
+              <li
+                key={pago.id}
+                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm text-ink">
+                    {esDuenio ? `${nombreDe(pago.barberId)} · ` : ""}
+                    <span className="tabular text-muted">{pago.paidOn}</span>
+                  </p>
+                  {pago.note ? (
+                    <p className="text-xs text-muted">{pago.note}</p>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <p className="tabular text-sm font-semibold text-ink">
+                    {pago.direction === "out" ? "−" : "+"}
+                    {plata(pago.amountCents)}
+                  </p>
+
+                  {esDuenio ? (
+                    <form action={borrarPago}>
+                      <input type="hidden" name="id" value={pago.id} />
+                      <button
+                        type="submit"
+                        aria-label="Borrar este movimiento"
+                        className="flex size-6 items-center justify-center rounded-md text-muted transition-colors duration-150 ease-out hover:bg-ink/10 hover:text-ink active:bg-ink/15"
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {esDuenio && faltaCobrar > 0 ? (
+            <p className="mt-4 text-sm text-muted">
+              Falta cobrar {plata(faltaCobrar)} de alquiler de silla.
+            </p>
+          ) : null}
         </>
       ) : null}
     </>

@@ -156,6 +156,53 @@ export async function cargarServicios(tenant: Tenant) {
   }));
 }
 
+export type PagoDelPanel = {
+  id: string;
+  barberId: string;
+  /** 'out' la barbería paga · 'in' la barbería cobra. */
+  direction: "out" | "in";
+  amountCents: number;
+  periodFrom: string;
+  periodTo: string;
+  paidOn: string;
+  note: string | null;
+};
+
+/**
+ * Los pagos cuyo período cae ENTERO dentro del rango que se está mirando.
+ *
+ * Contenido y no superpuesto, a propósito: así los períodos se anidan sin
+ * contarse dos veces. Mirando el mes se ven los cuatro pagos semanales de
+ * adentro; mirando una semana se ve solo el suyo, y un pago mensual no aparece
+ * a medias en ninguna de las cuatro.
+ */
+export async function cargarPagos(
+  tenant: Tenant,
+  desde: string,
+  hasta: string,
+): Promise<PagoDelPanel[]> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("barber_payouts")
+    .select("id, barber_id, direction, amount_cents, period_from, period_to, paid_on, note")
+    .eq("tenant_id", tenant.id)
+    .gte("period_from", desde)
+    .lte("period_to", hasta)
+    .order("paid_on", { ascending: false });
+
+  return (data ?? []).map((p) => ({
+    id: p.id as string,
+    barberId: p.barber_id as string,
+    direction: p.direction as "out" | "in",
+    amountCents: p.amount_cents as number,
+    periodFrom: p.period_from as string,
+    periodTo: p.period_to as string,
+    paidOn: p.paid_on as string,
+    note: (p.note as string | null) ?? null,
+  }));
+}
+
 export type ServicioDelPanel = {
   id: string;
   name: string;
