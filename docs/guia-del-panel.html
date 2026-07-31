@@ -1,0 +1,974 @@
+<title>Guía de uso · Reservas para barberías</title>
+
+<style>
+  /*
+    La guía de un producto que se vende a muchas barberías, así que no usa los
+    colores de ninguna. La paleta es de local: papel, tinta, y un azul pizarra
+    que sale del poste de barbero. El rojo aparece una sola vez, en el poste.
+  */
+  :root {
+    --paper: #f1f0ec;
+    --surface: #ffffff;
+    --ink: #1b1a18;
+    --muted: #6b6862;
+    --line: #d8d6d0;
+    --accent: #2e4a5c;
+    --accent-soft: #e5eaee;
+    --pole-red: #a63a2e;
+    --pole-blue: #2e4a5c;
+
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+      Georgia, serif;
+    --body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+      sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --measure: 66ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15161a;
+      --surface: #1d1f24;
+      --ink: #edece8;
+      --muted: #9a968e;
+      --line: #32343a;
+      --accent: #8fb2c7;
+      --accent-soft: #232a31;
+      --pole-red: #c4574a;
+      --pole-blue: #8fb2c7;
+    }
+  }
+
+  /* El botón de tema del visor tiene que ganar en los dos sentidos. */
+  :root[data-theme="dark"] {
+    --paper: #15161a;
+    --surface: #1d1f24;
+    --ink: #edece8;
+    --muted: #9a968e;
+    --line: #32343a;
+    --accent: #8fb2c7;
+    --accent-soft: #232a31;
+    --pole-red: #c4574a;
+    --pole-blue: #8fb2c7;
+  }
+
+  :root[data-theme="light"] {
+    --paper: #f1f0ec;
+    --surface: #ffffff;
+    --ink: #1b1a18;
+    --muted: #6b6862;
+    --line: #d8d6d0;
+    --accent: #2e4a5c;
+    --accent-soft: #e5eaee;
+    --pole-red: #a63a2e;
+    --pole-blue: #2e4a5c;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 68rem) {
+    .page {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      align-items: start;
+      padding-top: 4rem;
+    }
+  }
+
+  /* ---- El poste, desenrollado. Aparece una sola vez. -------------------- */
+  .pole {
+    height: 7px;
+    width: 5.5rem;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .pole span {
+    display: block;
+    height: 100%;
+    width: 200%;
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--pole-red) 0 10px,
+      var(--surface) 10px 16px,
+      var(--pole-blue) 16px 26px,
+      var(--surface) 26px 32px
+    );
+    animation: turn 3.6s linear infinite;
+  }
+
+  @keyframes turn {
+    to {
+      transform: translateX(-45.255px);
+    }
+  }
+
+  /* ---- Índice ----------------------------------------------------------- */
+  .toc {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 68rem) {
+    .toc {
+      position: sticky;
+      top: 2rem;
+    }
+  }
+
+  .toc h2 {
+    font-family: var(--body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .toc ol {
+    list-style: none;
+    display: grid;
+    gap: 0.1rem;
+    counter-reset: toc;
+  }
+
+  .toc a {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem 0.3rem 0;
+    border-radius: 6px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.15s ease-out, background-color 0.15s ease-out;
+  }
+
+  .toc a::before {
+    counter-increment: toc;
+    content: counter(toc);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--accent);
+    opacity: 0.55;
+  }
+
+  .toc a:hover {
+    color: var(--ink);
+    background: var(--accent-soft);
+  }
+
+  /* ---- Cuerpo ----------------------------------------------------------- */
+  .doc {
+    display: grid;
+    gap: 3.25rem;
+    min-width: 0;
+  }
+
+  .lede {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    line-height: 1.05;
+    font-weight: 400;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .lede p {
+    max-width: var(--measure);
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  section {
+    display: grid;
+    gap: 1rem;
+    scroll-margin-top: 1.5rem;
+  }
+
+  /* El número de sección cuelga en el margen, como en un manual. */
+  section > h2 {
+    font-family: var(--display);
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 400;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    align-items: baseline;
+    text-wrap: balance;
+  }
+
+  section > h2::before {
+    content: attr(data-n);
+    font-family: var(--body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  h3 {
+    font-family: var(--body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-top: 0.75rem;
+  }
+
+  section p,
+  section ul,
+  section ol {
+    max-width: var(--measure);
+  }
+
+  section ul,
+  section ol {
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  li::marker {
+    color: var(--accent);
+  }
+
+  strong {
+    font-weight: 650;
+  }
+
+  em {
+    font-style: normal;
+    color: var(--muted);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--accent-soft);
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+  }
+
+  /* ---- La caja de aviso: lo que se paga caro si no se sabe -------------- */
+  .nota {
+    max-width: var(--measure);
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 0.9rem 1.1rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .nota p {
+    margin: 0;
+  }
+
+  .nota .rotulo {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ---- Tabla de permisos ------------------------------------------------ */
+  .tabla-envoltura {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.92rem;
+  }
+
+  th,
+  td {
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  thead th {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  th:not(:first-child),
+  td:not(:first-child) {
+    text-align: center;
+    width: 6.5rem;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody th {
+    font-weight: 400;
+    white-space: normal;
+    min-width: 15rem;
+  }
+
+  .si {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .no {
+    color: var(--muted);
+    opacity: 0.5;
+  }
+
+  .parcial {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  /* ---- Preguntas -------------------------------------------------------- */
+  .faq {
+    display: grid;
+    gap: 0;
+    max-width: var(--measure);
+    border-top: 1px solid var(--line);
+  }
+
+  .faq > div {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .faq dt {
+    font-weight: 650;
+  }
+
+  .faq dd {
+    color: var(--muted);
+  }
+
+  footer {
+    max-width: var(--measure);
+    color: var(--muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+
+  a {
+    color: var(--accent);
+  }
+
+  :where(a):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pole span {
+      animation: none;
+    }
+  }
+</style>
+
+<div class="page">
+  <nav class="toc" aria-label="Índice">
+    <h2>Guía de uso</h2>
+    <ol>
+      <li><a href="#partes">Las dos partes</a></li>
+      <li><a href="#entrar">Entrar al panel</a></li>
+      <li><a href="#permisos">Quién puede hacer qué</a></li>
+      <li><a href="#agenda">Agenda</a></li>
+      <li><a href="#semana">Semana: cortes y plata</a></li>
+      <li><a href="#horarios">Horarios</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#equipo">Equipo</a></li>
+      <li><a href="#reglas">Reglas automáticas</a></li>
+      <li><a href="#preguntas">Preguntas frecuentes</a></li>
+    </ol>
+  </nav>
+
+  <main class="doc">
+    <div class="lede">
+      <div class="pole" aria-hidden="true"><span></span></div>
+      <h1>Cómo funciona tu página de reservas</h1>
+      <p>
+        Todo lo que hace la página y el panel, explicado sin vueltas. Escrita
+        para que la lea el dueño de una barbería o cualquiera del equipo: no
+        hace falta saber nada de computación.
+      </p>
+    </div>
+
+    <section id="partes">
+      <h2 data-n="01">Las dos partes</h2>
+      <p>
+        <strong>La página de reservas</strong> es la que ve el cliente. Entra
+        desde el link, elige qué se quiere hacer, con quién, qué día y a qué
+        hora, deja su nombre, teléfono y mail, y listo. No se crea ninguna
+        cuenta.
+      </p>
+      <p>
+        Apenas reserva le llega un mail con su turno, un botón para agendarlo en
+        el celular y un link para cancelar si no puede venir.
+      </p>
+      <p>
+        <strong>El panel</strong> es la parte de adentro. Entra el equipo con
+        mail y contraseña, y ahí está la agenda, los horarios, el recuento de la
+        semana y la plata.
+      </p>
+      <p>
+        Son la misma página: el cliente ve una parte y el equipo ve la otra.
+      </p>
+    </section>
+
+    <section id="entrar">
+      <h2 data-n="02">Entrar al panel</h2>
+      <p>
+        Al final de la dirección de tu barbería agregá <code>/entrar</code>. Por
+        ejemplo <code>tubarberia.tuapp.com/entrar</code>. Ponés tu mail y tu
+        contraseña.
+      </p>
+      <p>
+        <strong>El acceso te lo da el dueño</strong>, desde la ficha de cada
+        barbero. Si sos barbero y no podés entrar, pedísela a él.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Consejo</p>
+        <p>
+          En el celular, abrí el panel y guardalo en la pantalla de inicio. Queda
+          como una aplicación más y no tenés que escribir la dirección cada vez.
+        </p>
+      </div>
+      <p>Cuando terminás, el botón <strong>Salir</strong> está arriba a la derecha.</p>
+    </section>
+
+    <section id="permisos">
+      <h2 data-n="03">Quién puede hacer qué</h2>
+      <p>
+        Hay dos perfiles. <strong>Un dueño también puede cortar</strong>: no son
+        dos personas distintas, es la misma con más permisos.
+      </p>
+
+      <div class="tabla-envoltura">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Puede</th>
+              <th scope="col">Dueño</th>
+              <th scope="col">Barbero</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Ver su propia agenda</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Ver la agenda de todo el local</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Marcar que un cliente no vino</th>
+              <td class="si">Sí</td>
+              <td class="parcial">Los suyos</td>
+            </tr>
+            <tr>
+              <th scope="row">Cargar un turno a mano o bloquear un rato</th>
+              <td class="si">A cualquiera</td>
+              <td class="parcial">En su agenda</td>
+            </tr>
+            <tr>
+              <th scope="row">Cambiar horarios de trabajo</th>
+              <td class="si">De todos</td>
+              <td class="parcial">Los suyos</td>
+            </tr>
+            <tr>
+              <th scope="row">Ver sus cortes y su plata</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Ver la plata de todo el local</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Registrar pagos</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Ver lo que le pagaron a él</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Agregar, editar y sacar servicios</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Agregar y dar de baja barberos</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Definir cómo cobra cada uno</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Un barbero no ve las secciones de Servicios ni de Equipo. No están
+        escondidas: para él directamente no existen.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Por qué importa</p>
+        <p>
+          Esto no es una cortesía de la pantalla. Los permisos los aplica la base
+          de datos, abajo de todo. Aunque alguien intentara entrar por otro lado,
+          no hay dato que darle.
+        </p>
+      </div>
+    </section>
+
+    <section id="agenda">
+      <h2 data-n="04">Agenda</h2>
+      <p>Es la pantalla que se abre al entrar, y muestra <strong>un día</strong>.</p>
+
+      <h3>Cómo leerla</h3>
+      <p>
+        Los turnos cuelgan de una línea, con la hora en el margen izquierdo,
+        igual que en la agenda de papel.
+      </p>
+      <ul>
+        <li>
+          <strong>Los ratos libres están escritos</strong> (<code>1 h 20 libres</code>).
+          No es espacio vacío: es información. Ahí podés comer, o meter a alguien
+          que llame.
+        </li>
+        <li>
+          <strong>La línea de «Ahora»</strong> te dice en qué punto del día
+          estás. Aparece solo si estás mirando hoy.
+        </li>
+        <li>Con las flechas <strong>‹ ›</strong> te movés de día. <strong>Hoy</strong> te trae de vuelta.</li>
+        <li>Arriba se ve el resumen: cuántos cortes y cuánto entró.</li>
+        <li>Si en el día trabajó más de un barbero, cada turno dice de quién es.</li>
+      </ul>
+
+      <h3>Qué podés hacer en cada turno</h3>
+      <p>
+        <strong>WhatsApp</strong> abre el chat con el cliente, con su número ya
+        puesto. Sirve para recordarle el turno del día siguiente.
+      </p>
+      <p>
+        <strong>No vino</strong> es para el que reservó y no apareció. Aparece
+        <em>recién cuando el turno ya empezó</em>: uno de mañana no puede haber
+        faltado todavía.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Cómo se cuenta</p>
+        <p>
+          Un turno que ya pasó se cuenta como cumplido <strong>salvo que digas lo
+          contrario</strong>. Solo tocás el botón en el caso raro. Si hubiera que
+          confirmar uno por uno los que sí vinieron, nadie lo haría y a la semana
+          el recuento estaría en cero.
+        </p>
+      </div>
+      <p>
+        Marcarlo no le suma plata a nadie, pero queda contado aparte: al final de
+        la semana vas a ver cuántos faltaron y cuánto se dejó de cobrar.
+        ¿Se equivocaron y sí vino? El botón cambia a <strong>Sí vino</strong> y
+        se deshace.
+      </p>
+
+      <h3>Cargar un turno</h3>
+      <p>
+        Abajo de la agenda. Es para el que cae sin reservar. Solo se pide la hora
+        y qué se hizo: el nombre y el teléfono son opcionales, porque al que
+        entra por la puerta un martes a las tres no le vas a pedir el mail.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Importante</p>
+        <p>
+          <strong>Cargalos.</strong> Si la mitad de los cortes entra por la
+          puerta y no se anota, el recuento de la semana va a estar siempre por
+          debajo de lo que trabajaste.
+        </p>
+      </div>
+
+      <h3>Bloquear un rato</h3>
+      <p>
+        Para un turno médico, un almuerzo suelto, la tarde que te vas antes.
+        Ponés desde, hasta y el motivo, y nadie va a poder reservar ahí. Para el
+        horario de <em>todas</em> las semanas no uses esto: usá Horarios.
+      </p>
+    </section>
+
+    <section id="semana">
+      <h2 data-n="05">Semana: cortes y plata</h2>
+      <p>
+        El recuento del período. <strong>La semana va de lunes a domingo.</strong>
+        Con <strong>Ver el mes</strong> cambiás a mes completo, y con
+        <strong>‹ ›</strong> mirás períodos anteriores.
+      </p>
+
+      <h3>Lo que ves</h3>
+      <p>Arriba, cuánto entró por cortes. Abajo, en cuatro números:</p>
+      <ul>
+        <li><strong>Cortes</strong> — cuántos se hicieron.</li>
+        <li><strong>No vinieron</strong> — cuántos faltaron y cuánto se dejó de cobrar.</li>
+        <li><strong>A pagar al equipo</strong> — lo que hay que repartir.</li>
+        <li><strong>Pagado</strong> — lo que ya anotaste, y cuánto falta.</li>
+      </ul>
+      <p>
+        Y al pie, <strong>queda al local</strong>: lo que sobra después de
+        repartir.
+      </p>
+      <p>
+        Un barbero ve esta misma pantalla con sus propios números. No ve lo de
+        sus compañeros ni el total del local.
+      </p>
+
+      <h3>Los cuatro modelos de cobro</h3>
+      <p>
+        Cada barbero tiene el suyo, y pueden convivir distintos en el mismo
+        local.
+      </p>
+      <ul>
+        <li>
+          <strong>A comisión</strong> — se lleva un porcentaje de cada corte. Si
+          corta más, cobra más. Lo más común con un empleado.
+        </li>
+        <li>
+          <strong>Sueldo fijo</strong> — cobra siempre lo mismo. El recuento
+          sirve para ver cómo viene trabajando, no para calcular cuánto pagarle.
+        </li>
+        <li>
+          <strong>Alquiler de silla</strong> — te paga un fijo por usar la silla
+          y se queda con todo lo que corta. Acá la plata va para el otro lado: el
+          que cobra sos vos.
+        </li>
+        <li>
+          <strong>Solo recaudación</strong> — no se reparte nada desde el panel.
+          Es lo que corresponde para el dueño, o si el arreglo se maneja por
+          afuera.
+        </li>
+      </ul>
+      <div class="nota">
+        <p class="rotulo">Se congela</p>
+        <p>
+          El porcentaje queda guardado en cada turno. Si en agosto le subís la
+          comisión a alguien, la liquidación de julio no se mueve: lo que se
+          pactó, se pactó.
+        </p>
+      </div>
+
+      <h3>Registrar un pago</h3>
+      <p>
+        En la ficha de cada barbero. Se abre con el monto, el período y la fecha
+        de hoy ya puestos: en el caso normal es abrir y confirmar.
+      </p>
+      <p>
+        <strong>Esto no mueve plata.</strong> La plata se la das vos en la mano.
+        Acá queda anotado para que el balance muestre lo que salió y no solo lo
+        que se generó.
+      </p>
+      <p>
+        Podés cambiar el monto. <strong>Los adelantos existen</strong>: si le
+        diste la mitad el miércoles y el resto el sábado, anotá dos pagos de la
+        misma semana. Lo pagado del período es la suma de los dos.
+      </p>
+      <p>
+        Al lado de cada barbero vas a ver <strong>Falta $X</strong>,
+        <strong>Al día</strong>, o <strong>$X de más</strong> si le pagaste por
+        encima. ¿Anotaste algo mal? Se borra con la <strong>×</strong>: un pago
+        mal cargado no es historia, es un error de tipeo.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Alcance del balance</p>
+        <p>
+          Este balance es de <strong>cortes y pagos a barberos</strong>. El
+          alquiler del local, la luz, el agua y los productos no entran acá. Eso
+          se lleva por otro lado.
+        </p>
+      </div>
+    </section>
+
+    <section id="horarios">
+      <h2 data-n="06">Horarios</h2>
+      <p>
+        Tu horario de <strong>todas las semanas</strong>: «martes a sábado de 14
+        a 21». Cada barbero maneja el suyo sin depender de nadie, y el dueño
+        puede editar el de cualquiera eligiéndolo arriba.
+      </p>
+
+      <h3>Agregar un horario</h3>
+      <p>
+        Tocá los días, poné a qué hora abrís y a qué hora cerrás, y
+        <strong>Agregar</strong>. Se cargan todos los días juntos, porque así se
+        habla: de martes a sábado de 14 a 21 es un horario, no cinco.
+      </p>
+
+      <h3>Un corte al mediodía</h3>
+      <p>
+        Cargá <strong>dos tramos el mismo día</strong>: uno hasta la hora en que
+        te vas y otro desde que volvés. El hueco del medio simplemente no existe
+        como horario, y nadie puede reservar ahí.
+      </p>
+
+      <h3>Sacar un horario</h3>
+      <p>La <strong>×</strong> al lado de cada tramo.</p>
+      <div class="nota">
+        <p class="rotulo">Ojo</p>
+        <p>
+          Sacar un horario <strong>no cancela los turnos que ya estaban dados</strong>.
+          Si había alguien anotado en ese rato, sigue en la agenda y hay que
+          avisarle vos.
+        </p>
+      </div>
+      <p>
+        Si dos tramos del mismo día se pisan, la página no te deja y te dice en
+        qué día fue.
+      </p>
+    </section>
+
+    <section id="servicios">
+      <h2 data-n="07">Servicios</h2>
+      <p><em>Solo el dueño.</em></p>
+      <p>
+        Todo lo que se puede reservar: corte, barba, cejas, color, mechas,
+        lavado, corte de niño, lo que ofrezcas. De cada uno se define el nombre,
+        el precio, cuánto lleva y una descripción opcional que se ve en la
+        página.
+      </p>
+
+      <h3>La duración importa más de lo que parece</h3>
+      <p>
+        <strong>La duración define los horarios que se ofrecen.</strong> Un
+        servicio de 40 minutos en una agenda de 14 a 21 da turnos a las 14:00,
+        14:40, 15:20, y así. Por eso cada servicio tiene su propia grilla: si
+        alguien reserva una barba de 20 minutos, los horarios que ve no son los
+        mismos que los del corte.
+      </p>
+
+      <h3>Cambiar el precio</h3>
+      <p>Entrás al servicio, cambiás el número y guardás.</p>
+      <div class="nota">
+        <p class="rotulo">Se congela</p>
+        <p>
+          Los turnos que ya estaban dados conservan su precio. Si el corte pasa
+          de $300 a $350, el que reservó ayer sigue pagando $300.
+        </p>
+      </div>
+
+      <h3>El orden y sacar un servicio</h3>
+      <p>
+        Con las flechas <strong>↑ ↓</strong> ordenás la lista, que es el orden en
+        que los ve el cliente: poné arriba lo que más se pide.
+      </p>
+      <p>
+        <strong>Sacar de la página</strong> deja de ofrecerlo. No se borra nunca:
+        los turnos viejos que lo usaron siguen estando, con lo que se cobró. Si
+        te arrepentís, <strong>Volver a ofrecer</strong>. No te va a dejar sacar
+        el último que queda: sin ningún servicio, nadie puede reservar.
+      </p>
+    </section>
+
+    <section id="equipo">
+      <h2 data-n="08">Equipo</h2>
+      <p><em>Solo el dueño.</em></p>
+
+      <h3>Agregar un barbero</h3>
+      <p>
+        Nombre, mail y cómo cobra. El mail podés cargarlo después si todavía no
+        lo sabés.
+      </p>
+      <p>
+        <strong>Recibe turnos por la página</strong> viene tildado. Destildalo si
+        administra pero no corta: va a seguir entrando al panel, pero no va a
+        aparecer para reservar.
+      </p>
+
+      <h3>Darle acceso al panel</h3>
+      <p>
+        En su ficha, <strong>Acceso al panel</strong>. Ponés una contraseña y se
+        la pasás en persona. La contraseña se ve mientras la escribís, a
+        propósito: la estás eligiendo para otro, y taparla con puntitos solo
+        serviría para que la copie mal. Si se la olvida, ponés una nueva desde el
+        mismo lugar.
+      </p>
+
+      <h3>Dar de baja</h3>
+      <p>
+        <strong>Nunca se borra a nadie.</strong> Dar de baja significa que deja
+        de recibir turnos y de entrar al panel; sus turnos y todo lo que trabajó
+        quedan en el historial. Si vuelve, <strong>Dar de alta</strong> y entra
+        con el mismo mail de antes. Un dueño no puede darse de baja a sí mismo.
+      </p>
+
+      <h3>Un barbero no se puede cambiar el sueldo</h3>
+      <p>
+        Cada uno puede editar su nombre y su teléfono. El rol, el mail y cómo
+        cobra <strong>solo los toca el dueño</strong>, aunque sea su propia
+        ficha.
+      </p>
+    </section>
+
+    <section id="reglas">
+      <h2 data-n="09">Reglas automáticas</h2>
+      <p>
+        Estas no dependen de que nadie se acuerde. Están abajo de todo y no se
+        pueden saltear.
+      </p>
+      <ul>
+        <li>
+          <strong>Nunca hay dos turnos superpuestos.</strong> Si dos clientes
+          tocan «Reservar» en el mismo horario en el mismo instante, uno de los
+          dos no entra. No es que la página revise y después guarde: es imposible
+          que los dos queden.
+        </li>
+        <li>
+          <strong>El horario lo calcula el servidor.</strong> Nadie consigue un
+          turno fuera de hora editando la dirección o dejando la pestaña abierta
+          media hora.
+        </li>
+        <li>
+          <strong>Un turno solo se ofrece si entra entero.</strong> Si cerrás a
+          las 21 y el servicio lleva 40 minutos, el último turno es a las 20:20.
+        </li>
+        <li>
+          <strong>Anticipación mínima.</strong> No se puede reservar sobre la
+          hora. Cuánto es lo define la barbería.
+        </li>
+        <li>
+          <strong>Cancelación.</strong> El cliente puede cancelar solo hasta un
+          rato antes de su turno, desde el link que le llegó al mail. Pasado eso,
+          tiene que llamar.
+        </li>
+        <li><strong>Precio y duración se congelan</strong> en cada turno, al reservarlo.</li>
+        <li>
+          <strong>Los datos de los clientes no son públicos.</strong> Nombres,
+          teléfonos y mails no salen de la barbería. Un visitante ve qué horarios
+          están libres y nada más: nunca quién reservó.
+        </li>
+      </ul>
+    </section>
+
+    <section id="preguntas">
+      <h2 data-n="10">Preguntas frecuentes</h2>
+
+      <dl class="faq">
+        <div>
+          <dt>¿Cómo funciona «El primero que haya»?</dt>
+          <dd>
+            El cliente dice que le da igual con quién cortarse, y el reparto lo
+            decide el servidor: entre los que están libres a esa hora, le toca al
+            que menos turnos tiene ese día. Si empatan, manda el orden del
+            equipo. Así el trabajo se empareja solo en vez de caerle siempre al
+            primero de la lista.
+          </dd>
+        </div>
+        <div>
+          <dt>Un cliente quiere cancelar y no encuentra el mail.</dt>
+          <dd>Cancelalo vos desde la agenda, o marcalo como que no vino si ya pasó.</dd>
+        </div>
+        <div>
+          <dt>¿Por qué no me deja poner un horario?</dt>
+          <dd>Porque se pisa con otro tramo del mismo día. La página te dice cuál.</dd>
+        </div>
+        <div>
+          <dt>Cambié un precio, ¿qué pasa con los turnos de esta semana?</dt>
+          <dd>
+            Nada. Cada turno guarda el precio que tenía cuando se reservó. El
+            precio nuevo vale de ahora en más.
+          </dd>
+        </div>
+        <div>
+          <dt>Le pagué a un barbero de menos, ¿está mal anotarlo?</dt>
+          <dd>
+            No. Anotá lo que le diste de verdad. El panel te va a mostrar
+            «Falta $X» hasta que completes, y así no se te pierde.
+          </dd>
+        </div>
+        <div>
+          <dt>¿La plata que muestra el panel es la que tengo en la caja?</dt>
+          <dd>
+            Es lo que entró por cortes menos lo que anotaste que pagaste a los
+            barberos. No incluye el alquiler del local, la luz ni los productos.
+          </dd>
+        </div>
+        <div>
+          <dt>Un barbero se va del local.</dt>
+          <dd>
+            Dalo de baja. No lo borres —no se puede— y así todo lo que trabajó
+            sigue contando en el historial.
+          </dd>
+        </div>
+        <div>
+          <dt>Se me olvidó marcar que alguien no vino la semana pasada.</dt>
+          <dd>
+            Andá a ese día con las flechas y marcalo. El recuento de esa semana
+            se corrige solo.
+          </dd>
+        </div>
+        <div>
+          <dt>¿Se pueden ver los turnos de la semana que viene?</dt>
+          <dd>
+            Sí, con la flecha de la agenda. Cuántos días para adelante se pueden
+            <em>reservar</em> lo define cada barbería: puede ser una ventana de N
+            días, o solo la semana en curso con la siguiente abriéndose un día y
+            hora fijos.
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <footer>
+      <p>Si algo no está acá o no se entiende, decilo: la guía se corrige.</p>
+    </footer>
+  </main>
+</div>
