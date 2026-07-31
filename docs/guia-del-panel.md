@@ -17,8 +17,9 @@ No hace falta saber nada de computación.
 6. [Horarios](#6-horarios)
 7. [Servicios](#7-servicios)
 8. [Equipo](#8-equipo)
-9. [Reglas que la página hace cumplir sola](#9-reglas-que-la-página-hace-cumplir-sola)
-10. [Preguntas que aparecen siempre](#10-preguntas-que-aparecen-siempre)
+9. [Ajustes de la barbería](#9-ajustes-de-la-barbería)
+10. [Reglas que la página hace cumplir sola](#10-reglas-que-la-página-hace-cumplir-sola)
+11. [Preguntas que aparecen siempre](#11-preguntas-que-aparecen-siempre)
 
 ---
 
@@ -56,6 +57,18 @@ Queda como una aplicación más y no tenés que escribir la dirección cada vez.
 
 Cuando terminás, el botón **Salir** está arriba a la derecha.
 
+### Mi cuenta
+
+**Tocá tu nombre**, arriba a la derecha. Ahí cambiás tu nombre, tu teléfono y
+**tu contraseña**.
+
+La primera contraseña te la pone el dueño, porque es la única forma de que
+puedas entrar la primera vez. **Cambiala apenas entres**: a partir de ahí la
+cuenta es tuya. Si algún día te la olvidás, el dueño te pone una nueva y
+volvés a empezar.
+
+Ahí también ves cómo cobrás, para consultarlo. Eso no se edita desde ahí.
+
 ---
 
 ## 3. Quién puede hacer qué
@@ -79,9 +92,16 @@ distintas, es la misma con más permisos.
 | Agregar, editar y sacar servicios | ✅ | — |
 | Agregar y dar de baja barberos | ✅ | — |
 | Definir cómo cobra cada uno | ✅ | — |
+| Cambiar los datos y colores de la barbería | ✅ | — |
+| Cambiar su propio nombre, teléfono y contraseña | ✅ | ✅ |
 
-Un barbero no ve las secciones de Servicios ni de Equipo. No están escondidas:
-para él directamente no existen.
+Un barbero no ve las secciones de Servicios, Equipo ni Ajustes. No están
+escondidas: para él directamente no existen.
+
+**En el celular** las tres las vas a encontrar juntas bajo **Local**, en la
+barra de abajo. En la computadora están todas arriba. Es la misma división que
+hay de verdad: Agenda, Semana y Horarios son de todos los días; las otras tres
+se configuran una vez.
 
 Esto no es una cortesía de la pantalla. Los permisos los aplica la base de
 datos: aunque alguien intentara entrar por otro lado, no hay dato que darle.
@@ -323,7 +343,72 @@ solo los toca el dueño**, aunque sea su propia ficha.
 
 ---
 
-## 9. Reglas que la página hace cumplir sola
+## 9. Ajustes de la barbería
+
+*(Solo el dueño.)*
+
+Todo lo que ve el cliente en la página, y las reglas con las que se dan los
+turnos.
+
+### Datos
+
+**Nombre**, **dirección** y **link del mapa**.
+
+Si dejás el link vacío, el botón del mapa busca solo la dirección de arriba en
+Google Maps. Pegá un link únicamente si querés apuntar a un punto exacto —por
+ejemplo si la dirección sola no cae bien.
+
+También están la **zona horaria** y la **moneda**. Solo se tocan si la barbería
+no está en Uruguay.
+
+### Colores
+
+Son seis, y cada uno tiene su función:
+
+| | Para qué |
+|---|---|
+| Fondo | El papel de toda la página |
+| Tarjetas | Lo que se apoya sobre el fondo |
+| Texto | Y también la franja oscura de arriba |
+| Texto suave | Aclaraciones y datos secundarios |
+| Color principal | Botones y lo que está elegido |
+| Color secundario | La segunda franja del poste |
+
+Abajo hay una **muestra de cómo va a quedar** la página, que cambia mientras
+elegís. Está ahí por una razón: seis cuadraditos sueltos no te dicen si el texto
+se va a leer sobre el fondo. En la muestra sí se ve.
+
+Tocá el cuadrado para abrir el selector de colores, o pegá el código exacto
+(`#1B1A18`) en el campo de al lado, que es como suele venir un color de una guía
+de marca.
+
+### Reglas de la agenda
+
+**Anticipación mínima** — no se ofrece un turno que arranque antes de esto.
+Evita que alguien reserve para dentro de cinco minutos, cuando ya estás cortando.
+
+**Plazo para cancelar** — hasta cuándo el cliente puede cancelar solo. Después
+de eso tiene que llamar.
+
+**Hasta cuándo se puede reservar** — dos formas:
+
+- **Una cantidad fija de días.** Siempre se reserva con la misma anticipación.
+  Es lo más común.
+- **Solo la semana en curso.** La siguiente se abre toda junta, un día y hora
+  fijos que elegís vos. Sirve si no querés comprometerte con mucha
+  anticipación.
+
+### Lo que no se cambia desde acá
+
+**La dirección web** (el slug). Es el link que tus clientes ya tienen guardado y
+que circula por WhatsApp. Cambiarlo los rompería todos de golpe, sin aviso y sin
+forma de arreglarlo. Si de verdad hace falta cambiarlo, se coordina.
+
+**El logo**, por ahora. Todavía se carga por atrás.
+
+---
+
+## 10. Reglas que la página hace cumplir sola
 
 Estas no dependen de que nadie se acuerde. Están abajo de todo y no se pueden
 saltear.
@@ -352,7 +437,11 @@ nunca quién reservó.
 
 ---
 
-## 10. Preguntas que aparecen siempre
+## 11. Preguntas que aparecen siempre
+
+**El dueño sabe mi contraseña.**
+Solo la primera, la que te puso para que pudieras entrar. Cambiala desde **Mi
+cuenta**, tocando tu nombre arriba a la derecha, y deja de saberla.
 
 **¿Cómo funciona "El primero que haya"?**
 El cliente dice que le da igual con quién cortarse, y el reparto lo decide el

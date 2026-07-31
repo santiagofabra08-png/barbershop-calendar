@@ -421,6 +421,7 @@
       <li><a href="#horarios">Horarios</a></li>
       <li><a href="#servicios">Servicios</a></li>
       <li><a href="#equipo">Equipo</a></li>
+      <li><a href="#ajustes">Ajustes de la barbería</a></li>
       <li><a href="#reglas">Reglas automáticas</a></li>
       <li><a href="#preguntas">Preguntas frecuentes</a></li>
     </ol>
@@ -478,6 +479,22 @@
         </p>
       </div>
       <p>Cuando terminás, el botón <strong>Salir</strong> está arriba a la derecha.</p>
+
+      <h3>Mi cuenta</h3>
+      <p>
+        <strong>Tocá tu nombre</strong>, arriba a la derecha. Ahí cambiás tu
+        nombre, tu teléfono y tu contraseña. También podés ver cómo cobrás, para
+        consultarlo.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Si sos barbero</p>
+        <p>
+          La primera contraseña te la pone el dueño, porque es la única forma de
+          que puedas entrar la primera vez. <strong>Cambiala apenas entres</strong>:
+          a partir de ahí la cuenta es tuya. Si algún día te la olvidás, el dueño
+          te pone una nueva y volvés a empezar.
+        </p>
+      </div>
     </section>
 
     <section id="permisos">
@@ -557,13 +574,29 @@
               <td class="si">Sí</td>
               <td class="no">No</td>
             </tr>
+            <tr>
+              <th scope="row">Cambiar los datos y colores de la barbería</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Cambiar su propio nombre, teléfono y contraseña</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Un barbero no ve las secciones de Servicios ni de Equipo. No están
+        Un barbero no ve las secciones de Servicios, Equipo ni Ajustes. No están
         escondidas: para él directamente no existen.
+      </p>
+      <p>
+        <strong>En el celular</strong> esas tres las vas a encontrar juntas bajo
+        <strong>Local</strong>, en la barra de abajo; en la computadora están
+        todas arriba. Es la división que hay de verdad: Agenda, Semana y Horarios
+        son de todos los días, y las otras tres se configuran una vez.
       </p>
       <div class="nota">
         <p class="rotulo">Por qué importa</p>
@@ -858,8 +891,78 @@
       </p>
     </section>
 
+    <section id="ajustes">
+      <h2 data-n="09">Ajustes de la barbería</h2>
+      <p><em>Solo el dueño.</em></p>
+      <p>
+        Todo lo que ve el cliente en la página, y las reglas con las que se dan
+        los turnos.
+      </p>
+
+      <h3>Datos</h3>
+      <p>
+        Nombre, dirección y link del mapa. Si dejás el link vacío, el botón del
+        mapa busca solo la dirección en Google Maps: pegá un link únicamente si
+        querés apuntar a un punto exacto.
+      </p>
+      <p>
+        También están la zona horaria y la moneda, que solo se tocan si la
+        barbería no está en Uruguay.
+      </p>
+
+      <h3>Colores</h3>
+      <p>Son seis, y cada uno tiene su función:</p>
+      <ul>
+        <li><strong>Fondo</strong> — el papel de toda la página.</li>
+        <li><strong>Tarjetas</strong> — lo que se apoya sobre el fondo.</li>
+        <li><strong>Texto</strong> — y también la franja oscura de arriba.</li>
+        <li><strong>Texto suave</strong> — aclaraciones y datos secundarios.</li>
+        <li><strong>Color principal</strong> — botones y lo que está elegido.</li>
+        <li><strong>Color secundario</strong> — la segunda franja del poste.</li>
+      </ul>
+      <p>
+        Abajo hay una <strong>muestra de cómo va a quedar</strong> que cambia
+        mientras elegís. Está ahí por una razón: seis cuadraditos sueltos no te
+        dicen si el texto se va a leer sobre el fondo. En la muestra sí se ve.
+      </p>
+      <p>
+        Tocá el cuadrado para abrir el selector, o pegá el código exacto
+        (<code>#1B1A18</code>) en el campo de al lado, que es como suele venir un
+        color de una guía de marca.
+      </p>
+
+      <h3>Reglas de la agenda</h3>
+      <ul>
+        <li>
+          <strong>Anticipación mínima</strong> — no se ofrece un turno que
+          arranque antes de esto. Evita que alguien reserve para dentro de cinco
+          minutos, cuando ya estás cortando.
+        </li>
+        <li>
+          <strong>Plazo para cancelar</strong> — hasta cuándo el cliente puede
+          cancelar solo. Después tiene que llamar.
+        </li>
+        <li>
+          <strong>Hasta cuándo se puede reservar</strong> — o una cantidad fija
+          de días para adelante, que es lo más común, o solo la semana en curso
+          con la siguiente abriéndose un día y hora que elegís vos.
+        </li>
+      </ul>
+
+      <h3>Lo que no se cambia desde acá</h3>
+      <div class="nota">
+        <p class="rotulo">La dirección web</p>
+        <p>
+          Es el link que tus clientes ya tienen guardado y que circula por
+          WhatsApp. Cambiarlo los rompería todos de golpe, sin aviso y sin forma
+          de arreglarlo. Si de verdad hace falta cambiarlo, se coordina.
+        </p>
+      </div>
+      <p>El logo, por ahora, también: todavía se carga por atrás.</p>
+    </section>
+
     <section id="reglas">
-      <h2 data-n="09">Reglas automáticas</h2>
+      <h2 data-n="10">Reglas automáticas</h2>
       <p>
         Estas no dependen de que nadie se acuerde. Están abajo de todo y no se
         pueden saltear.
@@ -899,9 +1002,17 @@
     </section>
 
     <section id="preguntas">
-      <h2 data-n="10">Preguntas frecuentes</h2>
+      <h2 data-n="11">Preguntas frecuentes</h2>
 
       <dl class="faq">
+        <div>
+          <dt>El dueño sabe mi contraseña.</dt>
+          <dd>
+            Solo la primera, la que te puso para que pudieras entrar. Cambiala
+            desde <strong>Mi cuenta</strong>, tocando tu nombre arriba a la
+            derecha, y deja de saberla.
+          </dd>
+        </div>
         <div>
           <dt>¿Cómo funciona «El primero que haya»?</dt>
           <dd>
