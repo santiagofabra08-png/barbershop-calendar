@@ -21,6 +21,22 @@ export const NOMBRE_MEDIO: Record<MedioDePago, string> = {
   transfer: "Transferencia",
 };
 
+/** Los tres montos de un cierre, por medio de pago. */
+export type PorMedio = { cash: number; card: number; transfer: number };
+
+export type CierreDeCaja = {
+  businessDate: string;
+  /** Lo que decía el sistema al momento de cerrar. */
+  expected: PorMedio;
+  /** Lo que se contó. */
+  counted: PorMedio;
+  note: string | null;
+  closedAt: string;
+  closedByName: string | null;
+};
+
+export const totalDe = (m: PorMedio) => m.cash + m.card + m.transfer;
+
 export type RenglonDeTicket = {
   name: string;
   amountCents: number;

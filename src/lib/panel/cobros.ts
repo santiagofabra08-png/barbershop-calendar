@@ -1,5 +1,10 @@
-import type { MedioDePago, TurnoParaCobrar } from "@/lib/panel/cobro";
+import type {
+  CierreDeCaja,
+  MedioDePago,
+  TurnoParaCobrar,
+} from "@/lib/panel/cobro";
 import { createClient } from "@/lib/supabase/server";
+import type { Tenant } from "@/lib/tenant/types";
 
 /**
  * Los cobros del día.
@@ -54,6 +59,65 @@ export async function cargarTurnosParaCobrar(
       amountCents: i.amount_cents,
     })),
   }));
+}
+
+/**
+ * El cierre de un día, si ya se hizo.
+ *
+ * Se lee directo de la tabla y no por una función: la política deja verlo a
+ * todo el equipo, que es exactamente quién tiene que poder saber si el día ya
+ * está cerrado. Escribirlo sí pasa por función.
+ */
+export async function cargarCierre(
+  tenant: Tenant,
+  fecha: string,
+): Promise<CierreDeCaja | null> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("cash_closures")
+    .select(
+      "business_date, expected_cash_cents, expected_card_cents, expected_transfer_cents, " +
+        "counted_cash_cents, counted_card_cents, counted_transfer_cents, note, closed_at, " +
+        "barbers(display_name)",
+    )
+    .eq("tenant_id", tenant.id)
+    .eq("business_date", fecha)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  const f = data as unknown as {
+    business_date: string;
+    expected_cash_cents: number;
+    expected_card_cents: number;
+    expected_transfer_cents: number;
+    counted_cash_cents: number;
+    counted_card_cents: number;
+    counted_transfer_cents: number;
+    note: string | null;
+    closed_at: string;
+    barbers: { display_name: string } | { display_name: string }[] | null;
+  };
+
+  const quien = Array.isArray(f.barbers) ? f.barbers[0] : f.barbers;
+
+  return {
+    businessDate: f.business_date,
+    expected: {
+      cash: f.expected_cash_cents,
+      card: f.expected_card_cents,
+      transfer: f.expected_transfer_cents,
+    },
+    counted: {
+      cash: f.counted_cash_cents,
+      card: f.counted_card_cents,
+      transfer: f.counted_transfer_cents,
+    },
+    note: f.note,
+    closedAt: f.closed_at,
+    closedByName: quien?.display_name ?? null,
+  };
 }
 
 /** Cuántos turnos ya pasados quedaron sin cobrar, y desde cuándo. */
