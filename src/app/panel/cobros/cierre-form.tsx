@@ -54,79 +54,95 @@ export function CierreForm({
   const totalEsperado = totalDe(esperado);
   const diferencia = totalContado - totalEsperado;
 
-  // Nada escrito todavía: no se muestra una diferencia de todo el día en rojo
-  // antes de que alguien haya empezado a contar.
-  const empezoAContar = MEDIOS.some((m) => contado[m.valor].trim() !== "");
+  // Un campo vacío NO es un cero.
+  //
+  // "Conté cero" es algo que alguien afirma; "no escribí nada" es que todavía
+  // no contó. Tratarlos igual hace que cerrar sin contar declare que la caja
+  // está vacía, y el sistema avise que falta toda la plata del día. Por eso no
+  // se puede cerrar hasta que los tres estén escritos: escribir 0 vale, dejarlo
+  // en blanco no.
+  const escrito = (medio: string) => contado[medio].trim() !== "";
+  const faltaContar = MEDIOS.filter((m) => !escrito(m.valor));
+  const empezoAContar = MEDIOS.some((m) => escrito(m.valor));
 
   return (
     <form action={accion} className="card mt-4 px-5 py-5">
       <input type="hidden" name="fecha" value={fecha} />
 
-      <ul className="space-y-3">
+      <ul className="space-y-5">
         {MEDIOS.map((m) => {
           const esp = esperado[m.valor];
-          const cont = enCentavos(contado[m.valor]);
-          const dif = cont - esp;
-          const escrito = contado[m.valor].trim() !== "";
+          const dif = enCentavos(contado[m.valor]) - esp;
+          const yaEscrito = escrito(m.valor);
 
           return (
-            <li
-              key={m.valor}
-              className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 sm:grid-cols-[8rem_1fr_auto_7rem]"
-            >
-              <label
-                htmlFor={`contado-${m.valor}`}
-                className="text-sm font-medium text-ink"
-              >
-                {m.label}
-              </label>
+            <li key={m.valor}>
+              {/* Lo que dice el sistema va SIEMPRE a la vista, también en el
+                  celular: es el número contra el que se cuenta. */}
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                <label
+                  htmlFor={`contado-${m.valor}`}
+                  className="text-sm font-medium text-ink"
+                >
+                  {m.label}
+                </label>
+                <span className="tabular text-sm text-muted">
+                  La página registró {plata(esp)}
+                </span>
+              </div>
 
-              <p className="tabular hidden text-sm text-muted sm:block">
-                Sistema: {plata(esp)}
-              </p>
+              <div className="mt-2 flex items-center gap-3">
+                <input
+                  id={`contado-${m.valor}`}
+                  name={m.valor}
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="10"
+                  placeholder="Cuánto contaste"
+                  value={contado[m.valor]}
+                  onChange={(e) =>
+                    setContado((c) => ({ ...c, [m.valor]: e.target.value }))
+                  }
+                  className={[
+                    "tabular w-40 rounded-lg border bg-ink/[0.03] px-3 py-2.5 text-right text-ink",
+                    "transition-[background-color,border-color] duration-150 ease-out",
+                    "placeholder:text-left placeholder:text-sm placeholder:text-ink/30",
+                    "focus:border-ink focus:bg-surface focus:outline-none",
+                    yaEscrito ? "border-transparent hover:border-ink/15" : "border-ink/20",
+                  ].join(" ")}
+                />
 
-              <input
-                id={`contado-${m.valor}`}
-                name={m.valor}
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="10"
-                placeholder="0"
-                value={contado[m.valor]}
-                onChange={(e) =>
-                  setContado((c) => ({ ...c, [m.valor]: e.target.value }))
-                }
-                className="tabular w-32 rounded-lg border border-transparent bg-ink/[0.03] px-3 py-2.5 text-right text-ink transition-[background-color,border-color] duration-150 ease-out hover:border-ink/15 focus:border-ink focus:bg-surface focus:outline-none"
-              />
-
-              <p
-                className={[
-                  "tabular text-right text-sm",
-                  !escrito
-                    ? "text-muted/50"
-                    : dif === 0
+                <p
+                  className={[
+                    "tabular text-sm",
+                    !yaEscrito
                       ? "text-muted"
-                      : "font-semibold text-accent",
-                ].join(" ")}
-              >
-                {!escrito
-                  ? plata(esp)
-                  : dif === 0
-                    ? "Cuadra"
-                    : `${dif > 0 ? "+" : "−"}${plata(Math.abs(dif))}`}
-              </p>
+                      : dif === 0
+                        ? "text-muted"
+                        : "font-semibold text-accent",
+                  ].join(" ")}
+                >
+                  {!yaEscrito
+                    ? "Sin contar"
+                    : dif === 0
+                      ? "Cuadra"
+                      : `${dif > 0 ? "Sobran " : "Faltan "}${plata(Math.abs(dif))}`}
+                </p>
+              </div>
             </li>
           );
         })}
       </ul>
 
-      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t border-ink/10 pt-4">
+      <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t border-ink/10 pt-4">
         <p className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">
-          Total
+          Total contado
         </p>
         <p className="tabular flex items-baseline gap-3">
-          <span className="text-sm text-muted">{plata(totalEsperado)}</span>
+          <span className="text-sm text-muted">
+            de {plata(totalEsperado)}
+          </span>
           <span className="font-display text-2xl leading-none text-ink">
             {plata(totalContado)}
           </span>
@@ -172,7 +188,7 @@ export function CierreForm({
 
       <button
         type="submit"
-        disabled={pendiente || bloqueado}
+        disabled={pendiente || bloqueado || faltaContar.length > 0}
         className="mt-5 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pendiente ? "Cerrando…" : "Cerrar caja del día"}
@@ -181,7 +197,9 @@ export function CierreForm({
       <p className="mt-3 text-sm text-muted">
         {bloqueado
           ? "Primero resolvé los turnos de arriba: cobralos o marcá que no vinieron."
-          : "Después de cerrar no se cobra ni se anula nada más de este día."}
+          : faltaContar.length > 0
+            ? `Falta contar ${faltaContar.map((m) => m.label.toLowerCase()).join(", ")}. Si no hubo nada, escribí 0.`
+            : "Después de cerrar no se cobra ni se anula nada más de este día."}
       </p>
     </form>
   );
