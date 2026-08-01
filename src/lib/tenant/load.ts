@@ -122,6 +122,9 @@ export async function cargarBarberia(
         .from("services")
         .select("id, name, description, duration_minutes, price_cents")
         .eq("tenant_id", tenant.id)
+        // Un descuento no se reserva. Para `anon` ya lo filtra RLS, pero esta
+        // misma consulta la corre un dueño con sesión mirando su propia página.
+        .eq("kind", "service")
         .order("sort_order"),
       sb
         .from("working_hours")

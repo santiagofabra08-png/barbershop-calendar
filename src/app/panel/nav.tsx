@@ -68,7 +68,9 @@ export function PanelNav({
               href={s.href}
               aria-current={activo(s) ? "page" : undefined}
               className={[
-                "flex flex-col items-center gap-1 px-2 pt-3 text-xs font-semibold tracking-[0.06em] uppercase",
+                // Chico y sin espaciar de más: con cinco secciones cada nombre
+                // tiene un quinto de pantalla y "Horarios" tiene que entrar.
+                "flex flex-col items-center gap-1 px-1 pt-3 text-[0.65rem] font-semibold tracking-[0.04em] uppercase",
                 "pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
                 "transition-colors duration-150 ease-out active:bg-ink/[0.05]",
                 activo(s) ? "text-ink" : "text-muted",

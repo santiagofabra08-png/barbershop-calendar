@@ -16,7 +16,12 @@ export default async function ServiciosPage() {
   const { tenant } = sesion;
   const servicios = await cargarServiciosDelPanel(tenant);
 
-  const enLaPagina = servicios.filter((s) => s.isActive);
+  const enLaPagina = servicios.filter(
+    (s) => s.isActive && s.kind === "service",
+  );
+  const descuentos = servicios.filter(
+    (s) => s.isActive && s.kind === "discount",
+  );
   const guardados = servicios.filter((s) => !s.isActive);
 
   return (
@@ -69,6 +74,25 @@ export default async function ServiciosPage() {
         </ul>
       )}
 
+      {descuentos.length > 0 ? (
+        <>
+          <h2 className="mt-10 text-xs font-semibold tracking-[0.18em] text-muted uppercase">
+            Descuentos
+          </h2>
+          <p className="mt-2 max-w-prose text-sm text-muted">
+            No se reservan ni aparecen en la página. Se le suman a un ticket al
+            cobrar, y restan del total.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {descuentos.map((s) => (
+              <li key={s.id}>
+                <Ficha servicio={s} moneda={tenant.currency} />
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
       {guardados.length > 0 ? (
         <>
           <h2 className="mt-10 text-xs font-semibold tracking-[0.18em] text-muted uppercase">
@@ -107,10 +131,12 @@ function Ficha({
         <p className="font-medium text-ink">{servicio.name}</p>
         <p className="tabular text-sm text-muted">
           <span className="font-semibold text-ink">
+            {servicio.kind === "discount" ? "−" : ""}
             {formatPrice(servicio.priceCents, moneda)}
           </span>
-          {" · "}
-          {formatDuration(servicio.durationMinutes)}
+          {servicio.kind === "service"
+            ? ` · ${formatDuration(servicio.durationMinutes)}`
+            : ""}
         </p>
       </div>
       {servicio.description ? (

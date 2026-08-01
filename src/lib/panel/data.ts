@@ -32,11 +32,17 @@ export type TurnoDelPanel = {
   reason: string | null;
   source: "online" | "panel" | null;
   publicToken: string | null;
+
+  /** Null mientras no se cobró. Es lo que decide si entra al balance. */
+  chargedAt: string | null;
+  /** Lo que se cobró de verdad, que puede no ser el precio reservado. */
+  chargedTotalCents: number | null;
 };
 
 const CAMPOS_TURNO =
   "id, barber_id, kind, status, starts_at, ends_at, client_name, client_phone, " +
-  "price_cents, barber_commission_percent, reason, source, public_token, services(name)";
+  "price_cents, barber_commission_percent, reason, source, public_token, " +
+  "charged_at, charged_total_cents, services(name)";
 
 type FilaTurno = {
   id: string;
@@ -52,6 +58,8 @@ type FilaTurno = {
   reason: string | null;
   source: "online" | "panel" | null;
   public_token: string | null;
+  charged_at: string | null;
+  charged_total_cents: number | null;
   services: { name: string } | { name: string }[] | null;
 };
 
@@ -100,6 +108,8 @@ function aTurno(fila: FilaTurno, timeZone: string): TurnoDelPanel {
     reason: fila.reason,
     source: fila.source,
     publicToken: fila.public_token,
+    chargedAt: fila.charged_at,
+    chargedTotalCents: fila.charged_total_cents,
   };
 }
 
@@ -137,7 +147,12 @@ export async function cargarTurnos(
   return (data ?? []).map((f) => aTurno(f as unknown as FilaTurno, tenant.timezone));
 }
 
-/** Los servicios que se pueden cargar a mano, con su precio de hoy. */
+/**
+ * Los servicios reservables, con su precio de hoy.
+ *
+ * Sin los descuentos: un descuento no es un turno que alguien pueda pedir, es
+ * un renglón que se le suma a un ticket.
+ */
 export async function cargarServicios(tenant: Tenant) {
   const sb = await createClient();
 
@@ -146,6 +161,7 @@ export async function cargarServicios(tenant: Tenant) {
     .select("id, name, duration_minutes, price_cents")
     .eq("tenant_id", tenant.id)
     .eq("is_active", true)
+    .eq("kind", "service")
     .order("sort_order");
 
   return (data ?? []).map((s) => ({
@@ -209,6 +225,8 @@ export type ServicioDelPanel = {
   description: string | null;
   durationMinutes: number;
   priceCents: number;
+  /** 'discount' resta en el ticket y no se puede reservar. */
+  kind: "service" | "discount";
   isActive: boolean;
   sortOrder: number;
 };
@@ -221,7 +239,9 @@ export async function cargarServiciosDelPanel(
 
   const { data } = await sb
     .from("services")
-    .select("id, name, description, duration_minutes, price_cents, is_active, sort_order")
+    .select(
+      "id, name, description, duration_minutes, price_cents, kind, is_active, sort_order",
+    )
     .eq("tenant_id", tenant.id)
     .order("sort_order");
 
@@ -231,6 +251,7 @@ export async function cargarServiciosDelPanel(
     description: (s.description as string | null) ?? null,
     durationMinutes: s.duration_minutes as number,
     priceCents: s.price_cents as number,
+    kind: (s.kind as "service" | "discount") ?? "service",
     isActive: s.is_active as boolean,
     sortOrder: s.sort_order as number,
   }));

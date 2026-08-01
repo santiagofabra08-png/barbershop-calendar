@@ -28,6 +28,29 @@ function camposDelServicio(
     return { ok: false, error: "El precio tiene que ser un número." };
   }
 
+  const kind = String(formData.get("kind") ?? "service");
+  if (kind !== "service" && kind !== "discount") {
+    return { ok: false, error: "Elegí si es un servicio o un descuento." };
+  }
+
+  const description = String(formData.get("description") ?? "").trim() || null;
+
+  // Un descuento no dura nada: no se reserva, se le suma a un ticket. La base
+  // exige que sea exactamente cero para que nadie lea esa duración como si
+  // significara algo.
+  if (kind === "discount") {
+    return {
+      ok: true,
+      valores: {
+        name,
+        description,
+        kind,
+        duration_minutes: 0,
+        price_cents: Math.round(precio * 100),
+      },
+    };
+  }
+
   const duracion = Number(formData.get("duration_minutes"));
   if (!Number.isInteger(duracion) || duracion < 5 || duracion > 480) {
     return { ok: false, error: "La duración va de 5 minutos a 8 horas." };
@@ -38,13 +61,12 @@ function camposDelServicio(
     return { ok: false, error: "La duración tiene que ser múltiplo de 5 minutos." };
   }
 
-  const description = String(formData.get("description") ?? "").trim() || null;
-
   return {
     ok: true,
     valores: {
       name,
       description,
+      kind,
       duration_minutes: duracion,
       price_cents: Math.round(precio * 100),
     },

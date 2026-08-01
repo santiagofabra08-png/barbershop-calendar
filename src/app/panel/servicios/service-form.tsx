@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import type { EstadoServicio } from "@/app/panel/servicios/actions";
 
@@ -16,6 +16,7 @@ export type ServicioInicial = {
   description: string | null;
   durationMinutes: number;
   priceCents: number;
+  kind: "service" | "discount";
 };
 
 /** Los de siempre en una barbería, para no arrancar de una hoja en blanco. */
@@ -46,11 +47,45 @@ export function ServiceForm({
     {},
   );
 
+  // Un descuento no tiene duración ni se reserva, así que la mitad del
+  // formulario no le corresponde. Se decide primero y el resto se acomoda.
+  const [kind, setKind] = useState(inicial.kind);
+  const esDescuento = kind === "discount";
+
   return (
     <form action={enviar} className="mt-6">
       {inicial.id ? <input type="hidden" name="id" value={inicial.id} /> : null}
+      <input type="hidden" name="kind" value={kind} />
 
       <div className="card space-y-5 px-5 py-5">
+        {/* El tipo se elige una sola vez, al crear: cambiarlo después
+            convertiría un servicio ya reservado en un descuento. */}
+        {inicial.id ? null : (
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["service", "Servicio"],
+                ["discount", "Descuento"],
+              ] as const
+            ).map(([valor, label]) => (
+              <button
+                key={valor}
+                type="button"
+                aria-pressed={kind === valor}
+                onClick={() => setKind(valor)}
+                className={[
+                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 ease-out",
+                  kind === valor
+                    ? "bg-ink text-bg"
+                    : "bg-ink/[0.05] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
+                ].join(" ")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div>
           <label htmlFor="name" className={etiqueta}>
             Nombre
@@ -62,22 +97,24 @@ export function ServiceForm({
             autoComplete="off"
             list="sugerencias-servicio"
             defaultValue={inicial.name}
-            placeholder="Corte y barba"
+            placeholder={esDescuento ? "Amigo de la casa" : "Corte y barba"}
             className={campo}
           />
           {/* Sugerencias, no una lista cerrada: el dueño escribe lo que quiera
               y estas están para no empezar de cero. */}
-          <datalist id="sugerencias-servicio">
-            {SUGERENCIAS.map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
+          {esDescuento ? null : (
+            <datalist id="sugerencias-servicio">
+              {SUGERENCIAS.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          )}
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="price" className={etiqueta}>
-              Precio
+              {esDescuento ? "Cuánto descuenta" : "Precio"}
             </label>
             <div className="mt-2 flex items-center gap-2">
               <input
@@ -94,7 +131,7 @@ export function ServiceForm({
             </div>
           </div>
 
-          <div>
+          <div className={esDescuento ? "hidden" : ""}>
             <label htmlFor="duration_minutes" className={etiqueta}>
               Cuánto lleva
             </label>
@@ -132,9 +169,9 @@ export function ServiceForm({
       </div>
 
       <p className="mt-4 max-w-prose text-sm text-muted">
-        La duración define los horarios que se ofrecen. Un servicio de 40
-        minutos en una agenda de 14 a 21 da turnos a las 14:00, 14:40, 15:20, y
-        así.
+        {esDescuento
+          ? "Un descuento no se reserva ni aparece en la página: es un renglón que se le suma a un ticket al cobrar, y resta del total."
+          : "La duración define los horarios que se ofrecen. Un servicio de 40 minutos en una agenda de 14 a 21 da turnos a las 14:00, 14:40, 15:20, y así."}
       </p>
 
       {estado.error ? (

@@ -54,14 +54,27 @@ export default async function SemanaPage({
   // compañeros en cero, que es peor que no verlos.
   const visibles = esDuenio ? equipo.filter((b) => b.isActive) : [barbero];
 
+  // Solo entra lo cobrado. Un turno atendido y sin cobrar no es plata: es un
+  // pendiente, y se avisa aparte para que no se pierda callado.
   const cortes: Cut[] = turnos
-    .filter((t) => t.kind === "booking" && t.status !== "cancelled")
+    .filter(
+      (t) =>
+        t.kind === "booking" &&
+        (t.chargedAt !== null || t.status === "no_show"),
+    )
     .map((t) => ({
       barberId: t.barberId,
       status: t.status === "no_show" ? "no_show" : "confirmed",
-      priceCents: t.priceCents ?? 0,
+      // Lo cobrado de verdad, que puede incluir lo que se agregó sobre la
+      // marcha. En el que no vino no hay cobro: lo perdido es lo que valía.
+      priceCents: t.chargedTotalCents ?? t.priceCents ?? 0,
       commissionPercent: t.commissionPercent,
     }));
+
+  const sinCobrar = turnos.filter(
+    (t) =>
+      t.kind === "booking" && t.status === "confirmed" && t.chargedAt === null,
+  );
 
   const resumen = summarizePayroll(
     visibles.map((b) => ({ id: b.id, pay: b.pay })),
@@ -152,7 +165,7 @@ export default async function SemanaPage({
       {/* ---- El número grande ------------------------------------------- */}
       <section className="card mt-6 px-5 py-6 sm:px-7">
         <p className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">
-          {esDuenio ? "Entró por cortes" : "Cortaste por"}
+          {esDuenio ? "Cobrado" : "Cobraste"}
         </p>
         <p className="tabular mt-1 font-display text-4xl leading-none text-ink sm:text-5xl">
           {plata(resumen.producedCents)}
@@ -207,6 +220,25 @@ export default async function SemanaPage({
               {plata(resumen.shopCents)}
             </p>
           </div>
+        ) : null}
+
+        {/* Un turno atendido y sin cobrar es plata que existe y no está en
+            ningún número de esta pantalla. Se dice, con el camino para
+            arreglarlo. */}
+        {sinCobrar.length > 0 ? (
+          <Link
+            href={`/panel/cobros?d=${sinCobrar[0].dateLocal}`}
+            className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border-l-2 border-accent bg-accent/[0.06] px-4 py-3 transition-colors duration-150 ease-out hover:bg-accent/[0.1]"
+          >
+            <span className="text-sm text-ink">
+              <span className="font-semibold">{sinCobrar.length}</span>{" "}
+              {sinCobrar.length === 1 ? "turno atendido" : "turnos atendidos"}{" "}
+              sin cobrar. Esa plata no está contada acá.
+            </span>
+            <span className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">
+              Ir a cobrar ›
+            </span>
+          </Link>
         ) : null}
 
         {!resumen.complete ? (

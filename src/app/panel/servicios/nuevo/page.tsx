@@ -37,6 +37,7 @@ export default async function NuevoServicioPage() {
           description: null,
           durationMinutes: 40,
           priceCents: 0,
+          kind: "service",
         }}
       />
     </>

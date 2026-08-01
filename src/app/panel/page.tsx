@@ -8,7 +8,6 @@ import { sesionDelPanel } from "@/lib/panel/session";
 import {
   addDays,
   formatDateLong,
-  formatPrice,
   nowInTimeZone,
 } from "@/lib/schedule";
 
@@ -51,7 +50,10 @@ export default async function AgendaPage({
   const cortes = delDia.filter(
     (t) => t.kind === "booking" && t.status === "confirmed",
   );
-  const recaudado = cortes.reduce((t, c) => t + (c.priceCents ?? 0), 0);
+  // La plata del día vive en Cobros, no acá. Sumar los precios reservados daría
+  // un número que parece caja y no lo es: nadie sabe todavía qué se agregó ni
+  // qué se cobró.
+  const cobrados = cortes.filter((t) => t.chargedAt !== null).length;
 
   return (
     <>
@@ -84,10 +86,17 @@ export default async function AgendaPage({
       {cortes.length > 0 ? (
         <p className="mt-4 text-sm text-muted">
           <span className="font-semibold text-ink">{cortes.length}</span>{" "}
-          {cortes.length === 1 ? "corte" : "cortes"} ·{" "}
-          <span className="tabular font-semibold text-ink">
-            {formatPrice(recaudado, tenant.currency)}
-          </span>
+          {cortes.length === 1 ? "turno" : "turnos"} ·{" "}
+          {cobrados === cortes.length ? (
+            "todo cobrado"
+          ) : (
+            <Link
+              href={`/panel/cobros?d=${fecha}`}
+              className="text-accent underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-ink"
+            >
+              {cortes.length - cobrados} sin cobrar
+            </Link>
+          )}
         </p>
       ) : null}
 

@@ -25,8 +25,13 @@ export default async function FichaServicioPage({
   const servicio = servicios.find((s) => s.id === id);
   if (!servicio) notFound();
 
-  const activos = servicios.filter((s) => s.isActive);
-  const esElUltimo = servicio.isActive && activos.length === 1;
+  // Solo los reservables cuentan: sacar el último descuento no deja la página
+  // sin nada que reservar.
+  const reservables = servicios.filter(
+    (s) => s.isActive && s.kind === "service",
+  );
+  const esElUltimo =
+    servicio.isActive && servicio.kind === "service" && reservables.length === 1;
 
   return (
     <>
@@ -56,6 +61,7 @@ export default async function FichaServicioPage({
           description: servicio.description,
           durationMinutes: servicio.durationMinutes,
           priceCents: servicio.priceCents,
+          kind: servicio.kind,
         }}
       />
 

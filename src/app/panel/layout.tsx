@@ -30,35 +30,30 @@ export default async function PanelLayout({
 
   const { tenant, barbero, esDuenio } = sesion;
 
-  // Lo que se usa todos los días.
+  // Lo que se usa todos los días. Cobros va segundo porque es lo que más veces
+  // se toca en una jornada: una vez por cliente.
   const trabajo: Seccion[] = [
     { href: "/panel", label: "Agenda" },
+    { href: "/panel/cobros", label: "Cobros" },
     { href: "/panel/semana", label: "Semana" },
     { href: "/panel/horarios", label: "Horarios" },
   ];
 
   // Lo que se configura una vez y casi no se toca. Solo el dueño: para un
-  // barbero estas secciones no están escondidas, no existen.
-  const administracion: Seccion[] = esDuenio
-    ? [
-        { href: "/panel/servicios", label: "Servicios" },
-        { href: "/panel/equipo", label: "Equipo" },
-        { href: "/panel/ajustes", label: "Ajustes" },
-      ]
-    : [];
-
-  // En pantalla grande entran todas. En el celular no: seis nombres en una
-  // barra dejan a cada uno con un sexto de pantalla, y "Servicios" no entra.
-  // Así que ahí las tres de administración se pliegan detrás de una sola
-  // entrada, que además es la separación real: trabajo diario contra
-  // configuración.
-  const enBarra: Seccion[] = esDuenio
+  // barbero estas secciones no están escondidas, no existen. Van plegadas
+  // detrás de una sola entrada —en el celular no entran siete nombres en una
+  // barra, y en la computadora tampoco entran al lado del resto del encabezado.
+  const secciones: Seccion[] = esDuenio
     ? [
         ...trabajo,
         {
           href: "/panel/local",
           label: "Local",
-          matches: administracion.map((s) => s.href),
+          matches: [
+            "/panel/servicios",
+            "/panel/equipo",
+            "/panel/ajustes",
+          ],
         },
       ]
     : trabajo;
@@ -79,7 +74,7 @@ export default async function PanelLayout({
 
             <div className="ml-auto flex items-center gap-3">
               <PanelNav
-                secciones={[...trabajo, ...administracion]}
+                secciones={secciones}
                 variante="linea"
               />
 
@@ -115,7 +110,7 @@ export default async function PanelLayout({
           {children}
         </main>
 
-        <PanelNav secciones={enBarra} variante="barra" />
+        <PanelNav secciones={secciones} variante="barra" />
       </div>
     </>
   );
