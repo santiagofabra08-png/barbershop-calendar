@@ -151,7 +151,14 @@ Se escriben a mano en `supabase/migrations/` con nombre `<timestamp>_<qué>.sql`
 y se aplican pegándolas en el SQL Editor de Supabase. Van siempre envueltas en
 `begin; … commit;` para que un error no deje el esquema a medias.
 
-Cuidado con `NOT VALID`: no perdona una fila para siempre, solo mientras nadie
+Antes de agregar una restricción o una política, preguntarse **qué pasa con lo
+que ya está guardado**. Las dos formas en que esto muerde:
+- Una restricción nueva se valida contra todas las filas existentes. Si agrega
+  columnas, hay que rellenarlas en la misma migración, antes.
+- Una política se compila al crearla, así que toda columna que menciona tiene
+  que existir ya. El orden dentro del archivo importa.
+
+Y cuidado con `NOT VALID`: no perdona una fila para siempre, solo mientras nadie
 la toque. Cualquier `UPDATE` posterior sobre esa fila la revisa entera.
 
 ## Lo que está a medio camino

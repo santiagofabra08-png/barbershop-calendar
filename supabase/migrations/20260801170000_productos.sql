@@ -171,6 +171,14 @@ alter table public.appointments
   add column charged_services_cents int check (charged_services_cents is null or charged_services_cents >= 0),
   add column charged_products_cents int check (charged_products_cents is null or charged_products_cents >= 0);
 
+-- Lo que ya está cobrado es todo servicios: cuando se cobró, los productos no
+-- existían. Sin este relleno, la restricción de abajo encuentra las columnas
+-- nuevas vacías en cada turno viejo y se niega a aplicarse.
+update public.appointments
+set charged_services_cents = charged_total_cents,
+    charged_products_cents = 0
+where charged_at is not null;
+
 -- Los tres montos van juntos o no va ninguno, y los dos parciales suman el
 -- total. Sin esto, un error de cálculo quedaría guardado sin que nadie lo note.
 alter table public.appointments
