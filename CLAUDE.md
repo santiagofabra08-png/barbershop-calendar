@@ -161,6 +161,23 @@ que ya está guardado**. Las dos formas en que esto muerde:
 Y cuidado con `NOT VALID`: no perdona una fila para siempre, solo mientras nadie
 la toque. Cualquier `UPDATE` posterior sobre esa fila la revisa entera.
 
+## Subir imágenes
+Toda pantalla que pida una imagen tiene que **decir en pantalla qué se espera**,
+antes de que la persona elija el archivo. Un dueño de barbería no sabe qué es
+"1:1" ni cuánto pesa una foto: hay que decírselo en criollo y al lado del botón.
+
+Siempre estas tres cosas: **medida recomendada, formato y peso máximo.**
+
+- **Foto de producto** — cuadrada, 800×800 px. JPG, PNG o WebP, hasta 2 MB.
+  Se recorta centrada si viene con otra forma, así que lo importante va al medio.
+- **Logo** — con fondo transparente. SVG es lo mejor porque no se pixela nunca;
+  si es PNG, 400 px de ancho como mínimo. Hasta 1 MB.
+  Son **dos**: uno para fondo claro y otro para fondo oscuro. Un logo oscuro
+  desaparece sobre la franja negra del encabezado.
+
+Nunca rechazar un archivo solo por la medida: se recorta y se avisa. El rechazo
+se reserva para el formato y el peso, que sí rompen la página.
+
 ## Lo que está a medio camino
 - **Productos**: el esquema está escrito y aprobado
   (`20260801170000_productos.sql` y `20260801180000_vender_productos.sql`) pero
