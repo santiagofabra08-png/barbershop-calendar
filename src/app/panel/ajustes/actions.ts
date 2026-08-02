@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { LOGO, revisarArchivo, urlDeImagen } from "@/lib/panel/imagen";
 import { sesionDelPanel } from "@/lib/panel/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -121,6 +122,106 @@ export async function guardarAjustes(
   if (error) return { error: `No se pudo guardar: ${error.message}` };
 
   // La portada y el panel muestran estos datos, así que los dos se rehacen.
+  revalidatePath("/", "layout");
+
+  return { ok: "Guardado. Mirá la página para ver cómo quedó." };
+}
+
+// ---------------------------------------------------------------------------
+// El logo
+// ---------------------------------------------------------------------------
+
+const BUCKET = "tenant-assets";
+
+/**
+ * Son dos y no uno.
+ *
+ * El encabezado de la página es una franja negra y el resto es claro. Un logo
+ * negro desaparece arriba; uno blanco desaparece abajo. Pedir uno solo es
+ * garantizar que en alguna de las dos mitades no se vea nada.
+ */
+const CAMPOS_LOGO = {
+  claro: "logo_light_url",
+  oscuro: "logo_dark_url",
+} as const;
+
+/** De la URL guardada a la ruta dentro del bucket, para poder borrarla. */
+function rutaDeLaUrl(url: string | null): string | null {
+  if (!url) return null;
+  const marca = `/${BUCKET}/`;
+  const i = url.indexOf(marca);
+  // Un logo cargado a mano puede apuntar a cualquier lado. Ese no se borra: no
+  // es nuestro.
+  return i === -1 ? null : url.slice(i + marca.length);
+}
+
+/**
+ * Guarda los dos logos.
+ *
+ * Va aparte de `guardarAjustes` porque son archivos: mandar dos imágenes cada
+ * vez que alguien corrige la dirección sería subir un megabyte para cambiar una
+ * coma.
+ */
+export async function guardarLogos(
+  _previo: EstadoAjustes,
+  formData: FormData,
+): Promise<EstadoAjustes> {
+  const sesion = await sesionDelPanel();
+  if (!sesion?.esDuenio) {
+    return { error: "Solo el dueño puede cambiar el logo." };
+  }
+
+  const sb = await createClient();
+  const cambios: Record<string, string | null> = {};
+  const aBorrar: string[] = [];
+
+  for (const [cual, columna] of Object.entries(CAMPOS_LOGO)) {
+    const archivo = formData.get(`logo_${cual}`);
+    const quitar = formData.get(`quitar_${cual}`) === "1";
+    const actual =
+      cual === "claro" ? sesion.tenant.logoLightUrl : sesion.tenant.logoDarkUrl;
+
+    if (archivo instanceof File && archivo.size > 0) {
+      const problema = revisarArchivo(archivo.type, archivo.size, LOGO);
+      if (problema) return { error: `${problema} (logo para fondo ${cual})` };
+
+      const extension =
+        { "image/svg+xml": "svg", "image/png": "png", "image/webp": "webp" }[
+          archivo.type
+        ] ?? "png";
+      const path = `${sesion.tenant.id}/marca/${cual}-${crypto.randomUUID()}.${extension}`;
+
+      const { error } = await sb.storage.from(BUCKET).upload(path, archivo, {
+        contentType: archivo.type,
+        cacheControl: "31536000",
+      });
+      if (error) return { error: `No se pudo subir el logo: ${error.message}` };
+
+      cambios[columna] = urlDeImagen(path);
+      const vieja = rutaDeLaUrl(actual);
+      if (vieja) aBorrar.push(vieja);
+    } else if (quitar) {
+      cambios[columna] = null;
+      const vieja = rutaDeLaUrl(actual);
+      if (vieja) aBorrar.push(vieja);
+    }
+  }
+
+  if (Object.keys(cambios).length === 0) {
+    return { error: "No elegiste ningún archivo." };
+  }
+
+  const { error } = await sb
+    .from("tenants")
+    .update(cambios)
+    .eq("id", sesion.tenant.id);
+
+  if (error) return { error: `No se pudo guardar: ${error.message}` };
+
+  // Recién ahora, con la fila apuntando a la nueva. Al revés, un error dejaría
+  // la página buscando un logo que ya no está.
+  if (aBorrar.length > 0) await sb.storage.from(BUCKET).remove(aBorrar);
+
   revalidatePath("/", "layout");
 
   return { ok: "Guardado. Mirá la página para ver cómo quedó." };

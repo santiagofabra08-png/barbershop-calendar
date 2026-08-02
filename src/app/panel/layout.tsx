@@ -51,6 +51,8 @@ export default async function PanelLayout({
           label: "Local",
           matches: [
             "/panel/servicios",
+            "/panel/productos",
+            "/panel/pedidos",
             "/panel/equipo",
             "/panel/ajustes",
           ],

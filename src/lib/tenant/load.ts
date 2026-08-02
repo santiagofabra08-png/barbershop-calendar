@@ -43,12 +43,13 @@ type FilaTenant = {
   booking_window_days: number | null;
   booking_week_release_dow: number | null;
   booking_week_release_time: string | null;
+  products_enabled: boolean;
 };
 
 const CAMPOS_TENANT =
   "id, slug, name, timezone, currency, address, maps_url, logo_light_url, logo_dark_url, " +
   "color_bg, color_surface, color_ink, color_ink_muted, color_accent, color_accent_alt, " +
-  "min_lead_minutes, cancel_deadline_minutes, " +
+  "min_lead_minutes, cancel_deadline_minutes, products_enabled, " +
   "booking_window_mode, booking_window_days, booking_week_release_dow, booking_week_release_time";
 
 function aTenant(fila: FilaTenant): Tenant {
@@ -72,6 +73,7 @@ function aTenant(fila: FilaTenant): Tenant {
     },
     minLeadMinutes: fila.min_lead_minutes,
     cancelDeadlineMinutes: fila.cancel_deadline_minutes,
+    productsEnabled: fila.products_enabled ?? false,
     bookingWindow:
       fila.booking_window_mode === "weekly"
         ? {

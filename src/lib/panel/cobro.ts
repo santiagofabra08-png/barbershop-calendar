@@ -40,6 +40,19 @@ export const totalDe = (m: PorMedio) => m.cash + m.card + m.transfer;
 export type RenglonDeTicket = {
   name: string;
   amountCents: number;
+  /** Más de uno solo pasa con productos: dos ceras son un renglón de dos. */
+  quantity: number;
+};
+
+export type VentaDeMostrador = {
+  id: string;
+  /** "HH:MM" en hora local de la barbería. */
+  hora: string;
+  totalCents: number;
+  paymentMethod: MedioDePago;
+  soldByName: string | null;
+  note: string | null;
+  items: RenglonDeTicket[];
 };
 
 export type TurnoParaCobrar = {

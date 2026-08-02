@@ -35,6 +35,7 @@ const tenant: Tenant = {
   },
   minLeadMinutes: 60,
   cancelDeadlineMinutes: 60,
+  productsEnabled: false,
   bookingWindow: { mode: "weekly", releaseWeekday: 6, releaseTime: "21:00" },
 };
 

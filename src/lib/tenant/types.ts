@@ -32,6 +32,9 @@ export type Tenant = {
   minLeadMinutes: number;
   cancelDeadlineMinutes: number;
 
+  /** La vidriera de productos se ve en la página. Apagada, no existe. */
+  productsEnabled: boolean;
+
   /** 'rolling' = ventana móvil de N días. 'weekly' = solo la semana en curso. */
   bookingWindow:
     | { mode: "rolling"; days: number }

@@ -72,13 +72,20 @@ para no tener que reconstruirlo leyendo todo.
 - **Página pública** (`/`, `/reservar`, `/turno/[token]`) — el cliente elige
   servicio, barbero, día y hora. Sin login.
 - **Panel** (`/entrar`, `/panel/*`) — Agenda, Cobros, Semana, Horarios, y para
-  el dueño Servicios, Equipo y Ajustes agrupados bajo Local.
+  el dueño Servicios, Productos, Pedidos, Equipo y Ajustes agrupados bajo Local.
+- **Vidriera** (`/productos`, `/productos/listo`) — el catálogo público. Existe
+  solo si la barbería prendió `tenants.products_enabled`; si no, es un 404.
 
 ## Dónde está cada cosa
 - `src/lib/schedule.ts` — grilla de horarios. Puro: `now` entra como argumento.
 - `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
 - `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
+- `src/lib/carrito.ts` — elegir productos y contar lo que da. Puro y neutral.
+  Vive fuera de `panel/` porque lo usan el ticket, el mostrador y la vidriera
+  pública, y la página pública no tiene por qué depender del panel para sumar.
+- `src/lib/panel/imagen.ts` — qué se espera de cada imagen, el recorte al
+  cuadrado en el navegador y la validación que corre en las dos puntas.
 - `src/lib/tenant/` — `resolve` saca la barbería del subdominio, `load` traduce
   filas de Supabase a la forma de la pantalla.
 - `src/lib/panel/` — lo que lee el panel. `session` dice quién entró y a qué
@@ -119,6 +126,19 @@ para no tener que reconstruirlo leyendo todo.
 - **Nadie se borra, se desactiva** (`is_active = false`). Se borra solo lo que
   es un error de tipeo: un pago mal anotado, un cobro mal hecho.
 - **Un día con la caja cerrada no se toca más.** Lo impone la base.
+- **Un pedido de la web no es una venta.** No descuenta stock, no toca la caja
+  y no promete nada: es alguien levantando la mano. Si se concreta, se cobra
+  por Mostrador como cualquier otra venta. Prometer stock que después no está
+  es peor que no prometer nada.
+- **Lo que la caja espera y lo que la base calcula tienen que incluir lo
+  mismo.** El cierre suma turnos cobrados *y* ventas de mostrador; la pantalla
+  de Cobros también. Si una de las dos se olvida de algo, la diferencia aparece
+  como plata que sobra y el cierre deja de servir para lo único que sirve.
+- **RLS filtra filas, `GRANT` filtra columnas.** Que una fila se pueda ver no
+  significa que todas sus columnas se puedan ver. `barbers` es público para
+  `anon` —la página muestra quién atiende— y por eso el mail y el teléfono del
+  barbero están fuera del grant. Al agregar una columna sensible a una tabla
+  que el público lee, hay que preguntarse esto.
 
 ## Cuidado con la frontera cliente/servidor
 Un módulo con `"use client"` solo puede exportar **componentes** hacia el
@@ -178,13 +198,20 @@ Siempre estas tres cosas: **medida recomendada, formato y peso máximo.**
 Nunca rechazar un archivo solo por la medida: se recorta y se avisa. El rechazo
 se reserva para el formato y el peso, que sí rompen la página.
 
+Las medidas y los límites viven en `src/lib/panel/imagen.ts`, en un solo lugar,
+y de ahí salen tanto el texto de la pantalla como la validación. Escribirlos dos
+veces es garantizar que un día digan cosas distintas.
+
+**Las fotos se recortan en el navegador, antes de subir.** Una foto de celular
+pesa 4 MB y mide 4000 px; recortada son 60 KB. Hacerlo del otro lado significa
+que el dueño espera medio minuto mirando una barra, gastando sus datos, para
+subir algo que se va a tirar.
+
+**El logo es la excepción: se sube tal cual.** Un SVG es un dibujo, no una foto,
+y pasarlo por un canvas lo convertiría en píxeles —justo lo que lo hace bueno—.
+Un PNG con transparencia tampoco sobreviviría el recorte.
+
 ## Lo que está a medio camino
-- **Productos**: el esquema está escrito y aprobado
-  (`20260801170000_productos.sql` y `20260801180000_vender_productos.sql`) pero
-  todavía no hay pantallas. Falta el panel para cargarlos con foto, la vidriera
-  pública con carrito, la venta de mostrador en Cobros y la sección de Pedidos.
-- **El logo** se sigue cargando por atrás. El bucket de Storage llega con la
-  migración de productos, así que después de eso es solo la pantalla.
 - **Alta de una barbería nueva**: hoy se hace con SQL a mano. Es lo que falta
   para poder venderle a alguien sin intervención.
 - **Nico** es un barbero de prueba en la base de Tropi.

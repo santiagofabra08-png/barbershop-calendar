@@ -3,7 +3,15 @@
 import { useActionState, useState } from "react";
 
 import { cobrarTurno, type EstadoCobro } from "@/app/panel/cobros/actions";
+import { ProductosPicker } from "@/app/panel/cobros/productos-picker";
 import { MEDIOS, type TurnoParaCobrar } from "@/lib/panel/cobro";
+import {
+  carritoAJson,
+  lineasDelCarrito,
+  totalDelCarrito,
+  type Carrito,
+  type ProductoParaVender,
+} from "@/lib/carrito";
 import { formatPrice } from "@/lib/schedule";
 
 export type Agregable = {
@@ -26,10 +34,13 @@ export type Agregable = {
 export function Ticket({
   turno,
   agregables,
+  productos,
   moneda,
 }: {
   turno: TurnoParaCobrar;
   agregables: Agregable[];
+  /** Lo que se puede llevar del estante. Vacío si la barbería no vende nada. */
+  productos: ProductoParaVender[];
   moneda: string;
 }) {
   const [estado, accion, pendiente] = useActionState<EstadoCobro, FormData>(
@@ -40,16 +51,23 @@ export function Ticket({
   // Los ids de lo agregado, en orden y con repetidos: dos veces la misma cosa
   // son dos renglones, que es lo que pasa cuando se cortan dos hermanos.
   const [extras, setExtras] = useState<string[]>([]);
+  const [carrito, setCarrito] = useState<Carrito>({});
   const [medio, setMedio] = useState<string>("cash");
 
   const porId = new Map(agregables.map((a) => [a.id, a]));
   const monto = (a: Agregable) =>
     a.esDescuento ? -a.priceCents : a.priceCents;
 
-  const total = extras.reduce((t, id) => {
+  // Los servicios y los productos se suman aparte porque un descuento resta
+  // solo de los servicios. La base hace la misma separación, y por la misma
+  // razón: la comisión del barbero sale de lo que cortó, no de la cera.
+  const servicios = extras.reduce((t, id) => {
     const a = porId.get(id);
     return a ? t + monto(a) : t;
   }, turno.priceCents);
+
+  const productosCents = totalDelCarrito(productos, carrito);
+  const total = servicios + productosCents;
 
   const plata = (c: number) => formatPrice(c, moneda);
 
@@ -57,6 +75,11 @@ export function Ticket({
     <form action={accion} className="mt-4 border-t border-ink/10 pt-4">
       <input type="hidden" name="id" value={turno.id} />
       <input type="hidden" name="payment_method" value={medio} />
+      <input
+        type="hidden"
+        name="productos"
+        value={carritoAJson(productos, carrito)}
+      />
       {extras.map((id, i) => (
         <input key={`${id}-${i}`} type="hidden" name="extras" value={id} />
       ))}
@@ -100,6 +123,23 @@ export function Ticket({
             </li>
           );
         })}
+
+        {lineasDelCarrito(productos, carrito).map(({ producto, cantidad }) => (
+          <li
+            key={producto.id}
+            className="flex items-baseline justify-between gap-4 text-sm"
+          >
+            <span className="text-ink">
+              {producto.name}
+              {cantidad > 1 ? (
+                <span className="tabular text-muted"> ×{cantidad}</span>
+              ) : null}
+            </span>
+            <span className="tabular shrink-0 text-ink">
+              {plata(producto.priceCents * cantidad)}
+            </span>
+          </li>
+        ))}
       </ul>
 
       <p className="mt-3 flex items-baseline justify-between gap-4 border-t border-ink/10 pt-3">
@@ -142,6 +182,23 @@ export function Ticket({
         </div>
       ) : null}
 
+      {/* ---- Se llevó algo del estante ----------------------------------- */}
+      {productos.length > 0 ? (
+        <div className="mt-4">
+          <p className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">
+            Se llevó
+          </p>
+          <div className="mt-2">
+            <ProductosPicker
+              productos={productos}
+              carrito={carrito}
+              setCarrito={setCarrito}
+              moneda={moneda}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {/* ---- Con qué pagó ------------------------------------------------ */}
       <div className="mt-4">
         <p className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">
@@ -178,15 +235,17 @@ export function Ticket({
 
       <button
         type="submit"
-        disabled={pendiente || total < 0}
+        disabled={pendiente || servicios < 0}
         className="mt-4 w-full rounded-lg bg-accent px-6 py-3.5 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pendiente ? "Cobrando…" : `Cobrar ${plata(total)}`}
       </button>
 
-      {total < 0 ? (
+      {/* Se mira contra los servicios y no contra el total, igual que la base:
+          un descuento no se puede tapar vendiéndole una cera. */}
+      {servicios < 0 ? (
         <p className="mt-2 text-sm text-muted">
-          El descuento es más grande que el total.
+          El descuento es más grande que lo que se hizo.
         </p>
       ) : null}
     </form>

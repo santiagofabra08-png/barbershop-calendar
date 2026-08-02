@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { cargarEquipo, cargarServiciosDelPanel } from "@/lib/panel/data";
+import { contarPedidosNuevos } from "@/lib/panel/pedidos";
+import { cargarProductos } from "@/lib/panel/productos";
 import { sesionDelPanel } from "@/lib/panel/session";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +22,16 @@ export default async function LocalPage() {
   if (!sesion.esDuenio) redirect("/panel");
 
   const { tenant } = sesion;
-  const [equipo, servicios] = await Promise.all([
+  const [equipo, servicios, productos, pedidosNuevos] = await Promise.all([
     cargarEquipo(tenant),
     cargarServiciosDelPanel(tenant),
+    cargarProductos(tenant),
+    contarPedidosNuevos(tenant),
   ]);
 
   const barberos = equipo.filter((b) => b.isActive).length;
   const enLaPagina = servicios.filter((s) => s.isActive).length;
+  const aLaVenta = productos.filter((p) => p.isActive).length;
 
   const secciones = [
     {
@@ -35,6 +40,29 @@ export default async function LocalPage() {
       texto: "Qué se puede reservar, con su precio y cuánto lleva.",
       dato:
         enLaPagina === 1 ? "1 en la página" : `${enLaPagina} en la página`,
+    },
+    {
+      href: "/panel/productos",
+      titulo: "Productos",
+      texto: "Ceras, polvos, remeras: lo que vendés además del corte.",
+      dato: !tenant.productsEnabled
+        ? aLaVenta === 0
+          ? "Sin cargar"
+          : `${aLaVenta} cargados, catálogo oculto`
+        : aLaVenta === 1
+          ? "1 a la venta"
+          : `${aLaVenta} a la venta`,
+    },
+    {
+      href: "/panel/pedidos",
+      titulo: "Pedidos",
+      texto: "Quién pidió algo del catálogo por la página.",
+      dato:
+        pedidosNuevos === 0
+          ? "Nada sin contestar"
+          : pedidosNuevos === 1
+            ? "1 sin contestar"
+            : `${pedidosNuevos} sin contestar`,
     },
     {
       href: "/panel/equipo",

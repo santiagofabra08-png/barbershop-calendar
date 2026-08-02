@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Ledger } from "@/app/panel/ledger";
 import { QuickAdd } from "@/app/panel/quick-add";
 import { cargarEquipo, cargarServicios, cargarTurnos } from "@/lib/panel/data";
+import { contarPedidosNuevos } from "@/lib/panel/pedidos";
 import { sesionDelPanel } from "@/lib/panel/session";
 import {
   addDays,
@@ -29,10 +30,11 @@ export default async function AgendaPage({
   const { d } = await searchParams;
   const fecha = d && FECHA.test(d) ? d : hoy.date;
 
-  const [turnos, equipo, servicios] = await Promise.all([
+  const [turnos, equipo, servicios, pedidosNuevos] = await Promise.all([
     cargarTurnos(tenant, fecha, fecha),
     cargarEquipo(tenant),
     cargarServicios(tenant),
+    contarPedidosNuevos(tenant),
   ]);
 
   // Los cancelados no se dibujan: liberaron el horario, así que el hueco que
@@ -98,6 +100,27 @@ export default async function AgendaPage({
             </Link>
           )}
         </p>
+      ) : null}
+
+      {/* Un pedido no tiene hora ni entra en la agenda, así que nadie lo va a
+          encontrar solo. Se avisa acá, que es la pantalla que se mira siempre,
+          y en ningún otro lado: un aviso repetido en cinco pantallas deja de
+          leerse a la semana. */}
+      {pedidosNuevos > 0 ? (
+        <Link
+          href="/panel/pedidos"
+          className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border-l-2 border-accent bg-accent/[0.06] px-4 py-3 transition-colors duration-150 ease-out hover:bg-accent/[0.1]"
+        >
+          <span className="text-sm text-ink">
+            <span className="font-semibold">{pedidosNuevos}</span>{" "}
+            {pedidosNuevos === 1
+              ? "pedido de productos sin contestar"
+              : "pedidos de productos sin contestar"}
+          </span>
+          <span className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">
+            Ver ›
+          </span>
+        </Link>
       ) : null}
 
       <Ledger

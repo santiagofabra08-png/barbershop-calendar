@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconoEtiqueta, IconoReloj } from "@/components/icons";
@@ -129,6 +130,30 @@ export default async function PaginaDeReservas({
             </p>
           </div>
         )}
+
+        {/* Los productos se ofrecen después del turno, no antes: quien entra
+            acá viene a reservar. Y solo si la barbería prendió la vidriera. */}
+        {tenant.productsEnabled ? (
+          <Link
+            href="/productos"
+            className="card mt-10 flex items-center gap-4 px-5 py-5 transition-shadow duration-150 ease-out hover:shadow-lg"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-lg leading-tight font-bold text-ink">
+                También vendemos
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Ceras, polvos y algo más para llevarte a casa.
+              </p>
+            </div>
+            <span
+              aria-hidden="true"
+              className="text-xs font-semibold tracking-[0.1em] text-accent uppercase"
+            >
+              Ver ›
+            </span>
+          </Link>
+        ) : null}
       </main>
 
       <ShopFooter

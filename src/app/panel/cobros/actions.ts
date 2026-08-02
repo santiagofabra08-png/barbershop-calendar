@@ -8,6 +8,29 @@ import { createClient } from "@/lib/supabase/server";
 export type EstadoCobro = { error?: string; ok?: string };
 
 /**
+ * El carrito tal como llega del formulario.
+ *
+ * Se lee sin confiar: solo ids y cantidades, y cualquier cosa rara se descarta
+ * en silencio. Los precios ni se miran —no vienen— porque los pone la base.
+ */
+function carritoDelFormulario(formData: FormData): { id: string; qty: number }[] {
+  try {
+    const crudo = JSON.parse(String(formData.get("productos") ?? "[]"));
+    if (!Array.isArray(crudo)) return [];
+
+    return crudo
+      .filter((x): x is { id: unknown; qty: unknown } => Boolean(x) && typeof x === "object")
+      .map((x) => ({
+        id: String(x.id ?? ""),
+        qty: Math.max(1, Math.min(99, Math.trunc(Number(x.qty ?? 1)) || 1)),
+      }))
+      .filter((x) => x.id !== "");
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Cobra un turno.
  *
  * La cuenta la hace Postgres, no esta función ni el navegador. Acá solo viajan
@@ -34,12 +57,62 @@ export async function cobrarTurno(
     p_appointment_id: id,
     p_extras: extras,
     p_payment_method: medio,
+    p_productos: carritoDelFormulario(formData),
   });
 
   if (error) return { error: error.message };
 
   revalidar();
   return { ok: "Cobrado." };
+}
+
+/**
+ * Vende productos sin turno de por medio.
+ *
+ * El que entra, compra una cera y se va. No hay a quién agendarle nada, así que
+ * no se inventa un turno: es una venta y nada más. El stock lo descuenta la
+ * base, en el mismo movimiento, para que dos personas no vendan la última.
+ */
+export async function venderMostrador(
+  _previo: EstadoCobro,
+  formData: FormData,
+): Promise<EstadoCobro> {
+  const sesion = await sesionDelPanel();
+  if (!sesion) return { error: "Se cerró la sesión. Entrá de nuevo." };
+
+  const medio = String(formData.get("payment_method") ?? "");
+  if (!medio) return { error: "Elegí con qué pagó." };
+
+  const productos = carritoDelFormulario(formData);
+  if (productos.length === 0) return { error: "Elegí al menos un producto." };
+
+  const sb = await createClient();
+
+  const { error } = await sb.rpc("vender_mostrador", {
+    p_tenant_slug: sesion.tenant.slug,
+    p_productos: productos,
+    p_payment_method: medio,
+    p_nota: String(formData.get("note") ?? ""),
+  });
+
+  if (error) return { error: error.message };
+
+  revalidar();
+  return { ok: "Vendido." };
+}
+
+/** Deshace una venta de mostrador. La base devuelve el stock. */
+export async function anularVenta(formData: FormData) {
+  const sesion = await sesionDelPanel();
+  if (!sesion) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const sb = await createClient();
+  await sb.rpc("anular_venta", { p_sale_id: id });
+
+  revalidar();
 }
 
 /** Deshace un cobro mal hecho. */
@@ -145,9 +218,14 @@ export async function reabrirCaja(formData: FormData) {
   revalidar();
 }
 
-/** Cobrar toca la agenda, el recuento y la caja: se rehacen las tres. */
+/**
+ * Cobrar toca la agenda, el recuento y la caja: se rehacen las tres.
+ * Y el stock, que baja al vender: si no, el panel sigue mostrando la cera que
+ * ya no está.
+ */
 function revalidar() {
   revalidatePath("/panel/cobros");
   revalidatePath("/panel/semana");
+  revalidatePath("/panel/productos");
   revalidatePath("/panel");
 }

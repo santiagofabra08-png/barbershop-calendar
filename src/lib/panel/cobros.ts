@@ -2,7 +2,9 @@ import type {
   CierreDeCaja,
   MedioDePago,
   TurnoParaCobrar,
+  VentaDeMostrador,
 } from "@/lib/panel/cobro";
+import { localToUtc } from "@/lib/schedule";
 import { createClient } from "@/lib/supabase/server";
 import type { Tenant } from "@/lib/tenant/types";
 
@@ -28,7 +30,7 @@ type FilaTurno = {
   charged_at: string | null;
   charged_total_cents: number | null;
   payment_method: MedioDePago | null;
-  items: { name: string; amount_cents: number }[] | null;
+  items: { name: string; amount_cents: number; quantity: number | null }[] | null;
 };
 
 export async function cargarTurnosParaCobrar(
@@ -57,8 +59,84 @@ export async function cargarTurnosParaCobrar(
     items: (f.items ?? []).map((i) => ({
       name: i.name,
       amountCents: i.amount_cents,
+      quantity: i.quantity ?? 1,
     })),
   }));
+}
+
+/**
+ * Las ventas de mostrador del día.
+ *
+ * Se leen directo de la tabla: la política deja verlas a todo el equipo, que es
+ * quien tiene que poder cuadrar la caja. Grabarlas sí pasa por función.
+ *
+ * Tienen que estar en esta pantalla aunque no sean turnos. El cierre de la base
+ * las suma; si acá no aparecieran, cada cera vendida se vería como plata que
+ * sobra en el conteo.
+ */
+export async function cargarVentasDeMostrador(
+  tenant: Tenant,
+  fecha: string,
+): Promise<VentaDeMostrador[]> {
+  const sb = await createClient();
+
+  const desde = localToUtc(fecha, "00:00", tenant.timezone);
+  const hasta = new Date(desde.getTime() + 24 * 60 * 60 * 1000);
+
+  const { data } = await sb
+    .from("counter_sales")
+    .select(
+      "id, sold_at, total_cents, payment_method, note, " +
+        "barbers(display_name), " +
+        "counter_sale_items(name, amount_cents, quantity, sort_order)",
+    )
+    .eq("tenant_id", tenant.id)
+    .gte("sold_at", desde.toISOString())
+    .lt("sold_at", hasta.toISOString())
+    .order("sold_at");
+
+  const hora = new Intl.DateTimeFormat("en-US", {
+    timeZone: tenant.timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+
+  type FilaVenta = {
+    id: string;
+    sold_at: string;
+    total_cents: number;
+    payment_method: MedioDePago;
+    note: string | null;
+    barbers: { display_name: string } | { display_name: string }[] | null;
+    counter_sale_items: {
+      name: string;
+      amount_cents: number;
+      quantity: number;
+      sort_order: number;
+    }[] | null;
+  };
+
+  return ((data ?? []) as unknown as FilaVenta[]).map((f) => {
+    const quien = Array.isArray(f.barbers) ? f.barbers[0] : f.barbers;
+
+    return {
+      id: f.id,
+      hora: hora.format(new Date(f.sold_at)),
+      totalCents: f.total_cents,
+      paymentMethod: f.payment_method,
+      soldByName: quien?.display_name ?? null,
+      note: f.note,
+      items: (f.counter_sale_items ?? [])
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((i) => ({
+          name: i.name,
+          amountCents: i.amount_cents,
+          quantity: i.quantity,
+        })),
+    };
+  });
 }
 
 /**

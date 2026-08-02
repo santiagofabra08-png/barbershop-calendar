@@ -3,11 +3,14 @@ import { redirect } from "next/navigation";
 
 import {
   anularCobro,
+  anularVenta,
   marcarAsistenciaEnCobros,
   reabrirCaja,
 } from "@/app/panel/cobros/actions";
 import { CierreForm } from "@/app/panel/cobros/cierre-form";
 import { Ticket, type Agregable } from "@/app/panel/cobros/ticket";
+import { VentaForm } from "@/app/panel/cobros/venta-form";
+import type { ProductoParaVender } from "@/lib/carrito";
 import {
   MEDIOS,
   NOMBRE_MEDIO,
@@ -20,8 +23,10 @@ import {
   cargarCierre,
   cargarPendientes,
   cargarTurnosParaCobrar,
+  cargarVentasDeMostrador,
 } from "@/lib/panel/cobros";
 import { cargarServiciosDelPanel } from "@/lib/panel/data";
+import { cargarProductos } from "@/lib/panel/productos";
 import { sesionDelPanel } from "@/lib/panel/session";
 import {
   addDays,
@@ -48,12 +53,15 @@ export default async function CobrosPage({
   const { d } = await searchParams;
   const fecha = d && FECHA.test(d) ? d : hoy.date;
 
-  const [turnos, servicios, pendientes, cierre] = await Promise.all([
-    cargarTurnosParaCobrar(tenant.slug, fecha),
-    cargarServiciosDelPanel(tenant),
-    cargarPendientes(tenant.slug),
-    cargarCierre(tenant, fecha),
-  ]);
+  const [turnos, servicios, catalogo, ventas, pendientes, cierre] =
+    await Promise.all([
+      cargarTurnosParaCobrar(tenant.slug, fecha),
+      cargarServiciosDelPanel(tenant),
+      cargarProductos(tenant),
+      cargarVentasDeMostrador(tenant, fecha),
+      cargarPendientes(tenant.slug),
+      cargarCierre(tenant, fecha),
+    ]);
 
   const agregables: Agregable[] = servicios
     .filter((s) => s.isActive)
@@ -64,6 +72,17 @@ export default async function CobrosPage({
       esDescuento: s.kind === "discount",
     }));
 
+  // Los agotados no se ofrecen acá. En la vidriera pública sí se muestran —que
+  // exista y hoy no esté es un dato— pero al cobrar solo estorban.
+  const productos: ProductoParaVender[] = catalogo
+    .filter((p) => p.isActive && p.stock > 0)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      priceCents: p.priceCents,
+      stock: p.stock,
+    }));
+
   const sinCobrar = turnos.filter(
     (t) => t.chargedAt === null && t.status === "confirmed",
   );
@@ -71,12 +90,17 @@ export default async function CobrosPage({
   const faltaron = turnos.filter((t) => t.status === "no_show");
 
   // Lo que dice el sistema, por medio de pago. Es lo mismo que va a calcular la
-  // base al cerrar; acá se muestra para poder contar contra algo.
+  // base al cerrar; acá se muestra para poder contar contra algo. Las dos
+  // cuentas tienen que incluir exactamente lo mismo: si el mostrador quedara
+  // afuera de esta, cada cera vendida aparecería como plata que sobra.
   const esperado: PorMedio = { cash: 0, card: 0, transfer: 0 };
   for (const t of cobrados) {
     if (t.paymentMethod) {
       esperado[t.paymentMethod] += t.chargedTotalCents ?? 0;
     }
+  }
+  for (const v of ventas) {
+    esperado[v.paymentMethod] += v.totalCents;
   }
 
   const plata = (c: number) => formatPrice(c, tenant.currency);
@@ -163,6 +187,7 @@ export default async function CobrosPage({
                 <Ticket
                   turno={t}
                   agregables={agregables}
+                  productos={productos}
                   moneda={tenant.currency}
                 />
               </li>
@@ -185,16 +210,7 @@ export default async function CobrosPage({
 
                 <ul className="mt-3 space-y-1 border-t border-ink/10 pt-3">
                   {t.items.map((i, n) => (
-                    <li
-                      key={`${t.id}-${n}`}
-                      className="flex items-baseline justify-between gap-4 text-sm"
-                    >
-                      <span className="text-muted">{i.name}</span>
-                      <span className="tabular shrink-0 text-muted">
-                        {i.amountCents < 0 ? "−" : ""}
-                        {plata(Math.abs(i.amountCents))}
-                      </span>
-                    </li>
+                    <Renglon key={`${t.id}-${n}`} renglon={i} plata={plata} />
                   ))}
                 </ul>
 
@@ -222,6 +238,74 @@ export default async function CobrosPage({
               </li>
             ))}
           </ul>
+        </>
+      ) : null}
+
+      {/* ---- Mostrador -----------------------------------------------------
+          Solo si hay algo que vender. Una barbería que no vende productos no
+          tiene por qué enterarse de que esta sección existe. */}
+      {catalogo.some((p) => p.isActive) || ventas.length > 0 ? (
+        <>
+          <h2 className="mt-8 text-xs font-semibold tracking-[0.18em] text-muted uppercase">
+            Mostrador{ventas.length > 0 ? ` · ${ventas.length}` : ""}
+          </h2>
+
+          {ventas.length > 0 ? (
+            <ul className="mt-4 space-y-3">
+              {ventas.map((v) => (
+                <li key={v.id} className="card px-5 py-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                    <p className="text-sm text-muted">
+                      <span className="tabular">{v.hora}</span>
+                      {v.soldByName ? ` · ${v.soldByName}` : ""} ·{" "}
+                      {NOMBRE_MEDIO[v.paymentMethod]}
+                    </p>
+                    <p className="tabular font-semibold text-ink">
+                      {plata(v.totalCents)}
+                    </p>
+                  </div>
+
+                  <ul className="mt-3 space-y-1 border-t border-ink/10 pt-3">
+                    {v.items.map((i, n) => (
+                      <Renglon key={`${v.id}-${n}`} renglon={i} plata={plata} />
+                    ))}
+                  </ul>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm text-muted">{v.note ?? ""}</p>
+                    {!cerrada ? (
+                      <form action={anularVenta}>
+                        <input type="hidden" name="id" value={v.id} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"
+                        >
+                          Anular
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {!cerrada && productos.length > 0 ? (
+            <VentaForm productos={productos} moneda={tenant.currency} />
+          ) : null}
+
+          {!cerrada && productos.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">
+              No queda stock de ningún producto. Cargá lo que recibiste en{" "}
+              <Link
+                href="/panel/productos"
+                className="font-medium text-ink underline decoration-ink/25 underline-offset-4 transition-colors duration-150 ease-out hover:decoration-ink"
+              >
+                Productos
+              </Link>
+              .
+            </p>
+          ) : null}
         </>
       ) : null}
 
@@ -256,7 +340,7 @@ export default async function CobrosPage({
         </>
       ) : null}
 
-      {turnos.length === 0 && !cerrada ? (
+      {turnos.length === 0 && ventas.length === 0 && !cerrada ? (
         <p className="card mt-8 px-5 py-8 text-center text-sm text-muted">
           No hubo turnos este día.
         </p>
@@ -376,6 +460,35 @@ function ResumenDelCierre({
         ) : null}
       </div>
     </section>
+  );
+}
+
+/**
+ * Un renglón de un ticket ya cobrado.
+ *
+ * La cantidad se escribe solo cuando es más de uno. "Cera ×1" es ruido; "Cera
+ * ×2" al lado de $800 es lo que explica el número.
+ */
+function Renglon({
+  renglon,
+  plata,
+}: {
+  renglon: { name: string; amountCents: number; quantity: number };
+  plata: (c: number) => string;
+}) {
+  return (
+    <li className="flex items-baseline justify-between gap-4 text-sm">
+      <span className="text-muted">
+        {renglon.name}
+        {renglon.quantity > 1 ? (
+          <span className="tabular"> ×{renglon.quantity}</span>
+        ) : null}
+      </span>
+      <span className="tabular shrink-0 text-muted">
+        {renglon.amountCents < 0 ? "−" : ""}
+        {plata(Math.abs(renglon.amountCents))}
+      </span>
+    </li>
   );
 }
 

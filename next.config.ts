@@ -27,6 +27,13 @@ const nextConfig: NextConfig = {
   // se funde con la siguiente. Lo maneja el navegador, no una librería.
   experimental: {
     viewTransition: true,
+    // Las imágenes viajan dentro de una Server Action, y el límite de fábrica
+    // es 1 MB —justo el tope de un logo—. Con los otros campos del formulario
+    // adentro, un logo de 1 MB no entraría. Las fotos de producto llegan acá ya
+    // recortadas por el navegador y pesan centésimas de esto.
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
   },
   images: {
     remotePatterns: supabaseHost
