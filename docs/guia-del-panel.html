@@ -417,9 +417,11 @@
       <li><a href="#entrar">Entrar al panel</a></li>
       <li><a href="#permisos">Quién puede hacer qué</a></li>
       <li><a href="#agenda">Agenda</a></li>
+      <li><a href="#cobros">Cobros y cierre de caja</a></li>
       <li><a href="#semana">Semana: cortes y plata</a></li>
       <li><a href="#horarios">Horarios</a></li>
       <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#productos">Productos y pedidos</a></li>
       <li><a href="#equipo">Equipo</a></li>
       <li><a href="#ajustes">Ajustes de la barbería</a></li>
       <li><a href="#reglas">Reglas automáticas</a></li>
@@ -540,6 +542,36 @@
               <td class="parcial">Los suyos</td>
             </tr>
             <tr>
+              <th scope="row">Cobrar un turno y anular un cobro</th>
+              <td class="si">Sí</td>
+              <td class="si">Cualquiera</td>
+            </tr>
+            <tr>
+              <th scope="row">Vender por mostrador</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Cerrar la caja del día</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Reabrir un día cerrado</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
+              <th scope="row">Ver y atender pedidos</th>
+              <td class="si">Sí</td>
+              <td class="si">Sí</td>
+            </tr>
+            <tr>
+              <th scope="row">Cargar y editar productos</th>
+              <td class="si">Sí</td>
+              <td class="no">No</td>
+            </tr>
+            <tr>
               <th scope="row">Ver sus cortes y su plata</th>
               <td class="si">Sí</td>
               <td class="si">Sí</td>
@@ -589,14 +621,24 @@
       </div>
 
       <p>
-        Un barbero no ve las secciones de Servicios, Equipo ni Ajustes. No están
-        escondidas: para él directamente no existen.
+        Un barbero no ve las secciones de Servicios, Productos, Equipo ni
+        Ajustes. No están escondidas: para él directamente no existen.
       </p>
+      <div class="nota">
+        <p class="rotulo">La excepción</p>
+        <p>
+          <strong>Cualquiera del equipo puede cobrar cualquier turno y cerrar la
+          caja.</strong> En un local hay una sola computadora al lado de la
+          caja, y el que está parado ahí cobra lo que caiga. En Agenda y en
+          Semana cada uno sigue viendo solo lo suyo.
+        </p>
+      </div>
       <p>
-        <strong>En el celular</strong> esas tres las vas a encontrar juntas bajo
-        <strong>Local</strong>, en la barra de abajo; en la computadora están
-        todas arriba. Es la división que hay de verdad: Agenda, Semana y Horarios
-        son de todos los días, y las otras tres se configuran una vez.
+        <strong>En el celular</strong> las de configuración las vas a encontrar
+        juntas bajo <strong>Local</strong>, en la barra de abajo; en la
+        computadora están todas arriba. Es la división que hay de verdad:
+        Agenda, Cobros, Semana y Horarios son de todos los días, y las otras se
+        configuran una vez.
       </p>
       <div class="nota">
         <p class="rotulo">Por qué importa</p>
@@ -681,8 +723,125 @@
       </p>
     </section>
 
+    <section id="cobros">
+      <h2 data-n="05">Cobros y cierre de caja</h2>
+      <p>
+        Acá entra la plata. <strong>Un turno vale lo que dice esta pantalla, no
+        lo que decía la reserva.</strong> Hasta que no se cobra, no aparece en
+        ningún número.
+      </p>
+      <p>
+        Es a propósito. Alguien reserva un corte de $600 y termina llevándose
+        corte y barba por $900; otro tiene un descuento; a otro le regalás la
+        barba. Si el sistema contara el precio reservado, todos esos días
+        cerrarían mal.
+      </p>
+      <p>
+        Cualquiera del equipo puede cobrar cualquier turno. En un local hay una
+        sola computadora al lado de la caja, y el que está parado ahí cobra lo
+        que caiga —sea su cliente o no—.
+      </p>
+
+      <h3>Cobrar un turno</h3>
+      <p>
+        Los turnos del día aparecen en orden de hora, en <strong>Sin
+        cobrar</strong>. Cada uno abre un ticket que arranca con lo que el
+        cliente vino a hacerse, al precio que se le dijo al reservar.
+      </p>
+      <ul>
+        <li>
+          <strong>Agregar</strong> suma lo que pidió sobre la marcha. Podés
+          tocar el mismo dos veces: dos veces la misma cosa son dos renglones.
+        </li>
+        <li>
+          <strong>Descuentos</strong> — los que cargaste en Servicios. Restan
+          del total.
+        </li>
+        <li>
+          <strong>Se llevó</strong> — si vendés productos, lo que se llevó del
+          estante. Baja el stock solo.
+        </li>
+        <li>
+          <strong>Pagó con</strong> — efectivo, tarjeta o transferencia. Hace
+          falta para el cierre.
+        </li>
+      </ul>
+      <p>
+        El total se ve mientras armás el ticket, porque es el número que le vas
+        a decir en voz alta. Al tocar <strong>Cobrar</strong>, el turno pasa a
+        <strong>Cobrados</strong> y recién ahí entra a la caja y al recuento de
+        la semana.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Por qué es seguro</p>
+        <p>
+          <strong>Los precios no viajan desde la pantalla.</strong> Al cobrar se
+          manda qué servicios y qué productos, y los montos los busca el
+          sistema. Nadie puede cobrar $10 un corte de $600 tocando algo.
+        </p>
+      </div>
+      <p>
+        ¿Cobraste mal? <strong>Anular</strong> deshace todo: borra el ticket,
+        devuelve el stock y el turno vuelve a Sin cobrar. Se puede hasta que
+        cierres la caja de ese día.
+      </p>
+
+      <h3>El que no vino</h3>
+      <p>
+        <strong>No vino</strong> saca el turno de la lista de pendientes sin
+        cobrarle nada. Queda contado aparte, y en la Semana vas a ver cuántos
+        faltaron y cuánto se dejó de cobrar.
+      </p>
+
+      <h3>Mostrador</h3>
+      <p>
+        Para el que entra, compra una cera y se va. No hay turno, no hay nada
+        que agendar: elegís los productos, con qué pagó, y listo. Esta sección
+        aparece solo si tenés productos cargados.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Por qué importa</p>
+        <p>
+          Antes esa plata caía en la caja sin que el sistema supiera de dónde
+          venía, y al cerrar el día aparecía como efectivo que sobraba.
+        </p>
+      </div>
+
+      <h3>Cierre de caja</h3>
+      <p>
+        Al final del día contás lo que hay de verdad —la plata del cajón, lo de
+        la tarjeta, lo de las transferencias— y lo escribís. Al lado de cada
+        uno, el sistema muestra lo que registró, y la diferencia aparece en el
+        momento. Para eso sirve: <strong>verificar que la plata que hay coincida
+        con la que se registró.</strong>
+      </p>
+      <p>
+        <strong>No podés cerrar con turnos sin resolver.</strong> Si queda
+        alguno, aparece arriba para cobrarlo o marcar que no vino. Un día
+        cerrado con turnos colgando es un día que no cuadra y nadie sabe por
+        qué.
+      </p>
+      <p>
+        <strong>Escribir 0 vale, dejarlo en blanco no.</strong> «Conté cero» es
+        algo que afirmás; «no escribí nada» es que todavía no contaste. Por eso
+        el botón de cerrar no se prende hasta que los tres estén escritos.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Sí podés cerrar con diferencia</p>
+        <p>
+          Escribís abajo por qué —sacaste plata para comprar algo, te faltó un
+          vuelto— y queda anotado. Un sistema que no te deja cerrar hasta que
+          cuadre es un sistema que te enseña a mentir el número.
+        </p>
+      </div>
+      <p>
+        Después de cerrar, ese día no se toca más: no se cobra ni se anula nada.
+        Si te equivocaste, el dueño puede <strong>Reabrir</strong>.
+      </p>
+    </section>
+
     <section id="semana">
-      <h2 data-n="05">Semana: cortes y plata</h2>
+      <h2 data-n="06">Semana: cortes y plata</h2>
       <p>
         El recuento del período. <strong>La semana va de lunes a domingo.</strong>
         Con <strong>Ver el mes</strong> cambiás a mes completo, y con
@@ -772,7 +931,7 @@
     </section>
 
     <section id="horarios">
-      <h2 data-n="06">Horarios</h2>
+      <h2 data-n="07">Horarios</h2>
       <p>
         Tu horario de <strong>todas las semanas</strong>: «martes a sábado de 14
         a 21». Cada barbero maneja el suyo sin depender de nadie, y el dueño
@@ -810,7 +969,7 @@
     </section>
 
     <section id="servicios">
-      <h2 data-n="07">Servicios</h2>
+      <h2 data-n="08">Servicios</h2>
       <p><em>Solo el dueño.</em></p>
       <p>
         Todo lo que se puede reservar: corte, barba, cejas, color, mechas,
@@ -851,8 +1010,97 @@
       </p>
     </section>
 
+    <section id="productos">
+      <h2 data-n="09">Productos y pedidos</h2>
+      <p>
+        Casi toda barbería vende algo además del corte: ceras, polvos, la
+        remera del local. Esto es para eso, y <strong>es opcional</strong>: si
+        no lo prendés, no existe en ningún lado. Está en
+        <strong>Local → Productos</strong>, y lo maneja solo el dueño.
+      </p>
+
+      <h3>Cargar un producto</h3>
+      <p>
+        Nombre, precio, cuántos hay y una foto. Del stock no te tenés que
+        acordar: <strong>baja solo cada vez que vendés uno</strong>, sea en el
+        ticket de un turno o por mostrador. Vos lo tocás cuando recibís
+        mercadería.
+      </p>
+      <div class="nota">
+        <p class="rotulo">La foto</p>
+        <p>
+          Lo que conviene saber está escrito al lado del botón:
+          <strong>cuadrada, 800 × 800 px, JPG, PNG o WebP, hasta 2 MB.</strong>
+          Si la sacás con el celular, poné el producto en el medio: se recorta
+          al cuadrado desde el centro, y vas a ver cómo quedó antes de guardar.
+        </p>
+        <p>
+          Si es más grande o tiene otra forma, <em>no se rechaza</em>: se
+          recorta y se te avisa. Lo único que sí se rechaza es un formato que no
+          se pueda mostrar o un archivo demasiado pesado.
+        </p>
+      </div>
+
+      <h3>Mostrarlo en la página</h3>
+      <p>
+        Arriba de todo hay un interruptor. <strong>Mientras esté oculto, nadie
+        ve nada</strong> —ni el catálogo ni los productos—, así que podés
+        cargarlos con calma y prenderlo cuando estén todos. Prendido, aparece
+        una sección de productos en tu página y un acceso desde la portada.
+      </p>
+
+      <h3>Qué ve el cliente</h3>
+      <p>
+        Las fotos, el nombre, el precio. Elige lo que quiere, pone cuántos, deja
+        su nombre y su teléfono, y manda el pedido.
+      </p>
+      <p>
+        <strong>Nadie paga por la página.</strong> Está dicho arriba de todo,
+        antes de elegir, y otra vez al lado del botón: van a contactarlo para
+        coordinar cómo lo pasa a buscar y cómo lo paga.
+      </p>
+      <p>
+        Lo que está agotado se muestra igual, marcado. Que exista una cera que
+        hoy no está es un dato; hacerla desaparecer haría creer que no la
+        vendés.
+      </p>
+
+      <h3>Los pedidos</h3>
+      <p>
+        Cuando alguien pide, pasan dos cosas: <strong>te llega un mail</strong>
+        con quién es, qué quiere y un botón para escribirle por WhatsApp, y
+        <strong>aparece un aviso en la Agenda</strong>.
+      </p>
+      <p>
+        En <strong>Local → Pedidos</strong> los tenés en tres grupos: sin
+        contestar, ya contactados, y terminados. De cada uno ves el teléfono, el
+        mail si lo dejó, qué pidió y cuánto sería.
+        <strong>Escribirle</strong> abre WhatsApp con su número puesto.
+      </p>
+      <div class="nota">
+        <p class="rotulo">Un pedido no es una venta</p>
+        <p>
+          No baja el stock ni entra a la caja: es alguien levantando la mano. Si
+          prometiéramos stock que después no está, sería peor que no prometer
+          nada.
+        </p>
+        <p>
+          Cuando pasa a buscarlo, lo cobrás por <strong>Cobros →
+          Mostrador</strong>. Ahí sí baja el stock y entra a la caja.
+        </p>
+      </div>
+      <div class="nota">
+        <p class="rotulo">La comisión no toca los productos</p>
+        <p>
+          La mercadería la compró el local, así que el margen es del local. Un
+          barbero a comisión cobra su porcentaje de lo que cortó, no de la cera
+          que el cliente se llevó.
+        </p>
+      </div>
+    </section>
+
     <section id="equipo">
-      <h2 data-n="08">Equipo</h2>
+      <h2 data-n="10">Equipo</h2>
       <p><em>Solo el dueño.</em></p>
 
       <h3>Agregar un barbero</h3>
@@ -892,7 +1140,7 @@
     </section>
 
     <section id="ajustes">
-      <h2 data-n="09">Ajustes de la barbería</h2>
+      <h2 data-n="11">Ajustes de la barbería</h2>
       <p><em>Solo el dueño.</em></p>
       <p>
         Todo lo que ve el cliente en la página, y las reglas con las que se dan
@@ -949,6 +1197,37 @@
         </li>
       </ul>
 
+      <h3>El logo</h3>
+      <p>
+        Son <strong>dos</strong>, y no es un capricho: el encabezado de tu
+        página es una franja negra y el resto es claro. Un logo negro desaparece
+        arriba y uno blanco desaparece abajo.
+      </p>
+      <ul>
+        <li>
+          <strong>Para el encabezado</strong> — va sobre la franja negra, así
+          que tiene que ser claro.
+        </li>
+        <li>
+          <strong>Para fondo claro</strong> — se usa en los mails, así que tiene
+          que ser oscuro.
+        </li>
+      </ul>
+      <p>
+        Cada uno se ve sobre el fondo que le toca antes de guardar, que es la
+        única forma de saber si sirve. Lo que se pide: <strong>fondo
+        transparente. SVG es lo mejor, porque no se pixela nunca; si es PNG, que
+        tenga 400 px de ancho como mínimo. Hasta 1 MB.</strong>
+      </p>
+      <div class="nota">
+        <p class="rotulo">Un consejo</p>
+        <p>
+          Si tenés el logo hecho por un diseñador, pedile el <strong>SVG</strong>.
+          Es un archivo que se ve nítido en cualquier tamaño, del favicon al
+          cartel.
+        </p>
+      </div>
+
       <h3>Lo que no se cambia desde acá</h3>
       <div class="nota">
         <p class="rotulo">La dirección web</p>
@@ -958,11 +1237,10 @@
           de arreglarlo. Si de verdad hace falta cambiarlo, se coordina.
         </p>
       </div>
-      <p>El logo, por ahora, también: todavía se carga por atrás.</p>
     </section>
 
     <section id="reglas">
-      <h2 data-n="10">Reglas automáticas</h2>
+      <h2 data-n="12">Reglas automáticas</h2>
       <p>
         Estas no dependen de que nadie se acuerde. Están abajo de todo y no se
         pueden saltear.
@@ -1002,7 +1280,7 @@
     </section>
 
     <section id="preguntas">
-      <h2 data-n="11">Preguntas frecuentes</h2>
+      <h2 data-n="13">Preguntas frecuentes</h2>
 
       <dl class="faq">
         <div>
@@ -1049,7 +1327,49 @@
           <dt>¿La plata que muestra el panel es la que tengo en la caja?</dt>
           <dd>
             Es lo que entró por cortes menos lo que anotaste que pagaste a los
-            barberos. No incluye el alquiler del local, la luz ni los productos.
+            barberos. No incluye el alquiler del local, la luz ni lo que te
+            costó la mercadería.
+          </dd>
+        </div>
+        <div>
+          <dt>Me olvidé de cobrar un turno y ya cerré la caja.</dt>
+          <dd>
+            El dueño puede reabrir ese día desde Cobros, cobrarlo y volver a
+            cerrar. Si el día ya está lejos, conviene dejarlo: el número de ese
+            día va a quedar mal, pero tocar un cierre viejo hace que todos los
+            de después dejen de tener sentido.
+          </dd>
+        </div>
+        <div>
+          <dt>Cerré con diferencia. ¿Está mal?</dt>
+          <dd>
+            No. Pasa: sacaste plata para comprar algo, te faltó un vuelto,
+            alguien pagó mitad y mitad. Lo que importa es que quede escrito por
+            qué. Si la diferencia aparece todos los días y siempre para el mismo
+            lado, ahí sí hay algo que revisar.
+          </dd>
+        </div>
+        <div>
+          <dt>Vendí una cera y no me bajó el stock.</dt>
+          <dd>
+            Fijate que la hayas cobrado. Mientras el ticket no se cobre, no pasó
+            nada: el stock baja recién al cobrar, no al agregarla al ticket.
+          </dd>
+        </div>
+        <div>
+          <dt>Alguien pidió algo por la página y no tengo stock.</dt>
+          <dd>
+            Escribile y decíselo. El pedido no reserva nada a propósito: si
+            prometiéramos stock que después no está, sería peor que no prometer
+            nada.
+          </dd>
+        </div>
+        <div>
+          <dt>¿Puedo vender por la página y cobrar con tarjeta ahí mismo?</dt>
+          <dd>
+            No. Por la página no se cobra nada: el cliente deja el pedido y vos
+            arreglás con él. Cuando pasa por el local, lo cobrás por Mostrador
+            como cualquier otra venta.
           </dd>
         </div>
         <div>

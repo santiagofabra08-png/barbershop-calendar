@@ -13,13 +13,15 @@ No hace falta saber nada de computación.
 2. [Entrar al panel](#2-entrar-al-panel)
 3. [Quién puede hacer qué](#3-quién-puede-hacer-qué)
 4. [Agenda](#4-agenda)
-5. [Semana: cortes, plata y pagos](#5-semana-cortes-plata-y-pagos)
-6. [Horarios](#6-horarios)
-7. [Servicios](#7-servicios)
-8. [Equipo](#8-equipo)
-9. [Ajustes de la barbería](#9-ajustes-de-la-barbería)
-10. [Reglas que la página hace cumplir sola](#10-reglas-que-la-página-hace-cumplir-sola)
-11. [Preguntas que aparecen siempre](#11-preguntas-que-aparecen-siempre)
+5. [Cobros y cierre de caja](#5-cobros-y-cierre-de-caja)
+6. [Semana: cortes, plata y pagos](#6-semana-cortes-plata-y-pagos)
+7. [Horarios](#7-horarios)
+8. [Servicios](#8-servicios)
+9. [Productos y pedidos](#9-productos-y-pedidos)
+10. [Equipo](#10-equipo)
+11. [Ajustes de la barbería](#11-ajustes-de-la-barbería)
+12. [Reglas que la página hace cumplir sola](#12-reglas-que-la-página-hace-cumplir-sola)
+13. [Preguntas que aparecen siempre](#13-preguntas-que-aparecen-siempre)
 
 ---
 
@@ -85,6 +87,13 @@ distintas, es la misma con más permisos.
 | Bloquear un rato | ✅ (a cualquiera) | ✅ (a él) |
 | Cambiar sus propios horarios | ✅ | ✅ |
 | Cambiar los horarios de otro | ✅ | — |
+| Cobrar un turno | ✅ | ✅ (cualquiera) |
+| Anular un cobro | ✅ | ✅ |
+| Vender por mostrador | ✅ | ✅ |
+| Cerrar la caja del día | ✅ | ✅ |
+| Reabrir un día cerrado | ✅ | — |
+| Ver y atender pedidos | ✅ | ✅ |
+| Cargar y editar productos | ✅ | — |
 | Ver sus cortes y su plata | ✅ | ✅ |
 | Ver la plata de todo el local | ✅ | — |
 | Registrar pagos | ✅ | — |
@@ -95,13 +104,18 @@ distintas, es la misma con más permisos.
 | Cambiar los datos y colores de la barbería | ✅ | — |
 | Cambiar su propio nombre, teléfono y contraseña | ✅ | ✅ |
 
-Un barbero no ve las secciones de Servicios, Equipo ni Ajustes. No están
-escondidas: para él directamente no existen.
+Un barbero no ve las secciones de Servicios, Productos, Equipo ni Ajustes. No
+están escondidas: para él directamente no existen.
 
-**En el celular** las tres las vas a encontrar juntas bajo **Local**, en la
-barra de abajo. En la computadora están todas arriba. Es la misma división que
-hay de verdad: Agenda, Semana y Horarios son de todos los días; las otras tres
-se configuran una vez.
+Cobrar es la excepción a la regla de que cada uno ve lo suyo: **cualquiera del
+equipo puede cobrar cualquier turno y cerrar la caja.** En un local hay una sola
+computadora al lado de la caja, y el que está parado ahí cobra lo que caiga. En
+Agenda y en Semana cada uno sigue viendo solo lo suyo.
+
+**En el celular** las de configuración las vas a encontrar juntas bajo
+**Local**, en la barra de abajo. En la computadora están todas arriba. Es la
+misma división que hay de verdad: Agenda, Cobros, Semana y Horarios son de todos
+los días; las otras se configuran una vez.
 
 Esto no es una cortesía de la pantalla. Los permisos los aplica la base de
 datos: aunque alguien intentara entrar por otro lado, no hay dato que darle.
@@ -167,7 +181,90 @@ no uses esto: usá Horarios.
 
 ---
 
-## 5. Semana: cortes, plata y pagos
+## 5. Cobros y cierre de caja
+
+Acá entra la plata. **Un turno vale lo que dice esta pantalla, no lo que decía
+la reserva.** Hasta que no se cobra, no aparece en ningún número.
+
+Es a propósito. Alguien reserva un corte de $600 y termina llevándose corte y
+barba por $900; otro tiene un descuento; a otro le regalás la barba. Si el
+sistema contara el precio reservado, todos esos días cerrarían mal.
+
+Cualquiera del equipo puede cobrar cualquier turno. En un local hay una sola
+computadora al lado de la caja, y el que está parado ahí cobra lo que caiga —sea
+su cliente o no—.
+
+### Cobrar un turno
+
+Los turnos del día aparecen en orden de hora, en **Sin cobrar**. Cada uno abre
+un ticket que arranca con lo que el cliente vino a hacerse, al precio que se le
+dijo al reservar.
+
+Desde ahí:
+
+- **Agregar** suma lo que pidió sobre la marcha. Podés tocar el mismo dos veces:
+  dos veces la misma cosa son dos renglones.
+- **Descuentos** — los que cargaste en Servicios. Restan del total.
+- **Se llevó** — si vendés productos, lo que se llevó del estante. Baja el stock
+  solo.
+- **Pagó con** — efectivo, tarjeta o transferencia. Hace falta para el cierre.
+
+El total se ve mientras armás el ticket, porque es el número que le vas a decir
+en voz alta. Al tocar **Cobrar**, el turno pasa a **Cobrados** y recién ahí entra
+a la caja y al recuento de la semana.
+
+> **Los precios no viajan desde la pantalla.** Al cobrar se manda qué servicios
+> y qué productos, y los montos los busca el sistema. Nadie puede cobrar $10 un
+> corte de $600 tocando algo.
+
+¿Cobraste mal? **Anular** deshace todo: borra el ticket, devuelve el stock y el
+turno vuelve a Sin cobrar. Se puede hasta que cierres la caja de ese día.
+
+### El que no vino
+
+**No vino** saca el turno de la lista de pendientes sin cobrarle nada. Queda
+contado aparte, y en la Semana vas a ver cuántos faltaron y cuánto se dejó de
+cobrar.
+
+### Mostrador
+
+Para el que entra, compra una cera y se va. No hay turno, no hay nada que
+agendar: elegís los productos, con qué pagó, y listo.
+
+Esta sección aparece solo si tenés productos cargados.
+
+> **Por qué importa.** Antes esa plata caía en la caja sin que el sistema
+> supiera de dónde venía, y al cerrar el día aparecía como efectivo que sobraba.
+
+### Cierre de caja
+
+Al final del día contás lo que hay de verdad —la plata del cajón, lo de la
+tarjeta, lo de las transferencias— y lo escribís. Al lado de cada uno, el
+sistema muestra lo que registró, y la diferencia aparece en el momento.
+
+Para eso sirve: **verificar que la plata que hay coincida con la que se
+registró.**
+
+Tres cosas a saber:
+
+**No podés cerrar con turnos sin resolver.** Si queda alguno, aparece arriba
+para cobrarlo o marcar que no vino. Un día cerrado con turnos colgando es un día
+que no cuadra y nadie sabe por qué.
+
+**Escribir 0 vale, dejarlo en blanco no.** "Conté cero" es algo que afirmás;
+"no escribí nada" es que todavía no contaste. Por eso el botón de cerrar no se
+prende hasta que los tres estén escritos.
+
+**Sí podés cerrar con diferencia.** Escribís abajo por qué —sacaste plata para
+comprar algo, te faltó un vuelto— y queda anotado. Un sistema que no te deja
+cerrar hasta que cuadre es un sistema que te enseña a mentir el número.
+
+Después de cerrar, ese día no se toca más: no se cobra ni se anula nada. Si te
+equivocaste, el dueño puede **Reabrir**.
+
+---
+
+## 6. Semana: cortes, plata y pagos
 
 El recuento del período. **La semana va de lunes a domingo.**
 
@@ -231,7 +328,7 @@ es un error de tipeo.
 
 ---
 
-## 6. Horarios
+## 7. Horarios
 
 Tu horario de **todas las semanas**: "martes a sábado de 14 a 21".
 
@@ -262,7 +359,7 @@ fue.
 
 ---
 
-## 7. Servicios
+## 8. Servicios
 
 *(Solo el dueño.)*
 
@@ -305,7 +402,77 @@ reservar.
 
 ---
 
-## 8. Equipo
+## 9. Productos y pedidos
+
+Casi toda barbería vende algo además del corte: ceras, polvos, la remera del
+local. Esto es para eso, y **es opcional**: si no lo prendés, no existe en
+ningún lado.
+
+Está en **Local → Productos**, y lo maneja solo el dueño.
+
+### Cargar un producto
+
+Nombre, precio, cuántos hay y una foto.
+
+Del stock no te tenés que acordar: **baja solo cada vez que vendés uno**, sea en
+el ticket de un turno o por mostrador. Vos lo tocás cuando recibís mercadería.
+
+Sobre la foto, lo que conviene saber está escrito al lado del botón: **cuadrada,
+800 × 800 px, JPG, PNG o WebP, hasta 2 MB.** Si la sacás con el celular, poné el
+producto en el medio: se recorta al cuadrado desde el centro, y vas a ver cómo
+quedó antes de guardar.
+
+Si la foto es más grande o tiene otra forma, **no se rechaza**: se recorta y se
+te avisa. Lo único que sí se rechaza es un formato que no se pueda mostrar o un
+archivo demasiado pesado.
+
+### Mostrarlo en la página
+
+Arriba de todo hay un interruptor. **Mientras esté oculto, nadie ve nada** —ni
+el catálogo ni los productos—, así que podés cargarlos con calma y prenderlo
+cuando estén todos.
+
+Prendido, aparece una sección de productos en tu página, y desde la portada un
+acceso para llegar.
+
+### Qué ve el cliente
+
+Las fotos, el nombre, el precio. Elige lo que quiere, pone cuántos, deja su
+nombre y su teléfono, y manda el pedido.
+
+**Nadie paga por la página.** Está dicho arriba de todo, antes de elegir, y otra
+vez al lado del botón: van a contactarlo para coordinar cómo lo pasa a buscar y
+cómo lo paga.
+
+Lo que está agotado se muestra igual, marcado. Que exista una cera que hoy no
+está es un dato; hacerla desaparecer haría creer que no la vendés.
+
+### Los pedidos
+
+Cuando alguien pide, pasan dos cosas: **te llega un mail** con quién es, qué
+quiere y un botón para escribirle por WhatsApp, y **aparece un aviso en la
+Agenda**.
+
+En **Local → Pedidos** los tenés en tres grupos: sin contestar, ya contactados,
+y terminados. De cada uno ves el teléfono, el mail si lo dejó, qué pidió y
+cuánto sería.
+
+**Escribirle** abre WhatsApp con su número puesto.
+
+> **Un pedido no es una venta.** No baja el stock ni entra a la caja: es alguien
+> levantando la mano. Si prometiéramos stock que después no está, sería peor que
+> no prometer nada.
+
+Cuando pasa a buscarlo, lo cobrás por **Cobros → Mostrador**. Ahí sí baja el
+stock y entra a la caja.
+
+> **La comisión no toca los productos.** La mercadería la compró el local, así
+> que el margen es del local. Un barbero a comisión cobra su porcentaje de lo
+> que cortó, no de la cera que el cliente se llevó.
+
+---
+
+## 10. Equipo
 
 *(Solo el dueño.)*
 
@@ -343,7 +510,7 @@ solo los toca el dueño**, aunque sea su propia ficha.
 
 ---
 
-## 9. Ajustes de la barbería
+## 11. Ajustes de la barbería
 
 *(Solo el dueño.)*
 
@@ -398,17 +565,34 @@ de eso tiene que llamar.
   fijos que elegís vos. Sirve si no querés comprometerte con mucha
   anticipación.
 
+### El logo
+
+Son **dos**, y no es un capricho: el encabezado de tu página es una franja
+negra y el resto es claro. Un logo negro desaparece arriba y uno blanco
+desaparece abajo.
+
+- **Para el encabezado** — va sobre la franja negra, así que tiene que ser
+  claro.
+- **Para fondo claro** — se usa en los mails, así que tiene que ser oscuro.
+
+Cada uno se ve sobre el fondo que le toca antes de guardar, que es la única
+forma de saber si sirve.
+
+Lo que se pide: **fondo transparente. SVG es lo mejor, porque no se pixela
+nunca; si es PNG, que tenga 400 px de ancho como mínimo. Hasta 1 MB.**
+
+> Si tenés el logo hecho por un diseñador, pedile el **SVG**. Es un archivo que
+> se ve nítido en cualquier tamaño, del favicon al cartel.
+
 ### Lo que no se cambia desde acá
 
 **La dirección web** (el slug). Es el link que tus clientes ya tienen guardado y
 que circula por WhatsApp. Cambiarlo los rompería todos de golpe, sin aviso y sin
 forma de arreglarlo. Si de verdad hace falta cambiarlo, se coordina.
 
-**El logo**, por ahora. Todavía se carga por atrás.
-
 ---
 
-## 10. Reglas que la página hace cumplir sola
+## 12. Reglas que la página hace cumplir sola
 
 Estas no dependen de que nadie se acuerde. Están abajo de todo y no se pueden
 saltear.
@@ -437,7 +621,7 @@ nunca quién reservó.
 
 ---
 
-## 11. Preguntas que aparecen siempre
+## 13. Preguntas que aparecen siempre
 
 **El dueño sabe mi contraseña.**
 Solo la primera, la que te puso para que pudieras entrar. Cambiala desde **Mi
@@ -465,7 +649,30 @@ que completes, y así no se te pierde.
 
 **¿La plata que muestra el panel es la que tengo en la caja?**
 Es lo que entró por cortes menos lo que anotaste que pagaste a los barberos. No
-incluye el alquiler del local, la luz ni los productos.
+incluye el alquiler del local, la luz ni lo que te costó la mercadería.
+
+**Me olvidé de cobrar un turno y ya cerré la caja.**
+El dueño puede reabrir ese día desde Cobros, cobrarlo y volver a cerrar. Si el
+día ya está lejos, conviene dejarlo: el número de ese día va a quedar mal, pero
+tocar un cierre viejo hace que todos los de después dejen de tener sentido.
+
+**Cerré con diferencia. ¿Está mal?**
+No. Pasa: sacaste plata para comprar algo, te faltó un vuelto, alguien pagó
+mitad y mitad. Lo que importa es que quede escrito por qué. Si la diferencia
+aparece todos los días y siempre para el mismo lado, ahí sí hay algo que
+revisar.
+
+**Vendí una cera y no me bajó el stock.**
+Fijate que la hayas cobrado. Mientras el ticket no se cobre, no pasó nada:
+el stock baja recién al cobrar, no al agregarla al ticket.
+
+**Alguien pidió algo por la página y no tengo stock.**
+Escribile y decíselo. El pedido no reserva nada a propósito: si prometiéramos
+stock que después no está, sería peor que no prometer nada.
+
+**¿Puedo vender por la página y cobrar con tarjeta ahí mismo?**
+No. Por la página no se cobra nada: el cliente deja el pedido y vos arreglás con
+él. Cuando pasa por el local, lo cobrás por Mostrador como cualquier otra venta.
 
 **Un barbero se va del local.**
 Dalo de baja. No lo borres —no se puede— y así todo lo que trabajó sigue
