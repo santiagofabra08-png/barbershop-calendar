@@ -254,7 +254,7 @@ export function Catalogo({
 
       {/* ---- La barra ------------------------------------------------------
           En el celular el formulario queda lejos después de mirar el estante.
-          Esta barra es el atajo, y de paso el recuento: cuántas cosas y cuánto.
+          Esta barra es el atajo, y de paso el recuento: cuántos y cuánto.
           Es un ancla y no un botón con JavaScript, así que el navegador maneja
           el desplazamiento —incluido el de quien pidió menos movimiento—. */}
       {lineas.length > 0 ? (
@@ -265,7 +265,7 @@ export function Catalogo({
           >
             <span className="text-sm">
               <span className="tabular font-semibold">{cuantos}</span>{" "}
-              {cuantos === 1 ? "cosa" : "cosas"}
+              {cuantos === 1 ? "producto" : "productos"}
               <span className="tabular opacity-70"> · {plata(total)}</span>
             </span>
             <span className="text-xs font-semibold tracking-[0.1em] uppercase">

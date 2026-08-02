@@ -140,10 +140,10 @@ export default async function PaginaDeReservas({
           >
             <div className="min-w-0 flex-1">
               <p className="font-display text-lg leading-tight font-bold text-ink">
-                También vendemos
+                Catálogo de productos
               </p>
               <p className="mt-1 text-sm text-muted">
-                Ceras, polvos y algo más para llevarte a casa.
+                Ceras, polvos y todo lo que usamos en el local.
               </p>
             </div>
             <span

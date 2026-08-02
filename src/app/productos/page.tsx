@@ -57,7 +57,7 @@ export default async function PaginaDeProductos() {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 pt-8 pb-16 sm:px-8">
         <h1 className="font-display text-2xl leading-tight font-bold text-ink sm:text-3xl">
-          Lo que tenemos
+          Catálogo de productos
         </h1>
 
         {/* El aviso va acá arriba y no en letra chica al final. Alguien que
@@ -65,8 +65,7 @@ export default async function PaginaDeProductos() {
             al llegar al botón, y con razón. */}
         <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">
           Elegí lo que quieras y dejanos tu teléfono. Te escribimos para
-          coordinar cómo lo pasás a buscar y cómo lo pagás. Por acá no se cobra
-          nada.
+          coordinar cómo lo pasás a buscar y cómo lo pagás.
         </p>
 
         {productos.length === 0 ? (
