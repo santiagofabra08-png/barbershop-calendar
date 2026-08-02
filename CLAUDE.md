@@ -68,44 +68,102 @@ Apply the `frontend-design` skill, plus:
 Lo de arriba son las reglas. Lo de acá abajo es el estado real del proyecto,
 para no tener que reconstruirlo leyendo todo.
 
+## Las dos superficies
+- **Página pública** (`/`, `/reservar`, `/turno/[token]`) — el cliente elige
+  servicio, barbero, día y hora. Sin login.
+- **Panel** (`/entrar`, `/panel/*`) — Agenda, Cobros, Semana, Horarios, y para
+  el dueño Servicios, Equipo y Ajustes agrupados bajo Local.
+
 ## Dónde está cada cosa
-- `src/lib/schedule.ts` — cálculo de la grilla de horarios. Funciones puras,
-  sin base ni reloj: `now` entra como argumento para poder probarlas.
+- `src/lib/schedule.ts` — grilla de horarios. Puro: `now` entra como argumento.
+- `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
+- `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
-- `src/lib/tenant/` — `resolve` saca la barbería del subdominio, `load`
-  traduce las filas de Supabase a la forma que usa la pantalla.
+- `src/lib/tenant/` — `resolve` saca la barbería del subdominio, `load` traduce
+  filas de Supabase a la forma de la pantalla.
+- `src/lib/panel/` — lo que lee el panel. `session` dice quién entró y a qué
+  barbería; `data` y `cobros` traen los datos; `cobro.ts` y `dias.ts` son puros
+  y los comparten cliente y servidor.
 - `src/components/` — piezas compartidas de la página pública.
+- `src/app/panel/<sección>/` — cada pantalla con sus acciones al lado.
+- `scripts/*.mts` — utilidades que no se despliegan. `dar-acceso` crea el primer
+  acceso de una barbería; `probar-reserva` es la prueba de humo contra la base.
 - `supabase/migrations/` — el esquema, en SQL versionado y numerado.
 - `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
 
 ## Convenciones que ya están tomadas
 - **El público nunca toca `appointments`.** Ni para leer: esa tabla tiene
   teléfonos y mails. Todo entra y sale por funciones `SECURITY DEFINER`
-  (`crear_reserva`, `horarios_ocupados`, `turno_por_token`, `cancelar_turno`).
+  (`crear_reserva`, `horarios_ocupados`, `turno_por_token`, `cancelar_turno`,
+  `crear_pedido`).
+- **Un barbero solo ve lo suyo**, y lo impone RLS, no la pantalla. La excepción
+  es Cobros: ahí cobra el que está al lado de la caja, y eso se resuelve con
+  funciones `SECURITY DEFINER` que verifican membresía —nunca aflojando las
+  políticas de la tabla, que dejaría al barbero ver de más en las otras
+  pantallas.
+- **La plata es lo cobrado, no lo reservado.** Un turno vale lo que dice
+  `charged_at`; hasta que no se cobra no entra a ningún número. La comisión sale
+  de `charged_services_cents`, no del total: los productos no pagan comisión.
 - **Los horarios semanales se guardan en hora local** (`time`), porque "abro a
   las 14" no cambia con el horario de verano. UTC es solo para instantes
   concretos (`appointments.starts_at`).
 - **Validación en tres capas**: el formulario avisa, el servidor revalida, y
-  Postgres tiene los CHECK como última línea. No es redundancia: cada capa
-  tapa un agujero distinto.
+  Postgres tiene los CHECK como última línea. Cada capa tapa un agujero
+  distinto.
+- **Los precios nunca viajan desde el navegador.** Al cobrar van ids y
+  cantidades; los montos los busca la base.
 - **Los teléfonos se guardan normalizados** como `+598XXXXXXXX`, que es lo que
   necesita el link de WhatsApp.
-- **Precio y duración se congelan en cada turno**: si el precio sube, los
-  turnos viejos conservan lo pactado.
-- **Un barbero no se borra, se desactiva** (`is_active = false`).
+- **Lo pactado se congela**: precio y duración en cada turno, el porcentaje de
+  comisión, el nombre y el monto de cada renglón del ticket.
+- **Nadie se borra, se desactiva** (`is_active = false`). Se borra solo lo que
+  es un error de tipeo: un pago mal anotado, un cobro mal hecho.
+- **Un día con la caja cerrada no se toca más.** Lo impone la base.
+
+## Cuidado con la frontera cliente/servidor
+Un módulo con `"use client"` solo puede exportar **componentes** hacia el
+servidor. Cualquier otra cosa —una constante, un array— llega del otro lado como
+un proxy vacío. Y al revés: si un componente de cliente importa algo de un
+módulo que toca el servidor, se rompe el build.
+
+Por eso hay módulos neutrales, sin ninguna de las dos directivas, para lo que
+comparten los dos lados: `src/lib/panel/dias.ts` y `src/lib/panel/cobro.ts`.
+Esto ya rompió dos veces; si algo se comparte, va en un módulo aparte.
 
 ## Tests
 `npm test` corre `node --test` sobre `src/**/*.test.ts`. Node 24 ejecuta
 TypeScript directo, así que no hay ninguna dependencia de testing instalada.
 Los imports relativos dentro de los tests llevan la extensión `.ts`.
 
-Lo que está cubierto: generación de la grilla, ventana de reserva, agendas de
-varios barberos, conversión de hora local a UTC y validación de datos.
+Lo cubierto: grilla de horarios, ventana de reserva, agendas de varios
+barberos, conversión a UTC, validación de datos, reparto de la plata según cómo
+cobra cada uno, y armado de la tira del día.
+
+Lo que los tests **no** pueden cubrir son las funciones de la base, las
+restricciones y los permisos. Para eso está
+`node --env-file=.env.local scripts/probar-reserva.mts <slug>`, que reserva un
+turno real, revisa cómo quedó la fila y lo borra. **Correrlo después de cada
+migración que toque `appointments` o `crear_reserva`**: dos veces un cambio en
+la base rompió la reserva pública sin que nadie se enterara.
 
 ## Migraciones
 Se escriben a mano en `supabase/migrations/` con nombre `<timestamp>_<qué>.sql`
 y se aplican pegándolas en el SQL Editor de Supabase. Van siempre envueltas en
 `begin; … commit;` para que un error no deje el esquema a medias.
+
+Cuidado con `NOT VALID`: no perdona una fila para siempre, solo mientras nadie
+la toque. Cualquier `UPDATE` posterior sobre esa fila la revisa entera.
+
+## Lo que está a medio camino
+- **Productos**: el esquema está escrito y aprobado
+  (`20260801170000_productos.sql` y `20260801180000_vender_productos.sql`) pero
+  todavía no hay pantallas. Falta el panel para cargarlos con foto, la vidriera
+  pública con carrito, la venta de mostrador en Cobros y la sección de Pedidos.
+- **El logo** se sigue cargando por atrás. El bucket de Storage llega con la
+  migración de productos, así que después de eso es solo la pantalla.
+- **Alta de una barbería nueva**: hoy se hace con SQL a mano. Es lo que falta
+  para poder venderle a alguien sin intervención.
+- **Nico** es un barbero de prueba en la base de Tropi.
 
 ## Sobre el diseño
 La guía de marca de Tropi describe un local "clásico-vintage" y pide bordes
