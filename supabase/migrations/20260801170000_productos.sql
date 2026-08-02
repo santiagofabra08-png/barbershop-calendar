@@ -84,6 +84,13 @@ create policy "tenant-assets: el dueño borra lo suyo"
 -- ============================================================================
 -- 2. LOS PRODUCTOS
 -- ============================================================================
+-- El interruptor va primero porque la política de lectura de más abajo lo
+-- consulta, y Postgres revisa esa política al crearla. Una barbería que no
+-- vende nada no muestra la sección, y una que todavía está cargando el catálogo
+-- tampoco.
+alter table public.tenants
+  add column products_enabled boolean not null default false;
+
 create table public.products (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
@@ -133,11 +140,6 @@ create policy "products: el dueño los administra"
   to authenticated
   using (app.is_owner_of(tenant_id))
   with check (app.is_owner_of(tenant_id));
-
--- El interruptor. Una barbería que no vende nada no tiene por qué mostrar una
--- sección vacía, y una que todavía está cargando el catálogo tampoco.
-alter table public.tenants
-  add column products_enabled boolean not null default false;
 
 
 -- ============================================================================
