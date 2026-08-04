@@ -198,7 +198,7 @@ export function WeekSchedule({
 
         {/* ---- ② Barbero ---- */}
         <Paso numero={paso(2)} titulo="Barbero">
-          <ul className="flex flex-wrap gap-2.5">
+          <ul className="flex flex-wrap justify-center gap-2.5">
             {agendas.map(({ barber }) => (
               <li key={barber.id}>
                 <TarjetaBarbero
@@ -231,14 +231,20 @@ export function WeekSchedule({
             /* Flex y no grid: una barbería que abre cinco días deja la última
                fila con uno o dos días sueltos, y en una grilla esos quedan
                pegados a la izquierda con un hueco al lado. Acá cada fila se
-               centra sola, la última incluida. */
-            <ul className="mx-auto flex max-w-sm flex-wrap justify-center gap-1.5">
+               centra sola, la última incluida.
+
+               El ancho crece con la pantalla en vez de quedar clavado en el
+               tamaño del celular, pero cada día se mantiene chico: es un
+               atajo para elegir, no la pieza principal de la pantalla. Ancho
+               entero y cuadrados chicos significa más días por fila, que es
+               lo que hace que esto se lea de un vistazo. */
+            <ul className="mx-auto flex max-w-sm flex-wrap justify-center gap-2 sm:max-w-none">
               {days.map((day) => {
                 const libres = day.slots.filter((s) => s.available).length;
                 const activo = diaActivo?.date === day.date;
 
                 return (
-                  <li key={day.date} className="w-[4.25rem]">
+                  <li key={day.date} className="w-[4.25rem] sm:w-[5rem]">
                     <button
                       type="button"
                       disabled={libres === 0}
@@ -248,7 +254,7 @@ export function WeekSchedule({
                         setHora(null);
                       }}
                       className={[
-                        "flex w-full flex-col items-center rounded-lg px-1 py-2",
+                        "flex w-full flex-col items-center rounded-lg px-1 py-2 sm:py-2.5",
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:shadow-none",
                         activo
@@ -256,15 +262,15 @@ export function WeekSchedule({
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
-                      <span className="text-[9px] font-semibold tracking-[0.08em] uppercase opacity-60">
+                      <span className="text-[9px] font-semibold tracking-[0.08em] uppercase opacity-60 sm:text-[10px]">
                         {ABREV[day.weekday]}
                       </span>
-                      <span className="tabular font-display text-lg leading-tight font-bold">
+                      <span className="tabular font-display text-lg leading-tight font-bold sm:text-xl">
                         {day.dayNumber}
                       </span>
                       <span
                         key={libres}
-                        className="count-in tabular flex items-center gap-1 text-[9px] leading-none opacity-55"
+                        className="count-in tabular flex items-center gap-1 text-[9px] leading-none opacity-55 sm:text-[10px]"
                       >
                         {/* Quedan pocos: se marca, pero solo cuando es cierto. */}
                         {libres > 0 && libres <= POCOS ? (
