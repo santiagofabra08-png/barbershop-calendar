@@ -1,3 +1,4 @@
+import { tonoDe } from "@/lib/tenant/tono";
 import type { Tenant } from "@/lib/tenant/types";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -18,13 +19,21 @@ export function TenantTheme({ tenant }: { tenant: Tenant }) {
   const safe = (value: string, fallback: string) =>
     HEX.test(value) ? value : fallback;
 
+  const bg = safe(colors.bg, "#ffffff");
+
+  // Sobre fondo oscuro lo elegido resplandece; sobre fondo claro se despega
+  // con sombra. Las dos recetas viven en `globals.css`: acá solo se elige.
+  const tono = tonoDe(bg);
+
   const css = `:root{
-    --tenant-bg:${safe(colors.bg, "#ffffff")};
+    --tenant-bg:${bg};
     --tenant-surface:${safe(colors.surface, "#ffffff")};
     --tenant-ink:${safe(colors.ink, "#000000")};
     --tenant-ink-muted:${safe(colors.inkMuted, "#666666")};
     --tenant-accent:${safe(colors.accent, "#000000")};
     --tenant-accent-alt:${safe(colors.accentAlt, "#666666")};
+    --glow:var(--glow-${tono});
+    --glow-accent:var(--glow-accent-${tono});
   }`;
 
   return <style dangerouslySetInnerHTML={{ __html: css }} />;

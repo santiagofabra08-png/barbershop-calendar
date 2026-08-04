@@ -16,6 +16,46 @@
   --tenant-ink-muted: #666666;
   --tenant-accent: #000000;
   --tenant-accent-alt: #666666;
+
+  /*
+    El resplandor de lo elegido, en dos recetas.
+
+    Es el mismo gesto —"esto es lo que elegiste"— pero no se traduce solo de un
+    fondo al otro. Sobre oscuro, una pieza clara con un halo alrededor parece
+    emitir luz: la sombra sale hacia todos lados, sin caída, porque la luz no
+    cae. Sobre claro eso no existe —no se puede brillar más blanco que el
+    papel— y el equivalente es una sombra honda y difusa, con caída, que
+    despega la pieza de la hoja.
+
+    Cuál de las dos se usa lo decide `TenantTheme` mirando el fondo de cada
+    barbería. Acá viven las recetas; allá, la elección.
+  */
+  --glow-oscuro:
+    0 0 20px -2px color-mix(in oklab, var(--tenant-ink) 40%, transparent),
+    0 3px 10px -6px color-mix(in oklab, var(--tenant-ink) 65%, transparent);
+  --glow-claro:
+    0 9px 22px -9px color-mix(in oklab, var(--tenant-ink) 65%, transparent),
+    0 2px 7px -3px color-mix(in oklab, var(--tenant-ink) 32%, transparent);
+
+  --glow-accent-oscuro:
+    0 0 20px -2px color-mix(in oklab, var(--tenant-accent) 55%, transparent),
+    0 3px 10px -6px color-mix(in oklab, var(--tenant-accent) 75%, transparent);
+  --glow-accent-claro:
+    0 9px 22px -9px color-mix(in oklab, var(--tenant-accent) 70%, transparent),
+    0 2px 7px -3px color-mix(in oklab, var(--tenant-accent) 38%, transparent);
+
+  /* Piso, por si una página se dibujara sin barbería: la versión clara. */
+  --glow: var(--glow-claro);
+  --glow-accent: var(--glow-accent-claro);
+}
+
+/* Lo que está elegido ahora mismo. Nada más lleva esto. */
+.glow {
+  box-shadow: var(--glow);
+}
+
+.glow-accent {
+  box-shadow: var(--glow-accent);
 }
 
 @theme inline {

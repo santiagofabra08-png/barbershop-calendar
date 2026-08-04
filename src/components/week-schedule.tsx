@@ -174,7 +174,7 @@ export function WeekSchedule({
                         "flex w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-xl px-4 py-3 text-left",
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         activo
-                          ? "bg-ink text-bg shadow-[0_6px_16px_-8px] shadow-ink/60"
+                          ? "bg-ink text-bg glow"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -258,7 +258,7 @@ export function WeekSchedule({
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:shadow-none",
                         activo
-                          ? "bg-ink text-bg shadow-[0_5px_14px_-8px] shadow-ink/60"
+                          ? "bg-ink text-bg glow"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -325,7 +325,7 @@ export function WeekSchedule({
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:line-through disabled:shadow-none",
                         activo
-                          ? "bg-accent text-surface shadow-[0_6px_16px_-8px] shadow-accent/70"
+                          ? "bg-accent text-surface glow-accent"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -441,7 +441,7 @@ function TarjetaBarbero({
         "flex items-center gap-2.5 rounded-xl py-2.5 pr-4 pl-2.5 text-sm font-medium",
         "transition-[background-color,color,box-shadow] duration-150 ease-out",
         activo
-          ? "bg-ink text-bg shadow-[0_6px_16px_-8px] shadow-ink/60"
+          ? "bg-ink text-bg glow"
           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
       ].join(" ")}
     >

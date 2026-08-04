@@ -244,6 +244,24 @@ Un PNG con transparencia tampoco sobreviviría el recorte.
   `sembrar-demo`. No son clientes. Antes de salir a producción de verdad hay que
   decidir si se borran o se dejan como vidriera para mostrar el producto.
 
+## El resplandor de lo elegido
+Lo que está elegido ahora mismo lleva `.glow` (o `.glow-accent`), y nada más.
+No es un adorno repetible: si dos cosas resplandecen, ninguna está elegida.
+
+Hay **dos recetas** porque el gesto no se traduce solo de un fondo al otro.
+Sobre oscuro, una pieza clara con un halo parece emitir luz: la sombra sale
+para todos lados y sin caída, porque la luz no cae. Sobre claro eso es
+imposible —no se puede brillar más blanco que el papel— y el equivalente es una
+sombra honda con caída, que despega la pieza de la hoja.
+
+Las recetas viven en `globals.css`; `TenantTheme` elige cuál según la
+luminancia del fondo de cada barbería (`src/lib/tenant/tono.ts`). El corte está
+en 0.179, que es donde el blanco y el negro contrastan igual contra ese fondo:
+la misma frontera que la pregunta "¿acá funciona un halo claro?".
+
+Al agregar un color nuevo a una barbería, esto se acomoda solo. Al agregar una
+pieza que se elige, usar la clase y no escribir una sombra a mano.
+
 ## Sobre el diseño
 La guía de marca de Tropi describe un local "clásico-vintage" y pide bordes
 finos, sin sombras y radios chicos. Eso se apartó a pedido del dueño: la página
