@@ -174,6 +174,14 @@ de verdad:
 - `scripts/probar-panel.mts [slug…]` — la jornada entera del panel: ajustes,
   servicios, productos, equipo, horarios, agenda, el camino completo de la plata
   y los pedidos. Unos 45 chequeos por barbería, y la deja como estaba.
+- `scripts/probar-roles.mts [slug]` — lo mismo que aislamiento pero un piso más
+  abajo: dentro de una barbería, que un barbero vea lo suyo y nada más. La mitad
+  de la prueba es al revés —que SÍ pueda trabajar—, porque achicar permisos
+  hasta que nadie pueda hacer nada es tan malo como dejarlos abiertos.
+- `scripts/probar-cliente.mts [slug] [url-base]` — reservar, abrir el link,
+  cancelar, y que el hueco vuelva a quedar libre. Incluye el plazo de
+  cancelación y, si el servidor está corriendo, las páginas por HTTP. Es la
+  única prueba que abre la aplicación de verdad.
 
 Las dos van con `node --env-file=.env.local`.
 
