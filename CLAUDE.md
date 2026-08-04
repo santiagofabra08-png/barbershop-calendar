@@ -182,6 +182,30 @@ de verdad:
   cancelar, y que el hueco vuelva a quedar libre. Incluye el plazo de
   cancelación y, si el servidor está corriendo, las páginas por HTTP. Es la
   única prueba que abre la aplicación de verdad.
+- `scripts/probar-simultaneo.mts [slug] [cuántas]` — diez reservas disparadas
+  en el mismo instante. Con barbero fijo gana una sola; sin elegir barbero
+  ganan tantas como sillas libres haya, y nunca dos en la misma silla.
+
+## Dos cuentas de correo, y no son la misma
+Los mails de la barbería —confirmación de turno, pedido nuevo— salen por
+**Resend**, con el remitente del local. Los de la cuenta —recuperar contraseña—
+salen por **Supabase**, porque son de la autenticación y no del negocio.
+
+Eso significa que hay **dos** configuraciones de correo que pueden estar mal por
+separado, y ninguna avisa: un fallo de mail nunca rompe una reserva, a propósito.
+
+- `RESEND_FROM` con `onboarding@resend.dev` **solo entrega al dueño de la cuenta
+  de Resend**. En producción hay que verificar un dominio propio.
+- El correo interno de Supabase tiene un límite de pocos mails por hora y no
+  sirve para producción. Se arregla apuntando el SMTP de Supabase a Resend.
+- En Supabase, *Authentication → URL Configuration → Redirect URLs* tiene que
+  incluir los subdominios con comodín (`https://*.tuapp.com/**`). Sin eso, el
+  link de recuperar contraseña no vuelve.
+
+El link vuelve a `/entrar/confirmar`, que canja el código y redirige. Esa ruta
+arma la dirección con el header `host` y **no** con `request.url`: Next
+normaliza `request.url` al origen interno y mandaba a `localhost`. Con varias
+barberías eso devuelve a la persona a la página de otro local.
 
 Las dos van con `node --env-file=.env.local`.
 

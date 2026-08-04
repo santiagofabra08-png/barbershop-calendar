@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 
-import { entrar, type EstadoLogin } from "@/app/entrar/actions";
+import { guardarNuevaClave, type EstadoNuevaClave } from "@/app/entrar/actions";
 
 const campo = [
   "mt-2 w-full rounded-lg border bg-ink/[0.03] px-4 py-3.5 text-ink",
@@ -15,9 +14,9 @@ const campo = [
 const etiqueta =
   "block text-xs font-semibold tracking-[0.14em] text-ink uppercase";
 
-export function LoginForm() {
-  const [estado, accion, pendiente] = useActionState<EstadoLogin, FormData>(
-    entrar,
+export function ClaveForm() {
+  const [estado, accion, pendiente] = useActionState<EstadoNuevaClave, FormData>(
+    guardarNuevaClave,
     {},
   );
 
@@ -25,41 +24,29 @@ export function LoginForm() {
     <form action={accion} className="mt-8">
       <div className="space-y-5">
         <div>
-          <label htmlFor="email" className={etiqueta}>
-            Mail
+          <label htmlFor="password" className={etiqueta}>
+            Contraseña nueva
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="username"
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
             autoFocus
-            defaultValue={estado.email ?? ""}
-            placeholder="vos@ejemplo.com"
+            placeholder="al menos 8 caracteres"
             className={campo}
           />
         </div>
 
         <div>
-          {/* El link va acá arriba y no escondido abajo: quien no se acuerda de
-              la contraseña se da cuenta justo en este campo, no antes. */}
-          <div className="flex items-baseline justify-between gap-3">
-            <label htmlFor="password" className={etiqueta}>
-              Contraseña
-            </label>
-            <Link
-              href="/entrar/recuperar"
-              className="rounded text-xs text-muted transition-colors duration-150 ease-out hover:text-ink"
-            >
-              No me acuerdo
-            </Link>
-          </div>
+          <label htmlFor="password2" className={etiqueta}>
+            Repetila
+          </label>
           <input
-            id="password"
-            name="password"
+            id="password2"
+            name="password2"
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             placeholder="••••••••"
             className={campo}
           />
@@ -80,7 +67,7 @@ export function LoginForm() {
         disabled={pendiente}
         className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60"
       >
-        {pendiente ? "Entrando…" : "Entrar"}
+        {pendiente ? "Guardando…" : "Guardar y entrar"}
       </button>
     </form>
   );
