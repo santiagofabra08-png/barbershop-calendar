@@ -94,7 +94,8 @@ para no tener que reconstruirlo leyendo todo.
 - `src/components/` — piezas compartidas de la página pública.
 - `src/app/panel/<sección>/` — cada pantalla con sus acciones al lado.
 - `scripts/*.mts` — utilidades que no se despliegan. `dar-acceso` crea el primer
-  acceso de una barbería; `probar-reserva` es la prueba de humo contra la base.
+  acceso de una barbería; `sembrar-demo` crea dos barberías de prueba;
+  `probar-reserva` y `probar-aislamiento` son las pruebas contra la base.
 - `supabase/migrations/` — el esquema, en SQL versionado y numerado.
 - `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
 
@@ -160,11 +161,32 @@ barberos, conversión a UTC, validación de datos, reparto de la plata según c�
 cobra cada uno, y armado de la tira del día.
 
 Lo que los tests **no** pueden cubrir son las funciones de la base, las
-restricciones y los permisos. Para eso está
-`node --env-file=.env.local scripts/probar-reserva.mts <slug>`, que reserva un
-turno real, revisa cómo quedó la fila y lo borra. **Correrlo después de cada
-migración que toque `appointments` o `crear_reserva`**: dos veces un cambio en
-la base rompió la reserva pública sin que nadie se enterara.
+restricciones y los permisos. Para eso hay dos pruebas que corren contra la base
+de verdad:
+
+- `scripts/probar-reserva.mts <slug>` — reserva un turno real, revisa cómo quedó
+  la fila y lo borra. **Correrlo después de cada migración que toque
+  `appointments` o `crear_reserva`**: dos veces un cambio en la base rompió la
+  reserva pública sin que nadie se enterara.
+- `scripts/probar-aislamiento.mts <slugA> <slugB>` — 25 chequeos de que una
+  barbería no ve ni toca nada de otra. **Correrlo después de cada migración que
+  toque una política, un `grant` o una función `SECURITY DEFINER`.**
+
+Las dos van con `node --env-file=.env.local`.
+
+La de aislamiento es la que decide si esto se puede vender. Que la agenda
+calcule mal es un error molesto; que el dueño de una barbería vea los teléfonos
+de los clientes de otra es el fin del producto. Y no se nota probando a mano:
+con una sola barbería en la base, la separación nunca se ejerce.
+
+Por eso `scripts/sembrar-demo.mts` crea dos barberías de demostración —clara y
+oscura, dos zonas horarias, dos monedas, las dos formas de ventana de reserva—
+que existen justamente para que haya de quién separarse. Con `--rehacer` las
+borra y las vuelve a crear.
+
+La de aislamiento tiene un chequeo de control que verifica que la sesión SÍ ve
+lo suyo. Sin eso, una sesión rota haría pasar toda la prueba: no ver nada de la
+otra barbería es fácil si tampoco se ve nada de la propia.
 
 ## Migraciones
 Se escriben a mano en `supabase/migrations/` con nombre `<timestamp>_<qué>.sql`
@@ -215,6 +237,9 @@ Un PNG con transparencia tampoco sobreviviría el recorte.
 - **Alta de una barbería nueva**: hoy se hace con SQL a mano. Es lo que falta
   para poder venderle a alguien sin intervención.
 - **Nico** es un barbero de prueba en la base de Tropi.
+- **Barbería Central** y **Studio Norte** son de demostración, creadas por
+  `sembrar-demo`. No son clientes. Antes de salir a producción de verdad hay que
+  decidir si se borran o se dejan como vidriera para mostrar el producto.
 
 ## Sobre el diseño
 La guía de marca de Tropi describe un local "clásico-vintage" y pide bordes
