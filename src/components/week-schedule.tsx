@@ -228,13 +228,17 @@ export function WeekSchedule({
               {nombreElegido} no tiene horarios esta semana.
             </p>
           ) : (
-            <ul className="grid max-w-sm grid-cols-5 gap-1.5">
+            /* Flex y no grid: una barbería que abre cinco días deja la última
+               fila con uno o dos días sueltos, y en una grilla esos quedan
+               pegados a la izquierda con un hueco al lado. Acá cada fila se
+               centra sola, la última incluida. */
+            <ul className="mx-auto flex max-w-sm flex-wrap justify-center gap-1.5">
               {days.map((day) => {
                 const libres = day.slots.filter((s) => s.available).length;
                 const activo = diaActivo?.date === day.date;
 
                 return (
-                  <li key={day.date}>
+                  <li key={day.date} className="w-[4.25rem]">
                     <button
                       type="button"
                       disabled={libres === 0}

@@ -15,7 +15,12 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 // Se habilitan los rangos de red doméstica en vez de una IP concreta, porque
 // el router la reasigna. Solo aplica a `next dev`; en producción se ignora.
 const origenesDeDesarrollo = (
-  process.env.DEV_ALLOWED_ORIGINS ?? "192.168.*.*,10.*.*.*,172.16.*.*,*.local"
+  // `*.lvh.me` es un dominio público que resuelve a 127.0.0.1, subdominios
+  // incluidos. Sirve para probar varias barberías a la vez en desarrollo, por
+  // el mismo camino que usa producción —el subdominio— y no por la salida de
+  // emergencia de `DEV_TENANT_SLUG`.
+  process.env.DEV_ALLOWED_ORIGINS ??
+  "192.168.*.*,10.*.*.*,172.16.*.*,*.local,*.lvh.me"
 )
   .split(",")
   .map((o) => o.trim())

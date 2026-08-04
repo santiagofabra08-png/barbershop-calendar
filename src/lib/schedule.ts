@@ -452,6 +452,11 @@ export function formatDuration(minutes: number): string {
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
+/** 0 → "domingo", 6 → "sábado". En minúscula: va en el medio de una frase. */
+export function weekdayName(weekday: number): string {
+  return (DIAS[weekday] ?? DIAS[0]).toLowerCase();
+}
+
 /** "2026-07-30" → "Jueves 30 de julio". */
 export function formatDateLong(date: string): string {
   const [, m, d] = date.split("-").map(Number);

@@ -22,7 +22,7 @@
  * despliega.
  */
 import { createClient } from "@supabase/supabase-js";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
 const rehacer = process.argv.includes("--rehacer");
 

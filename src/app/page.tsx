@@ -12,6 +12,7 @@ import {
   formatDuration,
   formatPrice,
   nowInTimeZone,
+  weekdayName,
 } from "@/lib/schedule";
 import { cargarBarberia, cargarOcupados } from "@/lib/tenant/load";
 import { currentTenantSlug } from "@/lib/tenant/resolve";
@@ -107,9 +108,12 @@ export default async function PaginaDeReservas({
               <h2 className="font-display text-2xl leading-tight font-bold sm:text-3xl">
                 Reservá tu turno
               </h2>
+              {/* Decir "se abre el sábado" sonaba a que la barbería abre ese
+                  día. Lo que se abre es la agenda, y conviene nombrarlo. */}
               {tenant.bookingWindow.mode === "weekly" ? (
                 <p className="text-sm text-muted">
-                  La semana que viene se abre el sábado{" "}
+                  Los turnos de la semana que viene se habilitan el{" "}
+                  {weekdayName(tenant.bookingWindow.releaseWeekday)} a las{" "}
                   <span className="tabular">
                     {tenant.bookingWindow.releaseTime}
                   </span>

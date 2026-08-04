@@ -171,6 +171,9 @@ de verdad:
 - `scripts/probar-aislamiento.mts <slugA> <slugB>` — 25 chequeos de que una
   barbería no ve ni toca nada de otra. **Correrlo después de cada migración que
   toque una política, un `grant` o una función `SECURITY DEFINER`.**
+- `scripts/probar-panel.mts [slug…]` — la jornada entera del panel: ajustes,
+  servicios, productos, equipo, horarios, agenda, el camino completo de la plata
+  y los pedidos. Unos 45 chequeos por barbería, y la deja como estaba.
 
 Las dos van con `node --env-file=.env.local`.
 
