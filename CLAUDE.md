@@ -93,9 +93,13 @@ para no tener que reconstruirlo leyendo todo.
   y los comparten cliente y servidor.
 - `src/components/` — piezas compartidas de la página pública.
 - `src/app/panel/<sección>/` — cada pantalla con sus acciones al lado.
-- `scripts/*.mts` — utilidades que no se despliegan. `dar-acceso` crea el primer
-  acceso de una barbería; `sembrar-demo` crea dos barberías de prueba;
-  `probar-reserva` y `probar-aislamiento` son las pruebas contra la base.
+- `scripts/*.mts` — utilidades que no se despliegan. `crear-barberia` da de alta
+  una nueva preguntando; `dar-acceso` crea un acceso suelto; `sembrar-demo` crea
+  dos barberías de prueba; los `probar-*` son las pruebas contra la base.
+- `scripts/lib/alta.mts` — el alta de una barbería, en un solo lugar. La usan
+  `crear-barberia` y `sembrar-demo`, a propósito: el alta que le corrés a un
+  cliente que paga es exactamente la que se ejercita cada vez que rehacés las
+  demos, en vez de una copia parecida que puede haber quedado atrás.
 - `supabase/migrations/` — el esquema, en SQL versionado y numerado.
 - `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
 
@@ -282,9 +286,20 @@ subir algo que se va a tirar.
 y pasarlo por un canvas lo convertiría en píxeles —justo lo que lo hace bueno—.
 Un PNG con transparencia tampoco sobreviviría el recorte.
 
+## Cómo se da de alta una barbería
+```
+node --env-file=.env.local scripts/crear-barberia.mts
+```
+Pregunta lo mínimo para que la página funcione el mismo día —nombre,
+subdominio, un servicio, un horario, el mail del dueño— y al final muestra lo
+que va a crear antes de crearlo. Todo lo demás lo carga el dueño desde el panel.
+Pedirle veinte datos a alguien que todavía no vio el producto es la forma más
+rápida de que abandone.
+
+Después, antes de entregarla, correr `probar-reserva` y `probar-aislamiento`
+contra el slug nuevo. El script los deja escritos al terminar.
+
 ## Lo que está a medio camino
-- **Alta de una barbería nueva**: hoy se hace con SQL a mano. Es lo que falta
-  para poder venderle a alguien sin intervención.
 - **Nico** es un barbero de prueba en la base de Tropi.
 - **Barbería Central** y **Studio Norte** son de demostración, creadas por
   `sembrar-demo`. No son clientes. Antes de salir a producción de verdad hay que

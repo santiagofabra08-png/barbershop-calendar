@@ -22,6 +22,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 
+import { localToUtc } from "../src/lib/schedule.ts";
+
 const slug = process.argv[2] ?? "barberia-central";
 const base = process.argv[3] ?? `http://${slug}.lvh.me:3000`;
 
@@ -131,6 +133,17 @@ try {
 
   // Se prueban horarios de a uno hasta que la base acepte alguno. Más lento y
   // sin forma de equivocarse, que es lo que se quiere de una prueba.
+  //
+  // Se descartan los que caen DENTRO del plazo de cancelación. No es un
+  // capricho: esta prueba viene a verificar que cancelar funcione, y un turno
+  // que arranca en una hora con un plazo de dos no se puede cancelar —y hace
+  // bien—. Sin este filtro la prueba pasa o falla según la hora del día en que
+  // se corra, que es la peor clase de prueba: la que un día dice que algo se
+  // rompió sin que nadie haya tocado nada.
+  const margen = 5 * 60_000;
+  const sePuedeCancelar = (fecha: string, hora: string) =>
+    localToUtc(fecha, hora, tz).getTime() > Date.now() + plazo * 60_000 + margen;
+
   function* candidatos() {
     for (let i = 0; i < 10; i++) {
       const fecha = sumarDias(hoy, i);
@@ -141,7 +154,8 @@ try {
         const abre = enMin((t.starts_at as string).slice(0, 5));
         const cierra = enMin((t.ends_at as string).slice(0, 5));
         for (let x = abre; x + dura <= cierra; x += dura) {
-          yield { fecha, hora: aHora(x) };
+          const hora = aHora(x);
+          if (sePuedeCancelar(fecha, hora)) yield { fecha, hora };
         }
       }
     }
