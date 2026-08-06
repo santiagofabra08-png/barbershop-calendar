@@ -202,6 +202,20 @@ separado, y ninguna avisa: un fallo de mail nunca rompe una reserva, a propósit
   incluir los subdominios con comodín (`https://*.tuapp.com/**`). Sin eso, el
   link de recuperar contraseña no vuelve.
 
+Cada una tiene su prueba, y hay que correr **las dos**: `probar-mail.mts` para
+el de la barbería y `probar-recuperar.mts` para el de la cuenta. Que ande uno no
+dice nada del otro —ya pasó: el dominio verificado y el mail saliendo por la API
+mientras el de contraseña devolvía 500—.
+
+En el SMTP de Supabase, **`Username` es literalmente la palabra `resend`**, no
+el mail ni la API key. Es el campo que más veces queda mal, y el error que
+devuelve es un 500 vacío que no dice nada.
+
+**Pendiente**: `turnos@…` es solo un remitente, no una casilla. Si un cliente
+contesta la confirmación —"no voy a poder ir"— esa respuesta se pierde. Hay que
+reenviarla a alguien, y cuando se venda a barberías de verdad tiene que ir al
+mail del local y no al nuestro. Va junto con el alta de barberías.
+
 El link vuelve a `/entrar/confirmar`, que canja el código y redirige. Esa ruta
 arma la dirección con el header `host` y **no** con `request.url`: Next
 normaliza `request.url` al origen interno y mandaba a `localhost`. Con varias

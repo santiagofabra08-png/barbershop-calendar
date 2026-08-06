@@ -66,8 +66,12 @@ Cuando terminás, el botón **Salir** está arriba a la derecha.
 
 La primera contraseña te la pone el dueño, porque es la única forma de que
 puedas entrar la primera vez. **Cambiala apenas entres**: a partir de ahí la
-cuenta es tuya. Si algún día te la olvidás, el dueño te pone una nueva y
-volvés a empezar.
+cuenta es tuya.
+
+Si algún día te la olvidás, no hace falta molestar a nadie: en la pantalla de
+entrar, al lado del campo de la contraseña, tocá **No me acuerdo**. Te llega un
+mail con un link para elegir una nueva. Sirve una sola vez y vence en una hora.
+El dueño igual puede ponerte una si preferís resolverlo en el momento.
 
 Ahí también ves cómo cobrás, para consultarlo. Eso no se edita desde ahí.
 
