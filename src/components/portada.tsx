@@ -50,12 +50,17 @@ const DIA = [
  * `tubarberia.lvh.me:3000` que no es lo que alguien va a escribir. En
  * producción no hay puerto y no se notaría nunca: el error viviría hasta que
  * alguien mirara la portada en su máquina.
+ *
+ * El mail no se deduce del dominio. Antes, sin `NEXT_PUBLIC_CONTACT_EMAIL`, la
+ * portada mostraba `hola@<dominio>` —una dirección que suena razonable y que
+ * puede no existir—. Alguien escribía ahí, creía haber avisado, y el mensaje
+ * se perdía. Una casilla se muestra cuando alguien la lee, y eso no se puede
+ * adivinar desde el código: o está configurada, o no se ofrece.
  */
 function comoContactar() {
   const dominio = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "").split(":")[0];
   const whatsapp = process.env.NEXT_PUBLIC_CONTACT_WHATSAPP?.replace(/\D/g, "");
-  const mail =
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL || (dominio ? `hola@${dominio}` : "");
+  const mail = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 
   return { dominio, whatsapp, mail };
 }
