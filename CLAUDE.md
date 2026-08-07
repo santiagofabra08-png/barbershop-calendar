@@ -189,6 +189,28 @@ de verdad:
 - `scripts/probar-simultaneo.mts [slug] [cuántas]` — diez reservas disparadas
   en el mismo instante. Con barbero fijo gana una sola; sin elegir barbero
   ganan tantas como sillas libres haya, y nunca dos en la misma silla.
+- `scripts/probar-carga.mts [slug] [semanas]` — llena una barbería con un año de
+  turnos, mide lo que espera una persona y borra todo. Con 4680 turnos la página
+  de reservas pasó de 371 a 420 ms: el historial no le pesa porque solo mira
+  hacia adelante.
+
+## Las pruebas que abren un navegador
+```
+npm run test:e2e
+```
+Playwright, en `e2e/`. Es lo único que toca un botón: todo lo demás habla con la
+base. Cubre lo que solo existe en el navegador —el recorte de las fotos, que
+pasa entero con canvas— y lo que solo se ve en pantalla: que los formularios
+envíen, que nada se salga de la pantalla en el celular.
+
+Corren contra una barbería descartable que se crea antes y se borra después, con
+un **subdominio distinto en cada corrida**. Eso último no es capricho: con el
+slug fijo, la aplicación seguía usando el id de la barbería de la corrida
+anterior —hay una capa de caché sobre esa búsqueda— y las pruebas del panel
+rebotaban al login sin motivo aparente.
+
+La barbería la arma `crearBarberia`, así que cada corrida ejercita también el
+alta.
 
 ## Dos cuentas de correo, y no son la misma
 Los mails de la barbería —confirmación de turno, pedido nuevo— salen por
@@ -298,6 +320,21 @@ rápida de que abandone.
 
 Después, antes de entregarla, correr `probar-reserva` y `probar-aislamiento`
 contra el slug nuevo. El script los deja escritos al terminar.
+
+## Bug abierto: el rebote después de guardar
+Al guardar desde el panel, el navegador tendría que quedar en la lista. En
+cambio pasa por la lista, rebota a `/entrar` y termina en `/panel`. Está
+registrado como `test.fixme` en `e2e/panel-foto.spec.ts`, con todo lo averiguado.
+
+Lo descartado: no es la subida de la foto (pasa igual con servicios y sin
+foto), no es de desarrollo (pasa compilado) y no se pierde la cookie de sesión
+—es la misma antes y después—.
+
+Dónde está: en ese render, `sesionDelPanel()` encuentra usuario y barbería pero
+la consulta de la fila del barbero devuelve cero filas **sin error**. Como
+`/panel/…` manda a `/entrar` cuando no hay sesión, ahí nace el rebote. Y el id
+de barbería que veía la aplicación era el de una corrida anterior, así que hay
+una caché sobre `cargarTenant` que conviene entender antes de tocar nada.
 
 ## Lo que está a medio camino
 - **Nico** es un barbero de prueba en la base de Tropi.

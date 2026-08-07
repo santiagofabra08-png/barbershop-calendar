@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "test:e2e": "node --env-file=.env.local node_modules/@playwright/test/cli.js test",
+    "test:e2e:ui": "node --env-file=.env.local node_modules/@playwright/test/cli.js test --ui"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
@@ -19,6 +21,7 @@
     "resend": "^6.18.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

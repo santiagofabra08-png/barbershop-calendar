@@ -3,6 +3,7 @@
  *
  *   node --env-file=.env.local scripts/sembrar-demo.mts
  *   node --env-file=.env.local scripts/sembrar-demo.mts --rehacer
+ *   node --env-file=.env.local scripts/sembrar-demo.mts --borrar
  *
  * Sirve para dos cosas distintas:
  *
@@ -36,6 +37,7 @@ import {
 } from "./lib/alta.mts";
 
 const rehacer = process.argv.includes("--rehacer");
+const borrar = process.argv.includes("--borrar");
 
 let admin;
 try {
@@ -143,6 +145,34 @@ const DEMOS: BarberiaNueva[] = [
 ];
 
 // ============================================================================
+
+// ---- Borrar y salir ---------------------------------------------------------
+// Es lo último que se corre antes de salir a producción de verdad: las de demo
+// no son clientes y no tienen por qué existir en la base que atiende a gente
+// que paga.
+//
+// ⚠️ Ojo con una consecuencia: `probar-aislamiento.mts` necesita DOS barberías
+// para tener de quién separarse. Borrando las demos, esa prueba —la que decide
+// si esto se puede vender— se queda sin con qué correr hasta que haya un
+// segundo cliente real.
+if (borrar) {
+  console.log("\nBorrando las barberías de demostración…\n");
+
+  for (const demo of DEMOS) {
+    if (await slugLibre(admin, demo.slug)) {
+      console.log(`  · ${demo.slug} no existe.`);
+      continue;
+    }
+    await borrarBarberia(admin, demo.slug);
+    console.log(`  ✓ ${demo.nombre} borrada, con su cuenta.`);
+  }
+
+  console.log(
+    "\n  Recordá que probar-aislamiento necesita dos barberías.\n" +
+      "  Con una sola en la base, esa prueba no tiene contra qué correr.\n",
+  );
+  process.exit(0);
+}
 
 console.log(rehacer ? "\nRehaciendo las barberías de demo…\n" : "\nSembrando…\n");
 
