@@ -22,7 +22,14 @@ tres de Resend. Si se mudan los nameservers y no se rehacen esos tres, los mails
 de confirmación dejan de salir y nada avisa —un fallo de mail nunca rompe una
 reserva, a propósito—.
 
-Por eso el paso 4 va pegado al 3, y no cuando haya tiempo.
+Por eso los registros de Resend se cargan en Vercel **antes** de tocar los
+nameservers en Porkbun, y no después. Vercel deja escribir la zona desde que el
+dominio existe en la cuenta; simplemente nadie la consulta todavía. Cuando los
+nameservers cambian, esos tres registros ya están del otro lado esperando y el
+correo no se cae ni un minuto.
+
+Al revés —mudar primero y cargar después— el correo queda roto todo el tiempo
+que tardes en acordarte.
 
 ---
 
@@ -94,15 +101,11 @@ Al guardar el comodín, Vercel activa sus nameservers solo y muestra cuáles son
 —generalmente `ns1.vercel-dns.com` y `ns2.vercel-dns.com`, pero **copiar los que
 muestre la pantalla**, no estos—.
 
-Después, en Porkbun → el dominio → **NS / Nameservers** → reemplazar los de
-Porkbun por los de Vercel.
-
-Tarda entre unos minutos y unas horas en propagarse. Vercel muestra el estado
-del dominio; cuando pasa a válido, emite el certificado solo.
+**Anotarlos y no cambiar nada en Porkbun todavía.** Primero va el paso 4.
 
 ---
 
-## 4 · Rehacer los registros de Resend (el mismo día, no después)
+## 4 · Cargar los registros de Resend en Vercel (antes de mudar)
 
 En Vercel → **el dominio → DNS Records**, cargar estos tres. Son los que están
 hoy en Porkbun, sacados de la API de Resend, así que están completos y sin
@@ -136,9 +139,21 @@ Valor:  v=spf1 include:amazonses.com ~all
 Cuidado con el DKIM: es largo y algunos paneles lo cortan al pegarlo. Si queda
 truncado, Resend lo marca como no verificado.
 
-Cuando estén los tres, en resend.com/domains el dominio tiene que volver a decir
-**verified**. Si dice *pending*, esperar: está mirando un DNS que todavía se
-está propagando.
+Con los tres cargados, la zona de Vercel ya es una copia completa de lo que
+importa de Porkbun. Recién ahí:
+
+---
+
+## 5 · Mudar los nameservers
+
+En Porkbun → el dominio → **NS / Nameservers** → reemplazar los de Porkbun por
+los de Vercel, los que quedaron anotados en el paso 3.
+
+Tarda entre unos minutos y unas horas en propagarse. Vercel muestra el estado
+del dominio; cuando pasa a válido, emite el certificado comodín solo.
+
+Cuando propague, en resend.com/domains el dominio tiene que seguir diciendo
+**verified**. Si dice *pending*, esperar: está mirando un DNS a medio propagar.
 
 Y después, la prueba de verdad, que no es la pantalla de Resend:
 
@@ -152,7 +167,7 @@ el de la cuenta por Supabase— y que ande uno no dice nada del otro.
 
 ---
 
-## 5 · Supabase tiene que conocer el dominio nuevo
+## 6 · Supabase tiene que conocer el dominio nuevo
 
 Supabase → **Authentication → URL Configuration**:
 
@@ -168,7 +183,7 @@ Dejar también las de desarrollo (`http://localhost:3000/**`,
 
 ---
 
-## 6 · Probar contra producción, no contra la pantalla de Vercel
+## 7 · Probar contra producción, no contra la pantalla de Vercel
 
 Que el despliegue diga "Ready" no dice nada sobre si una persona puede reservar.
 
