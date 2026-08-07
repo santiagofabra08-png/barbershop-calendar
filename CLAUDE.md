@@ -326,6 +326,12 @@ Al guardar desde el panel, el navegador tendría que quedar en la lista. En
 cambio pasa por la lista, rebota a `/entrar` y termina en `/panel`. Está
 registrado como `test.fixme` en `e2e/panel-foto.spec.ts`, con todo lo averiguado.
 
+**Solo pasa en las pruebas automáticas.** Cargando un producto a mano, en un
+navegador de verdad, no se reproduce. Eso lo baja de "hay que arreglarlo antes
+de vender" a "hay que entenderlo": molesta porque tapa una prueba, no porque le
+pase a alguien. Y el mismo dato acota la búsqueda —lo que cambia entre los dos
+casos es la velocidad y que el navegador arranca sin nada guardado—.
+
 Lo descartado: no es la subida de la foto (pasa igual con servicios y sin
 foto), no es de desarrollo (pasa compilado) y no se pierde la cookie de sesión
 —es la misma antes y después—.

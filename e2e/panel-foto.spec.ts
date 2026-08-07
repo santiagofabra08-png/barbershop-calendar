@@ -103,6 +103,11 @@ test("carga un producto con una foto rectangular y la recorta", async ({ page })
  * En cambio pasa por `/panel/productos`, rebota a `/entrar` y termina en
  * `/panel`. La persona guarda un producto y aparece en la agenda.
  *
+ * ⚠️ NO le pasa a una persona. Cargando un producto a mano en un navegador de
+ * verdad, queda en la lista como corresponde. Así que esto tapa una prueba, no
+ * arruina el producto —y ese contraste es la mejor pista que hay: lo que cambia
+ * es la velocidad y que acá el navegador arranca sin nada guardado—.
+ *
  * Lo que ya se sabe, para no volver a empezar de cero:
  *   · Pasa igual con productos, con servicios y sin subir ninguna foto, así
  *     que no es de la subida ni del recorte.
