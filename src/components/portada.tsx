@@ -72,6 +72,11 @@ function comoContactar() {
  * WhatsApp, no manda un mail. El mail queda como alternativa y no como opción
  * de igual peso. Si no hay ninguno de los dos, no hay botón: una llamada a la
  * acción que no lleva a ningún lado es peor que ninguna.
+ *
+ * Los dos botones abren en otra pestaña. En el celular el link entra derecho a
+ * WhatsApp y no se nota, pero en una computadora sin WhatsApp instalado lleva a
+ * una página que pide escanear un código: en la misma pestaña, eso se lleva
+ * puesta la portada y hay que volver atrás para recuperarla.
  */
 function destinoDeContacto(): string | null {
   const { whatsapp, mail } = comoContactar();
@@ -144,6 +149,8 @@ export function Portada() {
               >
                 <a
                   href={contacto}
+                  target="_blank"
+                  rel="noopener"
                   className="inline-flex items-center justify-center rounded-lg bg-[color:var(--barbicide)] px-6 py-3.5 text-base font-semibold text-[color:var(--tiza)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--esmalte)] active:translate-y-0 active:bg-[color:var(--esmalte)]"
                 >
                   Pedir una demostración
@@ -243,6 +250,8 @@ export function Portada() {
           {contacto ? (
             <a
               href={contacto}
+              target="_blank"
+              rel="noopener"
               className="sobre-azul mt-8 inline-flex items-center justify-center rounded-lg bg-[color:var(--tiza)] px-6 py-3.5 text-base font-semibold text-[color:var(--barbicide)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--porcelana)] active:translate-y-0 active:bg-[color:var(--vidrio)]"
             >
               Escribime y lo vemos
