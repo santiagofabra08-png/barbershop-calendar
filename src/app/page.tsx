@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { IconoEtiqueta, IconoReloj } from "@/components/icons";
+import { Portada } from "@/components/portada";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
 import { WeekSchedule } from "@/components/week-schedule";
@@ -26,7 +27,18 @@ const FOTO_PROVISORIA = "/dev/tropi-estacion.jpg";
 
 export async function generateMetadata(): Promise<Metadata> {
   const slug = await currentTenantSlug();
-  const data = slug ? await cargarBarberia(slug) : null;
+
+  // Sin subdominio no hay barbería: lo que se muestra es la portada del
+  // producto, y le corresponde su propio título.
+  if (!slug) {
+    return {
+      title: "Reservas para barberías",
+      description:
+        "Tus clientes reservan desde el teléfono a cualquier hora. Vos abrís el panel y el día ya está armado.",
+    };
+  }
+
+  const data = await cargarBarberia(slug);
   if (!data) return { title: "Reservá tu turno" };
 
   return {
@@ -42,7 +54,10 @@ export default async function PaginaDeReservas({
 }) {
   const { servicio } = await searchParams;
   const slug = await currentTenantSlug();
-  if (!slug) notFound();
+
+  // El dominio pelado no es ninguna barbería, pero sí es la puerta del
+  // producto: ahí va la portada, no un 404.
+  if (!slug) return <Portada />;
 
   const data = await cargarBarberia(slug);
   if (!data) notFound();

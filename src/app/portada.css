@@ -1,0 +1,132 @@
+/*
+  La portada del producto, que no es de ninguna barbería.
+
+  Todo lo demás en esta aplicación se pinta con los colores de un local:
+  `--tenant-*` llega como dato y las clases de Tailwind lo consumen sin saber
+  de qué color se trata. Acá no hay local. Esta es la cara del producto, y
+  necesita una identidad propia que no se parezca a la de ningún cliente
+  —justamente para que se note que es otra cosa—.
+
+  Por eso vive en su propio archivo y no en `globals.css`: aquello describe el
+  sistema de las barberías, y esto es lo contrario. Mezclarlos invitaría a que
+  alguien use un color de acá en una pantalla de allá.
+
+  La paleta sale de los materiales del local, no de una plantilla:
+  el azulejo y el talco, el esmalte de un sillón viejo, y el azul del frasco
+  de desinfectante que hay en el mostrador de toda barbería del mundo.
+*/
+.portada {
+  --porcelana: #eef0f6;
+  --esmalte: #101426;
+  --barbicide: #2e3ab0;
+  --barbicide-claro: #6470d8;
+  --vidrio: #c7cde0;
+  --tiza: #ffffff;
+
+  /*
+    El poste de barbero ya existe en `globals.css` y se pinta con las variables
+    del local. Acá no hay local, así que se las damos: el mismo objeto, con los
+    colores del producto. Es la única pieza que cruza de un lado al otro, y
+    tiene sentido que sea esa —el poste es lo que dice "barbería" sin texto—.
+  */
+  --tenant-accent: var(--barbicide);
+  --tenant-accent-alt: var(--barbicide-claro);
+  --tenant-surface: var(--porcelana);
+  --tenant-ink: var(--esmalte);
+
+  background-color: var(--porcelana);
+  color: var(--esmalte);
+}
+
+/*
+  ---- El cuaderno de turnos -------------------------------------------------
+
+  Lo que este producto reemplaza es un cuaderno rayado con las horas al costado
+  y los nombres en birome. Es el objeto más característico del oficio, así que
+  es el héroe de la página y no un adorno al lado del titular.
+
+  El rayado se dibuja con un borde por renglón, como una hoja de verdad.
+*/
+.cuaderno {
+  background-color: var(--tiza);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--esmalte) 6%, transparent),
+    0 24px 48px -28px color-mix(in oklab, var(--esmalte) 40%, transparent);
+}
+
+.renglon {
+  border-top: 1px solid color-mix(in oklab, var(--vidrio) 70%, transparent);
+}
+
+.renglon:first-child {
+  border-top: 0;
+}
+
+/*
+  Los turnos se escriben solos, uno atrás de otro.
+
+  Es la promesa del producto en un gesto: el cuaderno se llena sin que el dueño
+  haga nada. Por eso los huecos libres NO se animan —quedan quietos y vacíos—:
+  si se movieran todos, no se leería que unos están tomados y otros no.
+
+  Cada renglón entra desde la izquierda, como una mano que escribe. El
+  escalonado es de 90 ms, bastante más lento que el de los horarios en la
+  página de reserva: allá es una lista que se despliega, acá es alguien
+  anotando.
+*/
+.escribir {
+  transform-origin: left center;
+  animation: escribir 0.42s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+  animation-delay: calc(600ms + var(--i, 0) * 90ms);
+}
+
+@keyframes escribir {
+  from {
+    opacity: 0;
+    transform: scaleX(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  El texto de arriba entra antes que el cuaderno, y en orden de lectura.
+  Una sola secuencia, una sola vez, al cargar.
+*/
+.entrar-portada {
+  animation: entrar-portada 0.55s cubic-bezier(0.22, 0.7, 0.28, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes entrar-portada {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  Nada de esto es información. Quien pidió menos movimiento ve la página
+  quieta y completa, con los turnos ya escritos.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .escribir,
+  .entrar-portada {
+    animation: none;
+  }
+}
+
+/*
+  El foco global de `globals.css` usa `--tenant-ink`, que acá vale esmalte.
+  Sobre el bloque azul eso casi no se ve, así que ahí se invierte.
+*/
+.portada .sobre-azul:focus-visible {
+  outline-color: var(--tiza);
+}
