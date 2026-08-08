@@ -33,7 +33,8 @@ let ok = 0;
 let mal = 0;
 const chequeo = (t, c) => {
   console.log(`  ${c ? "✓" : "✗"} ${t}`);
-  c ? ok++ : mal++;
+  if (c) ok++;
+  else mal++;
 };
 
 const b = await chromium.launch();
