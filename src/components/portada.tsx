@@ -296,28 +296,33 @@ export function Portada() {
         y no querés que lo primero que vea alguien sea un rectángulo en blanco.
       */}
       <section className="border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
-        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
-          <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
-            Probala ahora, sin registrarte.
-          </h2>
-          <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-            Esto de acá abajo no es una foto: es una barbería de demostración
-            funcionando de verdad. Elegí un servicio y un horario, como haría un
-            cliente tuyo.
-          </p>
+        {/*
+          El texto al costado del teléfono y no encima. Centrado debajo de un
+          título alineado a la izquierda quedaba un vacío grande a la derecha,
+          y además rompía la forma que ya usan las pestañas más abajo.
+        */}
+        <div className="mx-auto grid w-full max-w-5xl items-center gap-10 px-5 py-14 sm:px-8 sm:py-16 md:grid-cols-[1fr_23rem] md:gap-14">
+          <div>
+            <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+              Probala ahora, sin registrarte.
+            </h2>
+            <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+              Esto no es una foto: es una barbería de demostración funcionando
+              de verdad, acá adentro. Elegí un servicio y un horario, como haría
+              un cliente tuyo.
+            </p>
+            <p className="mt-4 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+              Se vacía todos los días, así que reservá tranquilo.
+            </p>
+          </div>
 
-          <div className="marco-demo mt-8">
+          <div className="marco-demo">
             <iframe
               src={urlDemo}
               title="Barbería de demostración: página de reservas"
               loading="lazy"
             />
           </div>
-
-          <p className="mt-3 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-            Es una barbería de demostración. Se vacía todos los días, así que
-            reservá tranquilo.
-          </p>
         </div>
       </section>
 
