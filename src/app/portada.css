@@ -113,12 +113,85 @@
 }
 
 /*
+  ---- El marco de teléfono --------------------------------------------------
+
+  Las capturas del panel van adentro de un teléfono dibujado. No es adorno:
+  dice sin escribirlo que esto se usa parado y entre corte y corte, no sentado
+  frente a una computadora. Un barbero se ve a sí mismo usándolo.
+
+  Es un borde grueso y un radio grande, nada más. Un marco con muescas, botones
+  y cámara sería dibujar un iPhone, que no es lo que se está vendiendo.
+*/
+.marco-telefono {
+  border: 6px solid var(--esmalte);
+  border-radius: 26px;
+  overflow: hidden;
+  background-color: var(--esmalte);
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--esmalte) 10%, transparent),
+    0 28px 50px -30px color-mix(in oklab, var(--esmalte) 55%, transparent);
+}
+
+/* Al cambiar de pestaña, la captura entra en vez de aparecer de golpe. */
+.aparecer {
+  animation: aparecer 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/*
+  ---- La demo viva ----------------------------------------------------------
+
+  Una barbería de verdad, incrustada, adentro del mismo teléfono que enmarca
+  las capturas.
+
+  El ancho está limitado a propósito. La primera versión ocupaba todo el ancho
+  de la página y se veía mal por un motivo que no es estético: la página de
+  reserva está pensada para un teléfono, así que estirada a mil píxeles queda
+  una columna angosta flotando en un campo vacío. Y encima decía lo contrario
+  de lo que la página afirma —que esto se usa desde el celular—.
+
+  Así, además, el visitante prueba el producto en la forma en que lo va a usar
+  su cliente.
+*/
+.marco-demo {
+  max-width: 23rem;
+  margin-inline: auto;
+  border: 8px solid var(--esmalte);
+  border-radius: 30px;
+  overflow: hidden;
+  background-color: var(--tiza);
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--esmalte) 10%, transparent),
+    0 32px 60px -34px color-mix(in oklab, var(--esmalte) 55%, transparent);
+}
+
+.marco-demo iframe {
+  display: block;
+  width: 100%;
+  height: 36rem;
+  border: 0;
+}
+
+@media (min-width: 640px) {
+  .marco-demo iframe {
+    height: 42rem;
+  }
+}
+
+/*
   Nada de esto es información. Quien pidió menos movimiento ve la página
   quieta y completa, con los turnos ya escritos.
 */
 @media (prefers-reduced-motion: reduce) {
   .escribir,
-  .entrar-portada {
+  .entrar-portada,
+  .aparecer {
     animation: none;
   }
 }

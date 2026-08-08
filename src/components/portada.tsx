@@ -1,17 +1,29 @@
 import { Archivo_Black } from "next/font/google";
+import Image from "next/image";
 
+import { Funciones } from "./portada-funciones";
+import { SLUG_DEMO } from "@/lib/demo";
 import "../app/portada.css";
 
 /**
  * La portada del producto: lo que se ve en el dominio pelado, sin subdominio.
  *
- * Hasta acá, `turnosforbarber.com` sin barbería devolvía el 404 de fábrica de
- * Next —en inglés y con la tipografía por defecto—. Funcionalmente correcto,
- * porque no hay ninguna barbería que mostrar, pero es la primera pantalla que
- * ve un dueño que escribe el dominio para saber qué le están vendiendo.
+ * Empezó siendo una pantalla que explicaba qué es esto, porque lo que había
+ * antes era el 404 de fábrica de Next, en inglés. Ahora tiene que vender: buena
+ * parte de quien entra llega de un reel, sin saber que existís, y la página es
+ * lo único que va a leer antes de decidir.
  *
- * No lleva colores de ninguna barbería a propósito. Es la cara del producto y
- * tiene que distinguirse de la de cualquier cliente.
+ * De eso salen las decisiones de acá abajo:
+ *
+ *   · **Se muestra el producto, no dibujos del producto.** Una barbería de
+ *     verdad incrustada y funcionando, y capturas sacadas del sitio en
+ *     producción por `scripts/capturas.mts`. Una recreación en HTML se vería
+ *     igual de bien y empezaría a mentir el día que cambie el panel.
+ *   · **No lleva colores de ninguna barbería.** Es la cara del producto y tiene
+ *     que distinguirse de la de cualquier cliente.
+ *   · **No hay testimonios.** Con una sola barbería usándolo, inventar una
+ *     reseña sería mentir, y decir "lo usan barberías" queda flojo. La prueba
+ *     es la demo viva, que no depende de que nadie diga nada.
  */
 
 // Pesada y ancha, como letra pintada en un cartel de barbería. Se carga acá y
@@ -23,6 +35,9 @@ const cartel = Archivo_Black({
   weight: "400",
   display: "swap",
 });
+
+/** Cuánto dura la prueba. Un mes entero, para que llegue a cerrar una caja. */
+const DIAS_DE_PRUEBA = 30;
 
 /**
  * Un martes cualquiera.
@@ -41,6 +56,17 @@ const DIA = [
   { hora: "12:20", quien: null, que: null },
   { hora: "13:00", quien: "Federico M.", que: "Corte y barba" },
 ] as const;
+
+/** Qué entra en el plan. Sin asteriscos ni "según el plan": hay uno solo. */
+const INCLUYE = [
+  "Tu página de reservas, con tu nombre, tu logo y tus colores",
+  "Tu propia dirección web, para compartir por WhatsApp o poner en Instagram",
+  "Todos los barberos y todos los servicios que tengas",
+  "Cobros, cierre de caja y el reparto de cada barbero",
+  "Catálogo de productos y pedidos, si vendés",
+  "Confirmación por mail a cada cliente, automática",
+  "Las mejoras que vayan saliendo, sin pagar de nuevo",
+];
 
 /**
  * Cómo se pide. Todo sale del entorno: acá no se escribe ningún dominio.
@@ -73,7 +99,7 @@ function comoContactar() {
  * de igual peso. Si no hay ninguno de los dos, no hay botón: una llamada a la
  * acción que no lleva a ningún lado es peor que ninguna.
  *
- * Los dos botones abren en otra pestaña. En el celular el link entra derecho a
+ * Los botones abren en otra pestaña. En el celular el link entra derecho a
  * WhatsApp y no se nota, pero en una computadora sin WhatsApp instalado lleva a
  * una página que pide escanear un código: en la misma pestaña, eso se lleva
  * puesta la portada y hay que volver atrás para recuperarla.
@@ -83,22 +109,93 @@ function destinoDeContacto(): string | null {
 
   if (whatsapp) {
     const texto = encodeURIComponent(
-      "Hola, tengo una barbería y quiero ver cómo funciona.",
+      "Hola, tengo una barbería y quiero probar el sistema de reservas.",
     );
     return `https://wa.me/${whatsapp}?text=${texto}`;
   }
 
   if (mail) {
-    const asunto = encodeURIComponent("Quiero verlo para mi barbería");
+    const asunto = encodeURIComponent("Quiero probarlo en mi barbería");
     return `mailto:${mail}?subject=${asunto}`;
   }
 
   return null;
 }
 
+/**
+ * El precio, si está configurado.
+ *
+ * Se carga desde el entorno por lo mismo que el WhatsApp: cambiar un precio no
+ * puede ser un cambio de código y un despliegue. Sin número, la sección no
+ * inventa uno ni deja un hueco: invita a preguntarlo.
+ */
+function precioMensual(): string | null {
+  const monto = Number(process.env.NEXT_PUBLIC_PRECIO_MENSUAL);
+  if (!Number.isFinite(monto) || monto <= 0) return null;
+
+  const moneda = process.env.NEXT_PUBLIC_PRECIO_MONEDA || "UYU";
+
+  try {
+    return new Intl.NumberFormat("es-UY", {
+      style: "currency",
+      currency: moneda,
+      maximumFractionDigits: 0,
+    }).format(monto);
+  } catch {
+    // Una moneda mal escrita no puede tumbar la portada entera.
+    return `${monto} ${moneda}`;
+  }
+}
+
+/** El botón de siempre, en sus dos tonos. */
+function Boton({
+  href,
+  children,
+  tono = "azul",
+  className = "",
+}: {
+  href: string;
+  children: React.ReactNode;
+  tono?: "azul" | "claro";
+  className?: string;
+}) {
+  const base =
+    "inline-flex items-center justify-center rounded-lg px-6 py-3.5 text-base " +
+    "font-semibold transition-[background-color,transform] duration-150 " +
+    "hover:-translate-y-px active:translate-y-0 ";
+
+  const colores =
+    tono === "azul"
+      ? "bg-[color:var(--barbicide)] text-[color:var(--tiza)] " +
+        "hover:bg-[color:var(--esmalte)] active:bg-[color:var(--esmalte)]"
+      : "sobre-azul bg-[color:var(--tiza)] text-[color:var(--barbicide)] " +
+        "hover:bg-[color:var(--porcelana)] active:bg-[color:var(--vidrio)]";
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener"
+      className={base + colores + " " + className}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function Portada() {
   const { dominio, mail } = comoContactar();
   const contacto = destinoDeContacto();
+  const precio = precioMensual();
+
+  // El protocolo se deduce del dominio: en desarrollo la demo vive en
+  // `demo.lvh.me:3000`, que no tiene certificado.
+  const dominioCompleto = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "";
+  const protocolo = dominioCompleto.includes("localhost") ||
+    dominioCompleto.includes("lvh.me")
+    ? "http"
+    : "https";
+  const urlDemo = `${protocolo}://${SLUG_DEMO}.${dominioCompleto}`;
 
   return (
     <div className={`portada ${cartel.variable} flex min-h-full flex-col`}>
@@ -107,17 +204,13 @@ export function Portada() {
         <span className="pole-rule w-9 shrink-0 rounded-full" aria-hidden>
           <span />
         </span>
-        <span
-          className="font-[family-name:var(--font-cartel)] text-sm tracking-tight"
-          // El nombre del producto es su dominio, y el dominio es un dato del
-          // entorno. Escribirlo acá sería clavarlo en el código.
-        >
+        <span className="font-[family-name:var(--font-cartel)] text-sm tracking-tight">
           {dominio}
         </span>
       </header>
 
       {/* ---- Lo primero que se ve ------------------------------------ */}
-      <section className="mx-auto w-full max-w-5xl grow px-5 pb-16 pt-6 sm:px-8 sm:pt-12">
+      <section className="mx-auto w-full max-w-5xl px-5 pb-16 pt-6 sm:px-8 sm:pt-12">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_20rem] lg:gap-16">
           <div>
             <p
@@ -144,17 +237,15 @@ export function Portada() {
 
             {contacto ? (
               <div
-                className="entrar-portada mt-8"
+                className="entrar-portada mt-8 flex flex-wrap items-center gap-4"
                 style={{ "--delay": "240ms" } as React.CSSProperties}
               >
-                <a
-                  href={contacto}
-                  target="_blank"
-                  rel="noopener"
-                  className="inline-flex items-center justify-center rounded-lg bg-[color:var(--barbicide)] px-6 py-3.5 text-base font-semibold text-[color:var(--tiza)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--esmalte)] active:translate-y-0 active:bg-[color:var(--esmalte)]"
-                >
-                  Pedir una demostración
-                </a>
+                <Boton href={contacto}>
+                  Probalo {DIAS_DE_PRUEBA} días gratis
+                </Boton>
+                <span className="text-sm text-[color:color-mix(in_oklab,var(--esmalte)_60%,transparent)]">
+                  Sin tarjeta.
+                </span>
               </div>
             ) : null}
           </div>
@@ -197,66 +288,172 @@ export function Portada() {
         </div>
       </section>
 
-      {/* ---- Las dos caras ------------------------------------------- */}
+      {/* ---- La demo viva -------------------------------------------- */}
       {/*
-        Dos bloques y no tres: el producto tiene exactamente dos superficies,
-        la página del cliente y el panel. Eso es verdad sobre cómo está hecho,
-        no una lista de ventajas inventada para llenar una fila de tres.
+        Una barbería de verdad, funcionando, adentro de la página. Es la prueba
+        que ningún texto reemplaza: el visitante elige un horario y ve que
+        responde. Va acá y no arriba de todo porque tarda un momento en cargar,
+        y no querés que lo primero que vea alguien sea un rectángulo en blanco.
       */}
       <section className="border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
-        <div className="mx-auto grid w-full max-w-5xl gap-10 px-5 py-14 sm:px-8 sm:py-16 md:grid-cols-2 md:gap-14">
-          <div>
-            <h2 className="font-[family-name:var(--font-cartel)] text-2xl tracking-tight">
-              Lo que ve tu cliente
-            </h2>
-            <p className="mt-3 leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-              Una página con el nombre, el logo y los colores de tu barbería.
-              Elige el servicio, con quién se quiere atender y a qué hora, entre
-              los horarios que realmente tenés libres. Sin crear una cuenta y sin
-              bajar ninguna aplicación. La confirmación le llega por mail.
-            </p>
+        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+          <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+            Probala ahora, sin registrarte.
+          </h2>
+          <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+            Esto de acá abajo no es una foto: es una barbería de demostración
+            funcionando de verdad. Elegí un servicio y un horario, como haría un
+            cliente tuyo.
+          </p>
+
+          <div className="marco-demo mt-8">
+            <iframe
+              src={urlDemo}
+              title="Barbería de demostración: página de reservas"
+              loading="lazy"
+            />
           </div>
 
-          <div>
-            <h2 className="font-[family-name:var(--font-cartel)] text-2xl tracking-tight">
-              Lo que ves vos
-            </h2>
-            <p className="mt-3 leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-              El día entero apenas entrás. Cobrás, cerrás la caja y sabés cuánto
-              le toca a cada uno sin sacar la cuenta a mano. Los servicios, los
-              precios, los horarios y el equipo los cargás vos, cuando querés,
-              sin pedirle nada a nadie.
-            </p>
+          <p className="mt-3 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+            Es una barbería de demostración. Se vacía todos los días, así que
+            reservá tranquilo.
+          </p>
+        </div>
+      </section>
+
+      {/* ---- Qué resuelve -------------------------------------------- */}
+      <section className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
+        <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+          Cuatro cosas que dejás de hacer.
+        </h2>
+        <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+          Tocá la que más te suene.
+        </p>
+
+        <div className="mt-10">
+          <Funciones />
+        </div>
+      </section>
+
+      {/* ---- Se ve con tu marca -------------------------------------- */}
+      {/*
+        La misma pantalla en dos barberías distintas. Es el argumento que menos
+        se cree cuando se escribe y más se entiende cuando se ve: no es la misma
+        página con otro nombre arriba.
+      */}
+      <section className="border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
+        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+          <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+            Es tu barbería, no la mía.
+          </h2>
+          <p className="mt-4 max-w-2xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+            Estas dos son la misma pantalla, de dos barberías distintas. Tu
+            nombre, tu logo y tus colores; y tu propia dirección, del estilo{" "}
+            <span className="whitespace-nowrap font-semibold text-[color:var(--esmalte)]">
+              tubarberia.{dominio}
+            </span>
+            .
+          </p>
+
+          {/*
+            Acotadas y centradas: dos teléfonos del mismo tamaño que los de las
+            pestañas. A todo el ancho de la columna se veían enormes y rompían
+            la escala del resto de la página.
+          */}
+          <div className="mx-auto mt-10 grid max-w-lg grid-cols-2 gap-5 sm:gap-10">
+            {[
+              {
+                src: "/portada/marca-clara.png",
+                alt: "La página de reservas de una barbería con marca clara y acento verde.",
+                pie: "Una barbería clara",
+              },
+              {
+                src: "/portada/marca-oscura.png",
+                alt: "La misma pantalla en una barbería con marca oscura y acento ámbar.",
+                pie: "Otra, oscura",
+              },
+            ].map((x) => (
+              <figure key={x.src}>
+                <div className="marco-telefono">
+                  <Image
+                    src={x.src}
+                    alt={x.alt}
+                    width={780}
+                    height={1600}
+                    className="block h-auto w-full"
+                    sizes="(min-width: 640px) 260px, 45vw"
+                  />
+                </div>
+                <figcaption className="mt-3 text-center text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+                  {x.pie}
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ---- Cómo se consigue ---------------------------------------- */}
+      {/* ---- El precio ----------------------------------------------- */}
       <section className="bg-[color:var(--barbicide)] text-[color:var(--tiza)]">
-        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
-          <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
-            Cada barbería tiene su propia dirección.
-          </h2>
+        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
+          <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+            <div>
+              <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+                Un plan, todo adentro.
+              </h2>
 
-          <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--tiza)_82%,transparent)]">
-            La tuya sería{" "}
-            <span className="whitespace-nowrap font-semibold text-[color:var(--tiza)]">
-              tubarberia.{dominio}
-            </span>
-            . La compartís por WhatsApp o la ponés en tu perfil de Instagram, y
-            tus clientes reservan solos.
-          </p>
+              <p className="mt-6 text-lg leading-relaxed text-[color:color-mix(in_oklab,var(--tiza)_82%,transparent)]">
+                Los primeros{" "}
+                <span className="font-semibold text-[color:var(--tiza)]">
+                  {DIAS_DE_PRUEBA} días son gratis
+                </span>
+                , sin dejar una tarjeta. Un mes entero alcanza para llenar una
+                agenda y cerrar cajas de verdad, que es cuando se ve si te sirve.
+              </p>
 
-          {contacto ? (
-            <a
-              href={contacto}
-              target="_blank"
-              rel="noopener"
-              className="sobre-azul mt-8 inline-flex items-center justify-center rounded-lg bg-[color:var(--tiza)] px-6 py-3.5 text-base font-semibold text-[color:var(--barbicide)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--porcelana)] active:translate-y-0 active:bg-[color:var(--vidrio)]"
-            >
-              Escribime y lo vemos
-            </a>
-          ) : null}
+              {precio ? (
+                <p className="mt-8">
+                  <span className="font-[family-name:var(--font-cartel)] text-5xl tracking-tight">
+                    {precio}
+                  </span>
+                  <span className="ml-2 text-lg text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]">
+                    por mes
+                  </span>
+                </p>
+              ) : (
+                <p className="mt-8 text-lg text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]">
+                  Escribime y te paso el precio.
+                </p>
+              )}
+
+              {contacto ? (
+                <div className="mt-8">
+                  <Boton href={contacto} tono="claro">
+                    Empezar la prueba
+                  </Boton>
+                </div>
+              ) : null}
+
+              <p className="mt-4 text-sm text-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]">
+                Te escribo, la dejamos andando el mismo día y te paso la
+                dirección de tu barbería.
+              </p>
+            </div>
+
+            <ul className="space-y-3">
+              {INCLUYE.map((x) => (
+                <li key={x} className="flex gap-3 leading-relaxed">
+                  <span
+                    aria-hidden
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]"
+                  />
+                  <span className="text-[color:color-mix(in_oklab,var(--tiza)_88%,transparent)]">
+                    {x}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
