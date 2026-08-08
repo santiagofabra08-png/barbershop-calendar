@@ -25,16 +25,6 @@ type Funcion = {
   texto: string;
   imagen: string;
   alt: string;
-  /**
-   * La franja ampliada de lo que el texto está afirmando.
-   *
-   * La pantalla entera del teléfono, achicada a una columna, muestra todo y no
-   * deja leer nada. El recorte hace legible el dato del que se habla —el
-   * reparto, el botón de WhatsApp— y dirige la mirada en vez de dejarla
-   * buscando. No todas las funciones tienen uno: donde la pantalla completa ya
-   * se entiende, agregar un recorte sería ruido.
-   */
-  recorte?: { src: string; alto: number; alt: string; pie: string };
 };
 
 const FUNCIONES: Funcion[] = [
@@ -59,12 +49,6 @@ const FUNCIONES: Funcion[] = [
       "él: comisión, sueldo o alquiler de silla.",
     imagen: "/portada/panel-cobros.png",
     alt: "La pantalla de cobros, con el ticket de un turno abierto.",
-    recorte: {
-      src: "/portada/recorte-cobros.png",
-      alto: 630,
-      alt: "El total del ticket, con el detalle de lo que se cobra.",
-      pie: "El ticket se arma solo mientras cobrás",
-    },
   },
   {
     etiqueta: "Los que no vienen",
@@ -76,12 +60,6 @@ const FUNCIONES: Funcion[] = [
       "seguís cortando.",
     imagen: "/portada/panel-agenda.png",
     alt: "La agenda del día siguiente, con un botón de WhatsApp en cada turno.",
-    recorte: {
-      src: "/portada/recorte-agenda.png",
-      alto: 456,
-      alt: "Un turno de la agenda, con el botón de WhatsApp al lado.",
-      pie: "Un toque y se abre el chat con el mensaje escrito",
-    },
   },
   {
     etiqueta: "La semana",
@@ -93,12 +71,6 @@ const FUNCIONES: Funcion[] = [
       "dejarla afuera de la cuenta en silencio.",
     imagen: "/portada/panel-semana.png",
     alt: "El resumen de la semana, con lo cobrado y el reparto al equipo.",
-    recorte: {
-      src: "/portada/recorte-semana.png",
-      alto: 774,
-      alt: "Lo cobrado en la semana, los cortes, y cuánto va al equipo.",
-      pie: "Lo que entró y lo que se reparte, sin sacar la cuenta",
-    },
   },
 ];
 
@@ -162,7 +134,11 @@ export function Funciones() {
         role="tabpanel"
         id={`panel-${elegida}`}
         aria-labelledby={`pestania-${elegida}`}
-        className="mt-8 grid items-center gap-10 md:grid-cols-[1fr_15rem] md:gap-14"
+        // `items-start` y no `items-center`: el teléfono mide casi el triple
+        // que el texto, y centrado dejaba la explicación flotando en el medio
+        // con un vacío grande arriba. Arrancando los dos a la misma altura se
+        // lee como una cosa sola.
+        className="mt-8 grid items-start gap-10 md:grid-cols-[1fr_19rem] md:gap-14"
       >
         <div>
           {/*
@@ -181,24 +157,6 @@ export function Funciones() {
           <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
             {f.texto}
           </p>
-
-          {f.recorte ? (
-            <figure key={f.recorte.src} className="aparecer mt-7 max-w-md">
-              <div className="recorte">
-                <Image
-                  src={f.recorte.src}
-                  alt={f.recorte.alt}
-                  width={1170}
-                  height={f.recorte.alto}
-                  className="block h-auto w-full"
-                  sizes="(min-width: 768px) 28rem, 90vw"
-                />
-              </div>
-              <figcaption className="mt-2.5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-                {f.recorte.pie}
-              </figcaption>
-            </figure>
-          ) : null}
         </div>
 
         {/*
@@ -206,8 +164,16 @@ export function Funciones() {
           contra el sitio en producción. El marco de teléfono no es decoración:
           dice sin escribirlo que esto se usa parado, entre corte y corte, y no
           sentado frente a una computadora.
+
+          Sobre la nitidez, que costó una vuelta: se veía borrosa por dos cosas
+          a la vez. Se mostraba a 240 píxeles, que para una pantalla de teléfono
+          entera es poquísimo, y encima Next comprime a calidad 75 por defecto
+          —bien para una foto, pastoso sobre texto fino de interfaz—. Se arregla
+          agrandando el marco y subiendo la calidad; `sizes` tiene que decir el
+          ancho real o el navegador se baja una imagen más chica de la que va a
+          mostrar.
         */}
-        <div className="mx-auto w-full max-w-[15rem] md:mx-0">
+        <div className="mx-auto w-full max-w-[19rem] md:mx-0 md:max-w-none">
           <div className="marco-telefono">
             <Image
               key={f.imagen}
@@ -215,8 +181,10 @@ export function Funciones() {
               alt={f.alt}
               width={1170}
               height={2400}
+              quality={95}
+              priority={elegida === 0}
               className="aparecer block h-auto w-full"
-              sizes="240px"
+              sizes="(min-width: 768px) 19rem, 19rem"
             />
           </div>
         </div>

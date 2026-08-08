@@ -173,15 +173,49 @@
   box-shadow: 0 12px 30px -22px color-mix(in oklab, var(--esmalte) 60%, transparent);
 }
 
-/* Al cambiar de pestaña, la captura entra en vez de aparecer de golpe. */
+/*
+  Al cambiar de pestaña, la captura entra desde el costado.
+
+  Antes subía ocho píxeles y se desvanecía, y no se notaba: parecía que la
+  imagen simplemente cambiaba. Entrando desde la derecha con un poco de escala
+  se lee como "vino otra pantalla", que es lo que pasó.
+
+  Acá sí se puede animar la opacidad: es una animación por tiempo, no atada al
+  scroll, así que si algo falla termina igual. El riesgo de la página en blanco
+  es de las que dependen de `animation-timeline`.
+*/
 .aparecer {
-  animation: aparecer 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+  animation: aparecer 0.42s cubic-bezier(0.16, 0.84, 0.28, 1) both;
 }
 
 @keyframes aparecer {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(26px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  Las piezas que se pueden mirar de cerca se levantan al pasarle el mouse.
+
+  Es la señal de que algo es una pieza y no un dibujo pegado al fondo. En el
+  teléfono no se ve —no hay mouse— y ahí trabaja el hundido al tocar.
+*/
+.marco-telefono,
+.cuaderno {
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.25, 1),
+    box-shadow 0.35s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+@media (hover: hover) {
+  .marco-telefono:hover,
+  .cuaderno:hover {
+    transform: translateY(-6px);
   }
 }
 
@@ -226,6 +260,68 @@
 }
 
 /*
+  ---- La misma barbería, en una computadora ---------------------------------
+
+  El otro lado del conmutador. Marco fino y esquinas menos redondeadas: un
+  monitor no es un teléfono, y si los dos marcos fueran iguales el conmutador
+  no cambiaría nada visible y no se entendería para qué está.
+*/
+.barra-navegador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--vidrio);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background-color: var(--porcelana);
+}
+
+.barra-navegador .punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: color-mix(in oklab, var(--esmalte) 18%, transparent);
+}
+
+.barra-navegador .direccion {
+  margin-left: 10px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background-color: var(--tiza);
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--esmalte) 60%, transparent);
+  /* Es una dirección, no un texto: no se parte ni se selecciona por accidente. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+
+.marco-escritorio {
+  border: 1px solid var(--vidrio);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  background-color: var(--tiza);
+  box-shadow:
+    0 2px 4px color-mix(in oklab, var(--esmalte) 8%, transparent),
+    0 32px 60px -36px color-mix(in oklab, var(--esmalte) 50%, transparent);
+}
+
+.marco-escritorio iframe {
+  display: block;
+  width: 100%;
+  height: 32rem;
+  border: 0;
+}
+
+@media (min-width: 640px) {
+  .marco-escritorio iframe {
+    height: 38rem;
+  }
+}
+
+/*
   ---- Lo que aparece al bajar -----------------------------------------------
 
   Cada sección sube unos píxeles al entrar en pantalla. Es lo que hace que una
@@ -261,10 +357,43 @@
 
 @keyframes al-entrar {
   from {
-    transform: translateY(26px);
+    /* Bastante más que los 26px de la primera versión: con tan poco, la
+       animación existía y no se notaba, que es lo peor de los dos mundos
+       —costo sin efecto—. Y una pizca de escala, que es lo que hace que se
+       lea como "la sección llega" y no como "la sección se corrió". */
+    transform: translateY(44px) scale(0.982);
   }
   to {
     transform: none;
+  }
+}
+
+/*
+  Los grupos del precio entran uno atrás de otro.
+
+  El escalonado sale del orden en el DOM con `nth-child`, sin tener que
+  numerar nada a mano: agregar o sacar un grupo no obliga a renumerar. Solo
+  transform, por lo mismo de arriba.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .escalonado > * {
+      animation: al-entrar linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 34%;
+    }
+
+    .escalonado > *:nth-child(2) {
+      animation-range: entry 0% cover 40%;
+    }
+
+    .escalonado > *:nth-child(3) {
+      animation-range: entry 0% cover 46%;
+    }
+
+    .escalonado > *:nth-child(4) {
+      animation-range: entry 0% cover 52%;
+    }
   }
 }
 
@@ -295,11 +424,14 @@
   .escribir,
   .entrar-portada,
   .aparecer,
-  .al-entrar {
+  .al-entrar,
+  .escalonado > * {
     animation: none;
   }
 
-  .portada :where(button, a[href]):active {
+  .portada :where(button, a[href]):active,
+  .marco-telefono:hover,
+  .cuaderno:hover {
     transform: none;
   }
 }

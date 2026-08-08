@@ -1,6 +1,7 @@
 import { Archivo_Black } from "next/font/google";
 import Image from "next/image";
 
+import { Demo } from "./portada-demo";
 import { Funciones } from "./portada-funciones";
 import { Registro } from "./portada-registro";
 import { SLUG_DEMO } from "@/lib/demo";
@@ -110,7 +111,7 @@ const INCLUYE: { grupo: string; puntos: string[] }[] = [
   {
     grupo: "Y además",
     puntos: [
-      "Funciona en el celular, sin instalar nada",
+      "Funciona igual en el celular y en la computadora, sin instalar nada",
       "Los datos de tu barbería son solo tuyos",
       "Las mejoras que salgan, sin pagar de nuevo",
     ],
@@ -381,34 +382,28 @@ export function Portada() {
         className="al-entrar scroll-mt-20 border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]"
       >
         {/*
-          El texto al costado del teléfono y no encima. Centrado debajo de un
-          título alineado a la izquierda quedaba un vacío grande a la derecha,
-          y además rompía la forma que ya usan las pestañas más abajo.
+          El texto arriba y el marco abajo, y no al costado como antes: el
+          marco ahora cambia de ancho con el conmutador, y una columna fija de
+          23rem no le sirve al modo computadora.
         */}
-        <div className="mx-auto grid w-full max-w-5xl items-center gap-10 px-5 py-14 sm:px-8 sm:py-16 md:grid-cols-[1fr_23rem] md:gap-14">
-          <div>
+        <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
+          <div className="max-w-2xl">
             <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
               Probala ahora, sin registrarte.
             </h2>
-            <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+            <p className="mt-4 leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
               Esto no es una foto: es una barbería de demostración funcionando
               de verdad, acá adentro. Elegí un servicio y un horario, como haría
-              un cliente tuyo.
+              un cliente tuyo. Y cambiá de aparato para ver cómo se acomoda
+              sola.
             </p>
             <p className="mt-4 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
               Se vacía todos los días, así que reservá tranquilo.
             </p>
           </div>
 
-          <div className="marco-demo">
-            <iframe
-              // `vitrina=1` solo esconde la barra de scroll del navegador, que
-              // cruzando el costado del teléfono dibujado arruina la ilusión.
-              // Nada más cambia: tiene que ser la página de verdad.
-              src={`${urlDemo}?vitrina=1`}
-              title="Barbería de demostración: página de reservas"
-              loading="lazy"
-            />
+          <div className="mt-8">
+            <Demo url={urlDemo} dominio={dominio} />
           </div>
         </div>
       </section>
@@ -545,7 +540,7 @@ export function Portada() {
 
             {/* Agrupada, no una tirada de veinte renglones: agrupada se puede
                 barrer con la vista y encontrar lo que a cada uno le importa. */}
-            <div className="grid gap-8 sm:grid-cols-2">
+            <div className="escalonado grid gap-8 sm:grid-cols-2">
               {INCLUYE.map((g) => (
                 <div key={g.grupo}>
                   <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:color-mix(in_oklab,var(--tiza)_65%,transparent)]">

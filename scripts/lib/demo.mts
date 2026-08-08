@@ -41,22 +41,33 @@ export const BARBERIA_DEMO: BarberiaNueva = {
   // y el azul de la portada: incrustada tiene que leerse como otra cosa, no
   // como una continuación de la página que la contiene.
   colores: PALETAS.clasica.colores,
-  ventana: { modo: "rolling", dias: 21 },
+  // Dos semanas y no tres: la tira de días es lo primero que se ve y con
+  // veintiuno queda una pared de casilleros.
+  ventana: { modo: "rolling", dias: 14 },
   // Media hora de anticipación y no una: con ventana corta, alguien que entra
   // a las 19:55 igual encuentra algo para tocar hoy.
   minLead: 30,
   plazoCancelacion: 120,
   vidriera: true,
+
+  // ⚠️ Deliberadamente chica.
+  //
+  // La primera versión tenía cuatro servicios, tres barberos y doce horas de
+  // agenda. Todo correcto y todo real, pero incrustada en la portada se veía
+  // como una pared: el visitante abre eso y no ve un producto ordenado, ve
+  // trabajo. Una demo no tiene que demostrar cuánto entra, tiene que dejar
+  // entender de un vistazo qué hace.
+  //
+  // Una barbería de verdad puede cargar todo lo que quiera. Ésta es la
+  // vidriera, y en una vidriera se ponen tres cosas, no el depósito entero.
   servicios: [
     { nombre: "Corte", minutos: 40, precio: 650, desc: "Lavado, corte y peinado." },
     { nombre: "Corte y barba", minutos: 60, precio: 950 },
     { nombre: "Barba", minutos: 25, precio: 400 },
-    { nombre: "Corte de niño", minutos: 30, precio: 500 },
   ],
   productos: [
     { nombre: "Cera mate", precio: 480, stock: 12, desc: "Fijación fuerte, sin brillo." },
     { nombre: "Aceite para barba", precio: 390, stock: 8 },
-    { nombre: "Shampoo sólido", precio: 350, stock: 10 },
   ],
   barberos: [
     {
@@ -64,22 +75,18 @@ export const BARBERIA_DEMO: BarberiaNueva = {
       rol: "owner",
       cobro: { modelo: "revenue_only" },
       email: MAIL_DEMO,
+      // Los siete días siguen: si alguien mira la portada un lunes y la demo
+      // dice cerrado, entiende que el producto no anda. Pero la jornada se
+      // acorta, que es lo que llenaba la grilla de horarios.
       dias: [0, 1, 2, 3, 4, 5, 6],
-      tramos: [["09:00", "20:00"]],
+      tramos: [["10:00", "18:00"]],
     },
     {
       nombre: "Bruno",
       rol: "barber",
       cobro: { modelo: "commission", porcentaje: 50 },
       dias: [0, 1, 2, 3, 4, 5, 6],
-      tramos: [["10:00", "21:00"]],
-    },
-    {
-      nombre: "Camila",
-      rol: "barber",
-      cobro: { modelo: "commission", porcentaje: 55 },
-      dias: [0, 1, 2, 3, 4, 5, 6],
-      tramos: [["09:00", "18:00"]],
+      tramos: [["11:00", "19:00"]],
     },
   ],
 };
