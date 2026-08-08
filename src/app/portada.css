@@ -113,6 +113,100 @@
 }
 
 /*
+  ---- Ir a una sección sin teletransportarse --------------------------------
+
+  Al tocar "Precio" en el menú, el navegador saltaba de golpe y quedabas parado
+  en otro lado sin entender cuánto te moviste ni de dónde venías. Bajando, el
+  recorrido se ve, y eso es información: se entiende que el precio estaba abajo
+  de todo, no en otra página.
+
+  Va sobre `html` y no sobre `body` porque el que scrollea es `html`.
+
+  Solo aplica dentro de la portada —el `:has()`— para no cambiarle el
+  comportamiento a las páginas de las barberías, donde elegir un horario mueve
+  la pantalla y ahí sí se quiere inmediato.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.portada) {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
+  ---- El reflejo del titular ------------------------------------------------
+
+  Una luz que pasa despacio por encima de las letras, como el reflejo que
+  corre sobre el bronce de un sillón cuando alguien abre la puerta del local.
+  Lenta y espaciada: un brillo rápido se lee como un banner de publicidad.
+
+  ⚠️ El truco pinta el texto con un degradado y lo recorta con la forma de las
+  letras, y para eso hay que hacer transparente el relleno. Si el navegador no
+  soporta el recorte, el texto quedaría INVISIBLE. Por eso todo lo que
+  transparenta va adentro del `@supports`: sin soporte, no se aplica nada y el
+  titular se ve con su color de siempre.
+
+  Es la misma precaución que en las animaciones de entrada, y por el mismo
+  motivo: el canal principal de esta página es el navegador de adentro de
+  Instagram, donde estas cosas fallan raro y nadie se entera.
+*/
+.reflejo {
+  color: var(--esmalte);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reflejo {
+      /* La banda tiene que ser claramente más clara que la letra o el reflejo
+         existe y no se ve. La primera versión mezclaba mitad y mitad y quedaba
+         casi del mismo tono que el texto. Ahora la luz es casi barbicide puro,
+         que contra el azul-negro del titular se lee como un destello. */
+      background-image: linear-gradient(
+        100deg,
+        var(--esmalte) 38%,
+        color-mix(in oklab, var(--esmalte) 25%, var(--barbicide)) 47%,
+        color-mix(in oklab, var(--barbicide) 55%, white) 50%,
+        color-mix(in oklab, var(--esmalte) 25%, var(--barbicide)) 53%,
+        var(--esmalte) 62%
+      );
+      background-size: 320% 100%;
+      background-repeat: no-repeat;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      /* `linear` y no una curva suave: con `ease-in-out` el medio del recorrido
+         es la parte rápida, y el medio del recorrido es justo cuando la luz
+         cruza las letras. El destello pasaba en medio segundo y no se veía.
+         Parejo, cruza en unos tres segundos y se nota sin gritar. */
+      animation: reflejo 6.5s linear infinite;
+    }
+  }
+}
+
+/*
+  ⚠️ Las posiciones se quedan DENTRO de 0%–100%, y no es una elección estética.
+
+  Con `background-position` fuera de ese rango el degradado se corre más allá
+  del elemento, y como está en `no-repeat` la parte que queda afuera no recibe
+  ninguna pintura. Con el relleno del texto transparente, eso no es "se ve
+  distinto": ahí directamente NO HAY LETRA. La primera versión iba de 130% a
+  -30% y dejaba media frase invisible.
+
+  Entre 0% y 100% el degradado siempre tapa todo el elemento, y como mide
+  320% de ancho igual le sobra recorrido para que el destello cruce entero.
+*/
+@keyframes reflejo {
+  from {
+    background-position: 100% 0;
+  }
+  /* Se queda quieto más de medio ciclo: el reflejo pasa y después no vuelve a
+     pasar enseguida, que es lo que lo distingue de un cartel parpadeando. */
+  55%,
+  to {
+    background-position: 0% 0;
+  }
+}
+
+/*
   ---- La barra de arriba ----------------------------------------------------
 
   Se queda fija al bajar. En una página larga, el botón de arrancar la prueba
@@ -425,6 +519,7 @@
   .entrar-portada,
   .aparecer,
   .al-entrar,
+  .reflejo,
   .escalonado > * {
     animation: none;
   }

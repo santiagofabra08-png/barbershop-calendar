@@ -83,6 +83,18 @@ const INCLUYE: { grupo: string; puntos: string[] }[] = [
     ],
   },
   {
+    // Va segundo, apenas después de la página que ve el cliente, porque es la
+    // respuesta a la duda que más frena a un dueño: "¿y después dependo de vos
+    // para cambiar un precio?". No: entra y lo cambia.
+    grupo: "Tu panel, y lo manejás vos",
+    puntos: [
+      "Tu propio panel, con tu cuenta y una para cada barbero",
+      "Cambiás precios, servicios y horarios cuando querés, sin pedirle nada a nadie",
+      "Subís tu logo y elegís tus colores desde ahí mismo",
+      "Cada barbero entra y ve lo suyo; vos ves todo el local",
+    ],
+  },
+  {
     grupo: "Tu agenda",
     puntos: [
       "Todos los barberos que tengas, cada uno con su horario",
@@ -310,11 +322,20 @@ export function Portada() {
               Reservas para barberías
             </p>
 
+            {/*
+              El reflejo va en un `span` de adentro y no en el `h1`. Los dos
+              usan `animation`, y dos clases declarando la misma propiedad
+              sobre el mismo elemento se pisan: ganaba la que estuviera más
+              abajo en la hoja y el reflejo no se veía nunca. En elementos
+              distintos, cada animación es de su dueño.
+            */}
             <h1
               className="entrar-portada mt-4 font-[family-name:var(--font-cartel)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
               style={{ "--delay": "80ms" } as React.CSSProperties}
             >
-              Tu agenda, abierta cuando la barbería está cerrada.
+              <span className="reflejo">
+                Tu agenda, abierta cuando la barbería está cerrada.
+              </span>
             </h1>
 
             <p
