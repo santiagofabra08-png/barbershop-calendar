@@ -50,9 +50,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PaginaDeReservas({
   searchParams,
 }: {
-  searchParams: Promise<{ servicio?: string }>;
+  searchParams: Promise<{ servicio?: string; vitrina?: string }>;
 }) {
-  const { servicio } = await searchParams;
+  const { servicio, vitrina } = await searchParams;
   const slug = await currentTenantSlug();
 
   // El dominio pelado no es ninguna barbería, pero sí es la puerta del
@@ -95,6 +95,17 @@ export default async function PaginaDeReservas({
   return (
     <>
       <TenantTheme tenant={tenant} />
+
+      {/*
+        Marca la página como incrustada en la portada. Lo único que cambia es
+        que se esconde la barra de scroll: una barra gris de navegador cruzando
+        el costado del teléfono dibujado arruina la ilusión, y es lo primero
+        que se nota. La regla vive en `globals.css`.
+
+        Nada más cambia. La demo tiene que ser la página de verdad, no una
+        versión recortada de la página de verdad.
+      */}
+      {vitrina ? <div className="vitrina" hidden /> : null}
 
       {/* El servicio va en la franja oscura, junto al nombre: es el dato que
           define todo lo de abajo, no una sección aparte. */}

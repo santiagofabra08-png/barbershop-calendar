@@ -192,6 +192,25 @@ body {
 }
 
 /*
+  Modo vitrina: la página de una barbería mostrándose adentro de la portada.
+
+  Solo saca la barra de scroll. Una barra gris de navegador cruzando el costado
+  del teléfono dibujado arruina la ilusión de que estás mirando un celular, y es
+  lo primero que se nota. Se sigue pudiendo scrollear con el dedo y con la
+  rueda: se esconde la barra, no el movimiento.
+
+  Se activa con `?vitrina=1`, que solo pone la portada al incrustar. Nadie llega
+  a esto navegando.
+*/
+html:has(.vitrina) {
+  scrollbar-width: none;
+}
+
+html:has(.vitrina)::-webkit-scrollbar {
+  display: none;
+}
+
+/*
   La tarjeta que sostiene la reserva.
 
   La guía de marca pide sombras mínimas, y tiene razón para una barbería

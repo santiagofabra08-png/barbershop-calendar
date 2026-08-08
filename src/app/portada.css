@@ -113,6 +113,32 @@
 }
 
 /*
+  ---- La barra de arriba ----------------------------------------------------
+
+  Se queda fija al bajar. En una página larga, el botón de arrancar la prueba
+  tiene que estar siempre a un toque: si alguien se convence leyendo el precio,
+  no tiene por qué scrollear a buscar dónde se pide.
+
+  Translúcida con desenfoque, para que el contenido se lea pasando por debajo
+  en vez de cortarse contra una franja opaca. Donde el navegador no soporta el
+  desenfoque, el color de respaldo es casi opaco y se ve bien igual.
+*/
+.barra-fija {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: color-mix(in oklab, var(--porcelana) 88%, transparent);
+  border-bottom: 1px solid transparent;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .barra-fija {
+    background-color: color-mix(in oklab, var(--porcelana) 72%, transparent);
+    backdrop-filter: blur(10px) saturate(1.4);
+  }
+}
+
+/*
   ---- El marco de teléfono --------------------------------------------------
 
   Las capturas del panel van adentro de un teléfono dibujado. No es adorno:
@@ -130,6 +156,21 @@
   box-shadow:
     0 2px 4px color-mix(in oklab, var(--esmalte) 10%, transparent),
     0 28px 50px -30px color-mix(in oklab, var(--esmalte) 55%, transparent);
+}
+
+/*
+  El recorte ampliado, al lado del texto que lo explica.
+
+  Va con borde fino y sin marco de teléfono: no pretende ser un dispositivo,
+  es un pedazo de pantalla agrandado, como cuando alguien te acerca el celular
+  y te señala un número con el dedo.
+*/
+.recorte {
+  border: 1px solid var(--vidrio);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--tiza);
+  box-shadow: 0 12px 30px -22px color-mix(in oklab, var(--esmalte) 60%, transparent);
 }
 
 /* Al cambiar de pestaña, la captura entra en vez de aparecer de golpe. */
@@ -185,14 +226,81 @@
 }
 
 /*
+  ---- Lo que aparece al bajar -----------------------------------------------
+
+  Cada sección sube unos píxeles al entrar en pantalla. Es lo que hace que una
+  página larga se sienta viva en vez de un documento que se recorre.
+
+  Va con `animation-timeline: view()`, que lo maneja el navegador: sin
+  JavaScript, sin observadores, sin nada que se ejecute en el teléfono de nadie.
+  Donde no está soportado, la regla se ignora entera y el contenido se ve quieto
+  y completo, que es lo que tiene que pasar cuando un adorno no está disponible.
+
+  **No se anima la opacidad, solo el desplazamiento.** La primera versión
+  desvanecía desde 0 y se veía mejor, pero el modo de falla era inaceptable: si
+  un navegador soporta la propiedad a medias y la línea de tiempo no avanza, la
+  sección se queda en opacidad 0 y la página aparece **en blanco**. Y el canal
+  principal de esta página es Instagram, o sea el navegador de adentro de la
+  app, que es justo donde estas cosas fallan raro y donde no hay forma de
+  enterarse.
+
+  Animando solo el desplazamiento, lo peor que puede pasar es que una sección
+  quede corrida 26 píxeles. Nadie lo nota; una página en blanco, sí.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .al-entrar {
+      animation: al-entrar linear both;
+      animation-timeline: view();
+      /* Empieza cuando asoma por abajo y termina bastante antes del medio: si
+         terminara en el centro, uno lee la sección todavía a medio llegar. */
+      animation-range: entry 0% cover 28%;
+    }
+  }
+}
+
+@keyframes al-entrar {
+  from {
+    transform: translateY(26px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/*
+  ---- Al tocar --------------------------------------------------------------
+
+  Todo lo que se toca se hunde un poco. En un teléfono no hay `hover`, así que
+  sin esto un botón no da ninguna señal de haber recibido el toque, y la gente
+  vuelve a tocar creyendo que no anduvo.
+
+  Va acá y no en cada botón para que ninguno se quede sin él por olvido.
+*/
+.portada :where(button, a[href]):active {
+  transform: scale(0.985);
+}
+
+.portada :where(button, a[href]) {
+  transition-property: background-color, color, transform, opacity, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+/*
   Nada de esto es información. Quien pidió menos movimiento ve la página
   quieta y completa, con los turnos ya escritos.
 */
 @media (prefers-reduced-motion: reduce) {
   .escribir,
   .entrar-portada,
-  .aparecer {
+  .aparecer,
+  .al-entrar {
     animation: none;
+  }
+
+  .portada :where(button, a[href]):active {
+    transform: none;
   }
 }
 

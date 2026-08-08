@@ -51,8 +51,28 @@ const en = (slug: string, ruta = "") =>
 const DESTINO = "public/portada";
 
 // Un teléfono, porque es donde un barbero abre el panel entre corte y corte.
-// A escala 2 para que no se vea borroso en una pantalla buena.
 const TELEFONO = { width: 390, height: 800 };
+
+// A escala 3, no 2. La foto se muestra bastante más chica de lo que se sacó, y
+// con escala 2 la letra del panel llegaba ilegible: el problema no era la
+// pantalla del que mira sino la reducción. Triplicar el pixelado del origen
+// cuesta unos kilobytes y se lee.
+const ESCALA = 3;
+
+/**
+ * Los recortes: la franja de cada pantalla que hay que mirar.
+ *
+ * Una captura de teléfono entero, achicada al ancho de una columna, muestra
+ * todo y no deja leer nada. El recorte amplía justo lo que el texto de al lado
+ * está afirmando y de paso dirige la mirada en vez de dejarla buscando.
+ *
+ * Se ubica por un texto que está en pantalla y se recorta una franja completa
+ * a su alrededor, no un elemento del DOM. Un selector como `article > div:nth`
+ * se rompe en silencio la primera vez que alguien cambia el panel; un texto
+ * que la pantalla muestra de verdad falla ruidosamente si desaparece, que es
+ * lo que se quiere.
+ */
+type Recorte = { nombre: string; texto: string; arriba: number; alto: number };
 
 const admin = clienteAdmin();
 
@@ -93,6 +113,37 @@ async function foto(page: Page, url: string, nombre: string, espera?: string) {
   sacadas++;
 }
 
+/**
+ * Una franja de la pantalla, alrededor de un texto que tiene que estar a la
+ * vista. Falla ruidosamente si ese texto ya no existe: es la señal de que el
+ * panel cambió y el recorte dejó de mostrar lo que decía mostrar.
+ */
+async function recortar(page: Page, r: Recorte) {
+  const donde = page.getByText(r.texto, { exact: false }).first();
+  const caja = await donde.boundingBox();
+
+  if (!caja) {
+    throw new Error(
+      `para el recorte "${r.nombre}" no encontré el texto "${r.texto}" en pantalla`,
+    );
+  }
+
+  const y = Math.max(0, caja.y - r.arriba);
+
+  await page.screenshot({
+    path: `${DESTINO}/${r.nombre}.png`,
+    clip: {
+      x: 0,
+      y,
+      width: TELEFONO.width,
+      height: Math.min(r.alto, TELEFONO.height - y),
+    },
+  });
+
+  console.log(`  ✓ ${r.nombre}.png`);
+  sacadas++;
+}
+
 try {
   console.log("\n  Sembrando una jornada en la demo…");
   await limpiarDemo(admin, tenantId);
@@ -100,7 +151,7 @@ try {
 
   const ctx = await navegador.newContext({
     viewport: TELEFONO,
-    deviceScaleFactor: 2,
+    deviceScaleFactor: ESCALA,
     locale: "es-UY",
     timezoneId: tz,
   });
@@ -139,8 +190,28 @@ try {
   // La agenda de mañana: es la pantalla donde están los botones de WhatsApp
   // para recordarle el turno a cada cliente.
   await foto(page, en(SLUG_DEMO, `/panel?d=${manana}`), "panel-agenda");
+  await recortar(page, {
+    nombre: "recorte-agenda",
+    texto: "WhatsApp",
+    arriba: 104,
+    alto: 152,
+  });
+
   await foto(page, en(SLUG_DEMO, "/panel/cobros"), "panel-cobros");
+  await recortar(page, {
+    nombre: "recorte-cobros",
+    texto: "Total",
+    arriba: 120,
+    alto: 210,
+  });
+
   await foto(page, en(SLUG_DEMO, "/panel/semana"), "panel-semana");
+  await recortar(page, {
+    nombre: "recorte-semana",
+    texto: "A pagar al equipo",
+    arriba: 172,
+    alto: 258,
+  });
 
   await ctx.close();
 } catch (e) {

@@ -398,9 +398,47 @@ La barbería demo **abre los siete días de mañana a noche**, que ninguna real
 hace. Si alguien mira la portada un lunes y la demo dice cerrado, no entiende
 que el local descansa: entiende que el producto no anda.
 
+- **La lista de funciones dice solo lo que existe.** Es tentador copiarle la
+  lista a un competidor y sumar cosas que suenan bien. Es la forma más rápida
+  de que alguien pague, no lo encuentre, pida la baja el primer mes y lo
+  cuente. Al agregar o sacar una función del producto, tocar esa lista.
+
 Lo que se configura desde el entorno, para que cambiarlo no sea un despliegue:
 el WhatsApp de contacto, el mail, y el precio. Sin precio cargado, la sección
 invita a preguntarlo en vez de inventar un número.
+
+### Quién pidió probarlo
+
+El botón principal lleva a un formulario, no a WhatsApp: escribirle por WhatsApp
+a un desconocido es un paso que mucha gente no da, y en tráfico frío desde
+Instagram eso es la mayoría. El WhatsApp sigue al lado, para el que lo prefiera.
+
+Los datos caen en `signup_requests`, la única tabla del esquema **sin
+`tenant_id`**: una solicitud existe justamente porque todavía no hay barbería.
+Tiene RLS prendido y **ninguna política**, así que nadie la lee ni la escribe
+desde el navegador; la única puerta es la Server Action de la portada, que corre
+en el servidor con la llave de servicio. Es más cerrado que una función
+`security definer`, y acá se puede porque el formulario no se envía desde el
+navegador.
+
+Primero se guarda y después se avisa por mail, no al revés: si Resend falla, la
+solicitud ya está y no se perdió a nadie.
+
+**Pendiente: el alta sola.** Hoy Santiago corre `crear-barberia` y le pasa la
+dirección. Eso está bien para las primeras diez —hablar con cada una es cómo se
+aprende qué falta— pero no escala. Lo que hace falta es un asistente de primeros
+pasos: sin él, una barbería recién creada no tiene servicios ni horarios, y
+alguien que entra solo a un panel vacío cree que no funciona.
+
+### Animaciones: el modo de falla importa más que el efecto
+
+Las secciones se deslizan al entrar en pantalla con `animation-timeline: view()`,
+sin JavaScript. **No se anima la opacidad, solo el desplazamiento**, y eso no es
+estético: si un navegador soporta la propiedad a medias y la línea de tiempo no
+avanza, con opacidad la página aparece **en blanco**. El canal principal de esta
+página es Instagram, o sea el navegador de adentro de la app, que es justo donde
+estas cosas fallan raro y donde nadie se entera. Corrida 26 píxeles no la nota
+nadie; en blanco, sí.
 
 ```
 node --env-file=.env.local scripts/barberia-demo.mts            # crearla

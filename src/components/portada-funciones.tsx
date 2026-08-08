@@ -25,6 +25,16 @@ type Funcion = {
   texto: string;
   imagen: string;
   alt: string;
+  /**
+   * La franja ampliada de lo que el texto está afirmando.
+   *
+   * La pantalla entera del teléfono, achicada a una columna, muestra todo y no
+   * deja leer nada. El recorte hace legible el dato del que se habla —el
+   * reparto, el botón de WhatsApp— y dirige la mirada en vez de dejarla
+   * buscando. No todas las funciones tienen uno: donde la pantalla completa ya
+   * se entiende, agregar un recorte sería ruido.
+   */
+  recorte?: { src: string; alto: number; alt: string; pie: string };
 };
 
 const FUNCIONES: Funcion[] = [
@@ -49,6 +59,12 @@ const FUNCIONES: Funcion[] = [
       "él: comisión, sueldo o alquiler de silla.",
     imagen: "/portada/panel-cobros.png",
     alt: "La pantalla de cobros, con el ticket de un turno abierto.",
+    recorte: {
+      src: "/portada/recorte-cobros.png",
+      alto: 630,
+      alt: "El total del ticket, con el detalle de lo que se cobra.",
+      pie: "El ticket se arma solo mientras cobrás",
+    },
   },
   {
     etiqueta: "Los que no vienen",
@@ -60,6 +76,12 @@ const FUNCIONES: Funcion[] = [
       "seguís cortando.",
     imagen: "/portada/panel-agenda.png",
     alt: "La agenda del día siguiente, con un botón de WhatsApp en cada turno.",
+    recorte: {
+      src: "/portada/recorte-agenda.png",
+      alto: 456,
+      alt: "Un turno de la agenda, con el botón de WhatsApp al lado.",
+      pie: "Un toque y se abre el chat con el mensaje escrito",
+    },
   },
   {
     etiqueta: "La semana",
@@ -71,6 +93,12 @@ const FUNCIONES: Funcion[] = [
       "dejarla afuera de la cuenta en silencio.",
     imagen: "/portada/panel-semana.png",
     alt: "El resumen de la semana, con lo cobrado y el reparto al equipo.",
+    recorte: {
+      src: "/portada/recorte-semana.png",
+      alto: 774,
+      alt: "Lo cobrado en la semana, los cortes, y cuánto va al equipo.",
+      pie: "Lo que entró y lo que se reparte, sin sacar la cuenta",
+    },
   },
 ];
 
@@ -84,8 +112,7 @@ export function Funciones() {
         Pestañas de verdad, no botones sueltos: el lector de pantalla anuncia
         cuántas hay y cuál está activa, y las flechas del teclado se mueven
         entre ellas como espera cualquiera que no use el mouse.
-      */}
-      {/*
+
         Envuelven en vez de correrse de costado. La primera versión las dejaba
         en una tira con scroll horizontal y en un teléfono la cuarta quedaba
         fuera de la pantalla: se llegaba arrastrando, pero nadie arrastra algo
@@ -154,6 +181,24 @@ export function Funciones() {
           <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
             {f.texto}
           </p>
+
+          {f.recorte ? (
+            <figure key={f.recorte.src} className="aparecer mt-7 max-w-md">
+              <div className="recorte">
+                <Image
+                  src={f.recorte.src}
+                  alt={f.recorte.alt}
+                  width={1170}
+                  height={f.recorte.alto}
+                  className="block h-auto w-full"
+                  sizes="(min-width: 768px) 28rem, 90vw"
+                />
+              </div>
+              <figcaption className="mt-2.5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+                {f.recorte.pie}
+              </figcaption>
+            </figure>
+          ) : null}
         </div>
 
         {/*
@@ -168,8 +213,8 @@ export function Funciones() {
               key={f.imagen}
               src={f.imagen}
               alt={f.alt}
-              width={780}
-              height={1600}
+              width={1170}
+              height={2400}
               className="aparecer block h-auto w-full"
               sizes="240px"
             />

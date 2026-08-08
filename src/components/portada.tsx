@@ -2,6 +2,7 @@ import { Archivo_Black } from "next/font/google";
 import Image from "next/image";
 
 import { Funciones } from "./portada-funciones";
+import { Registro } from "./portada-registro";
 import { SLUG_DEMO } from "@/lib/demo";
 import "../app/portada.css";
 
@@ -57,15 +58,70 @@ const DIA = [
   { hora: "13:00", quien: "Federico M.", que: "Corte y barba" },
 ] as const;
 
-/** Qué entra en el plan. Sin asteriscos ni "según el plan": hay uno solo. */
-const INCLUYE = [
-  "Tu página de reservas, con tu nombre, tu logo y tus colores",
-  "Tu propia dirección web, para compartir por WhatsApp o poner en Instagram",
-  "Todos los barberos y todos los servicios que tengas",
-  "Cobros, cierre de caja y el reparto de cada barbero",
-  "Catálogo de productos y pedidos, si vendés",
-  "Confirmación por mail a cada cliente, automática",
-  "Las mejoras que vayan saliendo, sin pagar de nuevo",
+/**
+ * Qué entra en el plan. Hay uno solo, así que no hay asteriscos ni "según el
+ * plan": todo lo de esta lista lo tiene cualquiera que pague.
+ *
+ * ⚠️ Acá va **solo lo que existe hoy**. Es tentador copiar la lista de un
+ * competidor y sumar cosas que suenan bien —proyecciones, alertas, tasa de
+ * ausentismo—, y es la forma más rápida de que alguien pague, no lo encuentre,
+ * pida la baja el primer mes y encima lo cuente. En un rubro donde todos se
+ * conocen, eso cuesta más que las bajas.
+ *
+ * Al agregar una función al producto, sumarla acá. Al sacarla, sacarla acá.
+ */
+const INCLUYE: { grupo: string; puntos: string[] }[] = [
+  {
+    grupo: "Tu página de reservas",
+    puntos: [
+      "Reservas a cualquier hora, sin que el cliente se cree una cuenta",
+      "Tu nombre, tu logo y tus colores",
+      "Tu propia dirección, del estilo tubarberia.turnos…",
+      "Confirmación por mail automática a cada cliente",
+      "El cliente cancela solo, con su link, y el horario se libera",
+    ],
+  },
+  {
+    grupo: "Tu agenda",
+    puntos: [
+      "Todos los barberos que tengas, cada uno con su horario",
+      "Cargar turnos a mano y bloquear ratos o días libres",
+      "Recordatorio por WhatsApp con un toque, desde la agenda",
+      "Nadie se pisa: dos personas no pueden tomar la misma hora",
+    ],
+  },
+  {
+    grupo: "La plata",
+    puntos: [
+      "Cobrás el turno con los productos que se llevó y el medio de pago",
+      "Cierre de caja del día, con lo que tendría que haber",
+      "El reparto de cada barbero: comisión, sueldo o alquiler de silla",
+      "Resumen de la semana y del mes",
+    ],
+  },
+  {
+    grupo: "Tus productos",
+    puntos: [
+      "Catálogo público con fotos",
+      "Pedidos desde la web, que te avisan por mail",
+      "Stock que se descuenta cuando vendés",
+    ],
+  },
+  {
+    grupo: "Y además",
+    puntos: [
+      "Funciona en el celular, sin instalar nada",
+      "Los datos de tu barbería son solo tuyos",
+      "Las mejoras que salgan, sin pagar de nuevo",
+    ],
+  },
+];
+
+/** Las secciones a las que se puede saltar desde arriba. */
+const SECCIONES = [
+  { id: "demo", texto: "Probala" },
+  { id: "funciones", texto: "Qué hace" },
+  { id: "precio", texto: "Precio" },
 ];
 
 /**
@@ -129,58 +185,37 @@ function destinoDeContacto(): string | null {
  * puede ser un cambio de código y un despliegue. Sin número, la sección no
  * inventa uno ni deja un hueco: invita a preguntarlo.
  */
-function precioMensual(): string | null {
+function precioMensual(): { mes: string; dia: string } | null {
   const monto = Number(process.env.NEXT_PUBLIC_PRECIO_MENSUAL);
   if (!Number.isFinite(monto) || monto <= 0) return null;
 
   const moneda = process.env.NEXT_PUBLIC_PRECIO_MONEDA || "UYU";
 
-  try {
-    return new Intl.NumberFormat("es-UY", {
-      style: "currency",
-      currency: moneda,
-      maximumFractionDigits: 0,
-    }).format(monto);
-  } catch {
-    // Una moneda mal escrita no puede tumbar la portada entera.
-    return `${monto} ${moneda}`;
-  }
-}
+  const armar = (valor: number, decimales: number) => {
+    try {
+      return new Intl.NumberFormat("es-UY", {
+        style: "currency",
+        currency: moneda,
+        minimumFractionDigits: decimales,
+        maximumFractionDigits: decimales,
+      }).format(valor);
+    } catch {
+      // Una moneda mal escrita no puede tumbar la portada entera.
+      return `${valor.toFixed(decimales)} ${moneda}`;
+    }
+  };
 
-/** El botón de siempre, en sus dos tonos. */
-function Boton({
-  href,
-  children,
-  tono = "azul",
-  className = "",
-}: {
-  href: string;
-  children: React.ReactNode;
-  tono?: "azul" | "claro";
-  className?: string;
-}) {
-  const base =
-    "inline-flex items-center justify-center rounded-lg px-6 py-3.5 text-base " +
-    "font-semibold transition-[background-color,transform] duration-150 " +
-    "hover:-translate-y-px active:translate-y-0 ";
+  // Los centavos se muestran solo si los hay: 14,99 se escribe entero, pero
+  // 990 no tiene por qué volverse "990,00".
+  const enteros = Number.isInteger(monto);
 
-  const colores =
-    tono === "azul"
-      ? "bg-[color:var(--barbicide)] text-[color:var(--tiza)] " +
-        "hover:bg-[color:var(--esmalte)] active:bg-[color:var(--esmalte)]"
-      : "sobre-azul bg-[color:var(--tiza)] text-[color:var(--barbicide)] " +
-        "hover:bg-[color:var(--porcelana)] active:bg-[color:var(--vidrio)]";
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener"
-      className={base + colores + " " + className}
-    >
-      {children}
-    </a>
-  );
+  return {
+    mes: armar(monto, enteros ? 0 : 2),
+    // Lo mismo dividido por treinta. Un precio mensual se compara con otro
+    // gasto mensual; por día se compara con un café, y es la forma en que la
+    // gente decide si algo es caro.
+    dia: armar(monto / 30, 2),
+  };
 }
 
 export function Portada() {
@@ -200,14 +235,53 @@ export function Portada() {
   return (
     <div className={`portada ${cartel.variable} flex min-h-full flex-col`}>
       {/* ---- Encabezado ---------------------------------------------- */}
-      <header className="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 py-6 sm:px-8">
-        <span className="pole-rule w-9 shrink-0 rounded-full" aria-hidden>
-          <span />
-        </span>
-        <span className="font-[family-name:var(--font-cartel)] text-sm tracking-tight">
-          {dominio}
-        </span>
+      {/*
+        Se queda arriba al bajar. En una página larga, el botón de arrancar la
+        prueba tiene que estar siempre a un toque: si alguien se convence en la
+        mitad del precio, no tiene por qué scrollear a buscar dónde se pide.
+
+        El fondo va translúcido con desenfoque para que el contenido se lea
+        pasando por debajo en vez de cortarse contra una franja opaca.
+      */}
+      <header className="barra-fija">
+        <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-5 py-4 sm:px-8">
+          <a
+            href="#arriba"
+            className="flex items-center gap-3 rounded transition-opacity duration-150 hover:opacity-70"
+          >
+            <span className="pole-rule w-9 shrink-0 rounded-full" aria-hidden>
+              <span />
+            </span>
+            <span className="font-[family-name:var(--font-cartel)] text-sm tracking-tight">
+              {dominio}
+            </span>
+          </a>
+
+          <nav className="ml-auto flex items-center gap-1 sm:gap-2">
+            {/* Los anclas se esconden en pantallas chicas: tres links y un
+                botón no entran en un teléfono sin apretarse. El botón sí
+                queda, porque es el único que tiene que estar siempre. */}
+            {SECCIONES.map((s) => (
+              <a
+                key={s.id}
+                href={`#${s.id}`}
+                className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-[color:color-mix(in_oklab,var(--esmalte)_65%,transparent)] transition-colors duration-150 hover:text-[color:var(--esmalte)] active:text-[color:var(--barbicide)] sm:block"
+              >
+                {s.texto}
+              </a>
+            ))}
+
+            <a
+              href="#empezar"
+              className="rounded-lg bg-[color:var(--barbicide)] px-4 py-2.5 text-sm font-semibold text-[color:var(--tiza)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--esmalte)] active:translate-y-0"
+            >
+              Probar gratis
+            </a>
+          </nav>
+        </div>
       </header>
+
+      <span id="arriba" />
 
       {/* ---- Lo primero que se ve ------------------------------------ */}
       <section className="mx-auto w-full max-w-5xl px-5 pb-16 pt-6 sm:px-8 sm:pt-12">
@@ -235,19 +309,26 @@ export function Portada() {
               cualquier hora del día. Vos abrís el panel y el día ya está armado.
             </p>
 
-            {contacto ? (
-              <div
-                className="entrar-portada mt-8 flex flex-wrap items-center gap-4"
-                style={{ "--delay": "240ms" } as React.CSSProperties}
+            {/*
+              Lleva al formulario de más abajo y no a WhatsApp. Escribirle por
+              WhatsApp a un desconocido es un paso que mucha gente no da, y en
+              tráfico frío desde Instagram eso es la mayoría. El WhatsApp sigue
+              existiendo, al lado del formulario, para el que lo prefiera.
+            */}
+            <div
+              className="entrar-portada mt-8 flex flex-wrap items-center gap-4"
+              style={{ "--delay": "240ms" } as React.CSSProperties}
+            >
+              <a
+                href="#empezar"
+                className="inline-flex items-center justify-center rounded-lg bg-[color:var(--barbicide)] px-6 py-3.5 text-base font-semibold text-[color:var(--tiza)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--esmalte)] active:translate-y-0 active:bg-[color:var(--esmalte)]"
               >
-                <Boton href={contacto}>
-                  Probalo {DIAS_DE_PRUEBA} días gratis
-                </Boton>
-                <span className="text-sm text-[color:color-mix(in_oklab,var(--esmalte)_60%,transparent)]">
-                  Sin tarjeta.
-                </span>
-              </div>
-            ) : null}
+                Probalo {DIAS_DE_PRUEBA} días gratis
+              </a>
+              <span className="text-sm text-[color:color-mix(in_oklab,var(--esmalte)_60%,transparent)]">
+                Sin tarjeta.
+              </span>
+            </div>
           </div>
 
           {/* El cuaderno. Es la pieza que tiene que quedar. */}
@@ -295,7 +376,10 @@ export function Portada() {
         responde. Va acá y no arriba de todo porque tarda un momento en cargar,
         y no querés que lo primero que vea alguien sea un rectángulo en blanco.
       */}
-      <section className="border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
+      <section
+        id="demo"
+        className="al-entrar scroll-mt-20 border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]"
+      >
         {/*
           El texto al costado del teléfono y no encima. Centrado debajo de un
           título alineado a la izquierda quedaba un vacío grande a la derecha,
@@ -318,7 +402,10 @@ export function Portada() {
 
           <div className="marco-demo">
             <iframe
-              src={urlDemo}
+              // `vitrina=1` solo esconde la barra de scroll del navegador, que
+              // cruzando el costado del teléfono dibujado arruina la ilusión.
+              // Nada más cambia: tiene que ser la página de verdad.
+              src={`${urlDemo}?vitrina=1`}
               title="Barbería de demostración: página de reservas"
               loading="lazy"
             />
@@ -327,7 +414,10 @@ export function Portada() {
       </section>
 
       {/* ---- Qué resuelve -------------------------------------------- */}
-      <section className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
+      <section
+        id="funciones"
+        className="al-entrar mx-auto w-full max-w-5xl scroll-mt-20 px-5 py-14 sm:px-8 sm:py-20"
+      >
         <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
           Cuatro cosas que dejás de hacer.
         </h2>
@@ -346,7 +436,7 @@ export function Portada() {
         se cree cuando se escribe y más se entiende cuando se ve: no es la misma
         página con otro nombre arriba.
       */}
-      <section className="border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
+      <section className="al-entrar border-t border-[color:var(--vidrio)] bg-[color:var(--tiza)]">
         <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-16">
           <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
             Es tu barbería, no la mía.
@@ -383,8 +473,8 @@ export function Portada() {
                   <Image
                     src={x.src}
                     alt={x.alt}
-                    width={780}
-                    height={1600}
+                    width={1170}
+                    height={2400}
                     className="block h-auto w-full"
                     sizes="(min-width: 640px) 260px, 45vw"
                   />
@@ -399,66 +489,125 @@ export function Portada() {
       </section>
 
       {/* ---- El precio ----------------------------------------------- */}
-      <section className="bg-[color:var(--barbicide)] text-[color:var(--tiza)]">
+      <section
+        id="precio"
+        className="al-entrar scroll-mt-20 bg-[color:var(--barbicide)] text-[color:var(--tiza)]"
+      >
         <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
-          <div className="grid gap-12 md:grid-cols-2 md:gap-16">
-            <div>
-              <h2 className="font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
-                Un plan, todo adentro.
-              </h2>
-
-              <p className="mt-6 text-lg leading-relaxed text-[color:color-mix(in_oklab,var(--tiza)_82%,transparent)]">
-                Los primeros{" "}
-                <span className="font-semibold text-[color:var(--tiza)]">
-                  {DIAS_DE_PRUEBA} días son gratis
-                </span>
-                , sin dejar una tarjeta. Un mes entero alcanza para llenar una
-                agenda y cerrar cajas de verdad, que es cuando se ve si te sirve.
+          <div className="grid gap-12 md:grid-cols-[19rem_1fr] md:gap-16">
+            {/* La columna del precio se queda quieta mientras se recorre la
+                lista: la pregunta "¿y cuánto sale?" no se puede perder de
+                vista mientras se lee todo lo que entra. */}
+            <div className="md:sticky md:top-24 md:self-start">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]">
+                Un plan, todo adentro
               </p>
 
               {precio ? (
-                <p className="mt-8">
-                  <span className="font-[family-name:var(--font-cartel)] text-5xl tracking-tight">
-                    {precio}
-                  </span>
-                  <span className="ml-2 text-lg text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]">
-                    por mes
-                  </span>
-                </p>
+                <>
+                  <p className="mt-5 flex items-baseline gap-2">
+                    <span className="font-[family-name:var(--font-cartel)] text-5xl leading-none tracking-tight">
+                      {precio.mes}
+                    </span>
+                    <span className="text-lg text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]">
+                      /mes
+                    </span>
+                  </p>
+                  <p className="mt-2 text-sm text-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]">
+                    Son {precio.dia} por día.
+                  </p>
+                </>
               ) : (
-                <p className="mt-8 text-lg text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]">
+                <p className="mt-5 font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight">
                   Escribime y te paso el precio.
                 </p>
               )}
 
-              {contacto ? (
-                <div className="mt-8">
-                  <Boton href={contacto} tono="claro">
-                    Empezar la prueba
-                  </Boton>
-                </div>
-              ) : null}
-
-              <p className="mt-4 text-sm text-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]">
-                Te escribo, la dejamos andando el mismo día y te paso la
-                dirección de tu barbería.
+              <p className="mt-6 inline-block rounded-full border border-[color:color-mix(in_oklab,var(--tiza)_45%,transparent)] px-4 py-1.5 text-sm font-semibold">
+                {DIAS_DE_PRUEBA} días gratis para probar
               </p>
+
+              <p className="mt-6 leading-relaxed text-[color:color-mix(in_oklab,var(--tiza)_82%,transparent)]">
+                Sin dejar una tarjeta. Un mes entero alcanza para llenar una
+                agenda y cerrar cajas de verdad, que es cuando se ve si te
+                sirve.
+              </p>
+
+              <div className="mt-8">
+                <a
+                  href="#empezar"
+                  className="sobre-azul inline-flex items-center justify-center rounded-lg bg-[color:var(--tiza)] px-6 py-3.5 text-base font-semibold text-[color:var(--barbicide)] transition-[background-color,transform] duration-150 hover:-translate-y-px hover:bg-[color:var(--porcelana)] active:translate-y-0 active:bg-[color:var(--vidrio)]"
+                >
+                  Probar gratis {DIAS_DE_PRUEBA} días →
+                </a>
+              </div>
             </div>
 
-            <ul className="space-y-3">
-              {INCLUYE.map((x) => (
-                <li key={x} className="flex gap-3 leading-relaxed">
-                  <span
-                    aria-hidden
-                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]"
-                  />
-                  <span className="text-[color:color-mix(in_oklab,var(--tiza)_88%,transparent)]">
-                    {x}
-                  </span>
-                </li>
+            {/* Agrupada, no una tirada de veinte renglones: agrupada se puede
+                barrer con la vista y encontrar lo que a cada uno le importa. */}
+            <div className="grid gap-8 sm:grid-cols-2">
+              {INCLUYE.map((g) => (
+                <div key={g.grupo}>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:color-mix(in_oklab,var(--tiza)_65%,transparent)]">
+                    {g.grupo}
+                  </h3>
+                  <ul className="mt-3 space-y-2.5">
+                    {g.puntos.map((p) => (
+                      <li key={p} className="flex gap-2.5 leading-relaxed">
+                        <span
+                          aria-hidden
+                          className="mt-1 shrink-0 text-[color:color-mix(in_oklab,var(--tiza)_75%,transparent)]"
+                        >
+                          ✓
+                        </span>
+                        <span className="text-[0.9375rem] text-[color:color-mix(in_oklab,var(--tiza)_88%,transparent)]">
+                          {p}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
+        </div>
+      </section>
+
+      {/* ---- Dejar los datos ----------------------------------------- */}
+      {/*
+        El formulario reemplaza al botón que abría WhatsApp directo. WhatsApp
+        sigue estando abajo, para el que lo prefiera: no todo el mundo quiere
+        escribirle a un desconocido, y no todo el mundo quiere llenar un
+        formulario. Ofrecer los dos cuesta poco.
+      */}
+      <section id="empezar" className="al-entrar scroll-mt-20">
+        <div className="mx-auto w-full max-w-2xl px-5 py-14 sm:px-8 sm:py-20">
+          <h2 className="text-center font-[family-name:var(--font-cartel)] text-3xl leading-tight tracking-tight sm:text-4xl">
+            Empezá los {DIAS_DE_PRUEBA} días.
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-center leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+            Dejame estos datos y te escribo hoy. La dejamos andando en un rato y
+            te paso la dirección de tu barbería para que la compartas.
+          </p>
+
+          <div className="mt-10">
+            <Registro dias={DIAS_DE_PRUEBA} />
+          </div>
+
+          {contacto ? (
+            <p className="mt-8 text-center text-sm text-[color:color-mix(in_oklab,var(--esmalte)_60%,transparent)]">
+              ¿Preferís escribirme?{" "}
+              <a
+                href={contacto}
+                target="_blank"
+                rel="noopener"
+                className="font-semibold text-[color:var(--barbicide)] underline decoration-[color:color-mix(in_oklab,var(--barbicide)_40%,transparent)] underline-offset-4 transition-colors duration-150 hover:text-[color:var(--esmalte)]"
+              >
+                Mandame un WhatsApp
+              </a>
+              .
+            </p>
+          ) : null}
         </div>
       </section>
 
