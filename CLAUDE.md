@@ -75,6 +75,9 @@ para no tener que reconstruirlo leyendo todo.
   el dueño Servicios, Productos, Pedidos, Equipo y Ajustes agrupados bajo Local.
 - **Vidriera** (`/productos`, `/productos/listo`) — el catálogo público. Existe
   solo si la barbería prendió `tenants.products_enabled`; si no, es un 404.
+- **Portada** (`/` en el dominio pelado) — la página de ventas. No es de
+  ninguna barbería: tiene paleta y tipografía propias, y se ve cuando el host
+  no resuelve a ningún local.
 
 ## Dónde está cada cosa
 - `src/lib/schedule.ts` — grilla de horarios. Puro: `now` entra como argumento.
@@ -365,6 +368,47 @@ la misma frontera que la pregunta "¿acá funciona un halo claro?".
 
 Al agregar un color nuevo a una barbería, esto se acomoda solo. Al agregar una
 pieza que se elige, usar la clase y no escribir una sombra a mano.
+
+## La portada, y por qué muestra el producto en vez de dibujarlo
+
+`turnosforbarber.com` sin subdominio no es ninguna barbería, así que ahí va la
+página de ventas. La mayoría de quien entra llega de un reel sin saber que esto
+existe: la página es lo único que va a leer antes de decidir.
+
+Tres decisiones que conviene no revertir sin pensarlo:
+
+- **Se muestra el producto de verdad.** Una barbería incrustada y funcionando
+  (`demo.<dominio>`) y capturas sacadas del sitio en producción por
+  `scripts/capturas.mts`. Recrear las pantallas en HTML se vería igual de bien
+  hoy y empezaría a mentir el día que cambie el panel, sin que nadie se entere.
+  Una foto también envejece, pero se vuelve a sacar con un comando.
+- **La demo se vacía todos los días.** Se puede reservar de verdad ahí adentro
+  —ése es el punto—, y sin limpiar, en unas semanas no queda un horario libre
+  para mostrar. Lo hace `/api/limpiar-demo`, que llama Vercel una vez por día
+  (`vercel.json`). Borra **todos** los turnos de esa barbería, siempre filtrando
+  por `tenant_id`: ese `eq` es lo único que separa "vaciar la demo" de
+  "borrarle la agenda a un cliente". El slug vive en `src/lib/demo.ts`, en un
+  solo lugar, porque lo necesitan la portada, el cron y dos scripts.
+- **No hay testimonios.** Con una sola barbería usándolo, inventar una reseña
+  es fabricar prueba social, y el rubro es chico: alguien busca esa barbería,
+  no la encuentra, y lo que se rompe es la credibilidad. La prueba es la demo
+  viva. Cuando haya tres o cuatro barberías contentas, ahí sí, con permiso.
+
+La barbería demo **abre los siete días de mañana a noche**, que ninguna real
+hace. Si alguien mira la portada un lunes y la demo dice cerrado, no entiende
+que el local descansa: entiende que el producto no anda.
+
+Lo que se configura desde el entorno, para que cambiarlo no sea un despliegue:
+el WhatsApp de contacto, el mail, y el precio. Sin precio cargado, la sección
+invita a preguntarlo en vez de inventar un número.
+
+```
+node --env-file=.env.local scripts/barberia-demo.mts            # crearla
+node --env-file=.env.local scripts/capturas.mts "https://{slug}.turnosforbarber.com"
+```
+
+Correr `capturas` después de cualquier cambio visible del panel o de la página
+pública: si no, la página de ventas muestra un producto que ya no existe.
 
 ## Sobre el diseño
 La guía de marca de Tropi describe un local "clásico-vintage" y pide bordes
