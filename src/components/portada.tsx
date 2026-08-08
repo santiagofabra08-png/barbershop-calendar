@@ -186,36 +186,51 @@ function destinoDeContacto(): string | null {
  * puede ser un cambio de código y un despliegue. Sin número, la sección no
  * inventa uno ni deja un hueco: invita a preguntarlo.
  */
-function precioMensual(): { mes: string; dia: string } | null {
+function formatearMoneda(valor: number, moneda: string, decimales: number): string {
+  try {
+    return new Intl.NumberFormat("es-UY", {
+      style: "currency",
+      currency: moneda,
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    }).format(valor);
+  } catch {
+    // Una moneda mal escrita no puede tumbar la portada entera.
+    return `${valor.toFixed(decimales)} ${moneda}`;
+  }
+}
+
+function precioMensual(): { mes: string; dia: string; otraMoneda: string | null } | null {
   const monto = Number(process.env.NEXT_PUBLIC_PRECIO_MENSUAL);
   if (!Number.isFinite(monto) || monto <= 0) return null;
 
   const moneda = process.env.NEXT_PUBLIC_PRECIO_MONEDA || "UYU";
 
-  const armar = (valor: number, decimales: number) => {
-    try {
-      return new Intl.NumberFormat("es-UY", {
-        style: "currency",
-        currency: moneda,
-        minimumFractionDigits: decimales,
-        maximumFractionDigits: decimales,
-      }).format(valor);
-    } catch {
-      // Una moneda mal escrita no puede tumbar la portada entera.
-      return `${valor.toFixed(decimales)} ${moneda}`;
-    }
-  };
-
   // Los centavos se muestran solo si los hay: 14,99 se escribe entero, pero
   // 990 no tiene por qué volverse "990,00".
-  const enteros = Number.isInteger(monto);
+  const conCentavos = (n: number) => (Number.isInteger(n) ? 0 : 2);
+
+  /**
+   * El mismo precio en la moneda de acá, si está cargado.
+   *
+   * Se escribe a mano y NO se convierte con una cotización. Una cotización
+   * queda vieja sola, y el día que se mueve la página pasa a mostrar un precio
+   * que no es el que vas a cobrar —y nadie se entera hasta que un cliente lo
+   * reclama—. Escribiendo los dos números, el que decide cuánto sale sos vos.
+   */
+  const montoAlt = Number(process.env.NEXT_PUBLIC_PRECIO_MENSUAL_ALT);
+  const monedaAlt = process.env.NEXT_PUBLIC_PRECIO_MONEDA_ALT || "UYU";
+  const hayAlt = Number.isFinite(montoAlt) && montoAlt > 0;
 
   return {
-    mes: armar(monto, enteros ? 0 : 2),
+    mes: formatearMoneda(monto, moneda, conCentavos(monto)),
     // Lo mismo dividido por treinta. Un precio mensual se compara con otro
     // gasto mensual; por día se compara con un café, y es la forma en que la
     // gente decide si algo es caro.
-    dia: armar(monto / 30, 2),
+    dia: formatearMoneda(monto / 30, moneda, 2),
+    otraMoneda: hayAlt
+      ? formatearMoneda(montoAlt, monedaAlt, conCentavos(montoAlt))
+      : null,
   };
 }
 
@@ -509,7 +524,17 @@ export function Portada() {
                     </span>
                   </p>
                   <p className="mt-2 text-sm text-[color:color-mix(in_oklab,var(--tiza)_70%,transparent)]">
-                    Son {precio.dia} por día.
+                    Son {precio.dia} por día
+                    {precio.otraMoneda ? (
+                      <>
+                        {" · unos "}
+                        <span className="whitespace-nowrap">
+                          {precio.otraMoneda}
+                        </span>{" "}
+                        por mes
+                      </>
+                    ) : null}
+                    .
                   </p>
                 </>
               ) : (
