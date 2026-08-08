@@ -44,8 +44,8 @@ const FUNCIONES: Funcion[] = [
     dolor: "Al cerrar, papel y calculadora para saber cuánto le toca a cada uno.",
     titulo: "La cuenta del día se hace sola",
     texto:
-      "Cobrás cada turno con lo que se llevó puesto —el corte, los productos, " +
-      "cómo pagó— y el reparto sale solo. Cada barbero cobra como se arregló con " +
+      "Cobrás cada turno con lo que se llevó puesto: el corte, los productos y " +
+      "cómo pagó. El reparto sale solo. Cada barbero cobra como se arregló con " +
       "él: comisión, sueldo o alquiler de silla.",
     imagen: "/portada/panel-cobros.png",
     alt: "La pantalla de cobros, con el ticket de un turno abierto.",

@@ -173,7 +173,7 @@ export default async function PaginaDelTurno({
                   </form>
                 ) : (
                   <p className="mt-5 text-sm text-muted">
-                    Ya no se puede cancelar desde acá — falta menos de{" "}
+                    Ya no se puede cancelar desde acá: falta menos de{" "}
                     {formatDuration(data.tenant.cancelDeadlineMinutes)} para el
                     turno. Escribile a la barbería si no vas a poder ir.
                   </p>
