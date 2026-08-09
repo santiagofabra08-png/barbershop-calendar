@@ -53,6 +53,10 @@ Apply the `frontend-design` skill, plus:
 - Every clickable element has hover, focus, and active states.
 - Mobile-first — almost everyone books on a phone.
 - All user-facing text in Rioplatense Spanish (voseo: "reservá", "elegí").
+- **Sin rayas en la prosa.** Una frase partida al medio para meterle un inciso
+  se escribe con dos puntos o se parte en dos. La `—` sí se usa como **valor**
+  en una celda, donde quiere decir "acá no hay nada": sacarla dejaría un hueco
+  en blanco, que se lee como que la pantalla se rompió.
 
 ## Rules
 - Never disable Row Level Security.
@@ -192,6 +196,12 @@ de verdad:
 - `scripts/probar-simultaneo.mts [slug] [cuántas]` — diez reservas disparadas
   en el mismo instante. Con barbero fijo gana una sola; sin elegir barbero
   ganan tantas como sillas libres haya, y nunca dos en la misma silla.
+- `scripts/probar-solicitud.mjs [url]` — el formulario de la portada de punta a
+  punta y **contra producción**: lo llena en el sitio de verdad, comprueba que
+  la fila llegó a la base con el teléfono normalizado y que la validación
+  rechaza lo que tiene que rechazar. Manda un mail de aviso real a propósito:
+  ése es el eslabón que falla en silencio, porque la solicitud se guarda igual
+  aunque el correo no salga. Borra la solicitud de prueba al terminar.
 - `scripts/probar-carga.mts [slug] [semanas]` — llena una barbería con un año de
   turnos, mide lo que espera una persona y borra todo. Con 4680 turnos la página
   de reservas pasó de 371 a 420 ms: el historial no le pesa porque solo mira
@@ -403,9 +413,35 @@ que el local descansa: entiende que el producto no anda.
   de que alguien pague, no lo encuentre, pida la baja el primer mes y lo
   cuente. Al agregar o sacar una función del producto, tocar esa lista.
 
+La demo incrustada se pide con `?vitrina=1`, que **solo esconde la barra de
+scroll**: una barra gris cruzando el teléfono dibujado arruina la ilusión. Nada
+más cambia, a propósito. La demo tiene que ser la página de verdad y no una
+versión recortada de la página de verdad.
+
+Arriba tiene un conmutador **celular / computadora**. No es un adorno: casi
+todo dueño de barbería asume que "una página de reservas" es una app de
+teléfono, y verla acomodarse sola contesta eso sin escribirlo. El iframe no se
+vuelve a montar al cambiar de modo —si se recargara, la persona pierde el
+horario que había elegido justo cuando estaba entendiendo cómo funciona—. En
+modo computadora la barra de direcciones dibujada muestra el subdominio, que es
+lo mismo que la sección de al lado afirma con palabras.
+
 Lo que se configura desde el entorno, para que cambiarlo no sea un despliegue:
 el WhatsApp de contacto, el mail, y el precio. Sin precio cargado, la sección
 invita a preguntarlo en vez de inventar un número.
+
+El precio se muestra en dos monedas, y **las dos se escriben a mano**
+(`NEXT_PUBLIC_PRECIO_MENSUAL` y `…_ALT`). No se convierte con una cotización a
+propósito: una cotización queda vieja sola, y el día que se mueve la página
+muestra un precio que no es el que se va a cobrar. Nadie se entera hasta que un
+cliente lo reclama.
+
+⚠️ Las `NEXT_PUBLIC_*` se escriben adentro del código **al construirlo**, no se
+leen en cada visita. Después de cambiar una hay que redesplegar **destildando
+"Use existing Build Cache"**, o los valores nuevos no entran. Y ojo con otra:
+tocar *Redeploy* sobre un despliegue de la lista reconstruye **el commit de ese
+despliegue**, no el código más nuevo. Si hubo pushes después, hay que redesplegar
+el de más arriba.
 
 ### Quién pidió probarlo
 
