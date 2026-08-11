@@ -17,9 +17,14 @@
  */
 
 import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+import { chromium } from "@playwright/test";
 
 const FUENTE = "docs/guia-del-panel.html";
 const SALIDA = "docs/guia-para-mandar.html";
+const PDF = "docs/guia-para-mandar.pdf";
 
 /*
  * Windows no distingue mayúsculas en los nombres de archivo, así que
@@ -62,12 +67,31 @@ ${cuerpo}
 
 await writeFile(SALIDA, documento, "utf8");
 
-const kb = Math.round(Buffer.byteLength(documento) / 102.4) / 10;
+/*
+ * Y el PDF, que es el que se manda de verdad.
+ *
+ * Un .html adjunto en WhatsApp no se abre: el teléfono no sabe qué hacer con
+ * él, y en la computadora se abre en el editor de quien lo recibe si tiene uno
+ * instalado. El PDF se ve en cualquier lado sin instalar nada, que es la única
+ * condición que importa cuando se lo estás mandando a alguien que todavía no
+ * te compró nada.
+ *
+ * Sale de la misma página, con los estilos de impresión que ya tiene: el
+ * índice lateral se esconde, la paleta se fuerza clara aunque el sistema esté
+ * en oscuro, y nada se parte al medio entre hojas.
+ */
+const navegador = await chromium.launch();
+const pagina = await navegador.newPage();
+await pagina.goto(pathToFileURL(path.resolve(SALIDA)).href);
+await pagina.pdf({ path: PDF, format: "A4", printBackground: true });
+await navegador.close();
 
-console.log(`Listo: ${SALIDA} (${kb} KB)`);
+const kb = (bytes: number) => `${Math.round(bytes / 102.4) / 10} KB`;
+
+console.log(`Listo:`);
+console.log(`  ${SALIDA}  (${kb(Buffer.byteLength(documento))})`);
+console.log(`  ${PDF}`);
 console.log("");
-console.log("Es un solo archivo y no pide nada de internet, así que anda");
-console.log("abierto desde el escritorio, adjunto en un mail o sin señal.");
-console.log("");
-console.log("Para mandarlo por WhatsApp conviene el PDF: abrilo en el");
-console.log("navegador, Imprimir, y en Destino elegí «Guardar como PDF».");
+console.log("El PDF es el que se manda: se abre en cualquier teléfono sin");
+console.log("instalar nada. El HTML es el mismo documento para leer en");
+console.log("pantalla, y no pide nada de internet, así que anda sin señal.");
