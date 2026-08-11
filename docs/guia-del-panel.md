@@ -477,7 +477,19 @@ En **Local → Pedidos** los tenés en tres grupos: sin contestar, ya contactado
 y terminados. De cada uno ves el teléfono, el mail si lo dejó, qué pidió y
 cuánto sería.
 
-**Escribirle** abre WhatsApp con su número puesto.
+**Escribirle** abre WhatsApp **con el mensaje ya escrito**, igual que en la
+agenda. Sale algo así:
+
+> Hola Martín! Te escribo de Tropi Barbershop por tu pedido: Cera mate ×2 y
+> Shampoo sólido. Serían $1.290.
+> ¿Cuándo te queda cómodo pasar a buscarlo?
+
+El mismo botón está en el mail que te llega, que suele ser lo primero que tocás.
+
+> **Si no tenés lo que pidió, cambiá el mensaje antes de mandarlo.** El texto da
+> por sentado que está, porque es lo que pasa casi siempre. Pero el pedido no
+> reserva nada, así que la última palabra es tuya: lo leés, y si falta algo se
+> lo decís ahí mismo.
 
 > **Un pedido no es una venta.** No baja el stock ni entra a la caja: es alguien
 > levantando la mano. Si prometiéramos stock que después no está, sería peor que

@@ -89,11 +89,15 @@ para no tener que reconstruirlo leyendo todo.
 - `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
 - `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
-- `src/lib/whatsapp.ts` — el recordatorio ya escrito y el link a `wa.me`. Puro:
+- `src/lib/whatsapp.ts` — los mensajes ya escritos (el recordatorio del turno y
+  el del pedido) y el link a `wa.me`. Puro:
   `hoy` entra como argumento, que es lo que deja probar que el turno de mañana
-  dice "mañana". El mensaje sale escrito solo si todavía sirve de recordatorio;
-  para un turno que ya empezó el chat abre en blanco, porque ahí lo que hay
-  para decir depende de qué pasó.
+  dice "mañana". El mensaje sale escrito solo si todavía sirve; para un turno
+  que ya empezó, o un pedido terminado, el chat abre en blanco, porque ahí lo
+  que hay para decir depende de qué pasó. El del pedido **da por sentado que el
+  producto está**, que es el caso normal: el dueño lo lee y lo reescribe si no
+  lo tiene, porque poner "si es que tengo" en todos los mensajes para el caso
+  raro los arruina todos.
 - `src/lib/carrito.ts` — elegir productos y contar lo que da. Puro y neutral.
   Vive fuera de `panel/` porque lo usan el ticket, el mostrador y la vidriera
   pública, y la página pública no tiene por qué depender del panel para sumar.

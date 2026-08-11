@@ -15,7 +15,7 @@
  * "mañana" sin esperar a mañana.
  */
 
-import { addDays, formatDateLong } from "./schedule.ts";
+import { addDays, formatDateLong, formatPrice } from "./schedule.ts";
 import { paraWhatsApp } from "./validation.ts";
 
 export type DatosDelRecordatorio = {
@@ -40,14 +40,81 @@ export type DatosDelRecordatorio = {
  * todavía podés darle esa hora a otro.
  */
 export function mensajeDeRecordatorio(d: DatosDelRecordatorio): string {
-  const saludo = d.cliente ? `Hola ${primerNombre(d.cliente)}!` : "Hola!";
   const que = d.servicio ? ` (${d.servicio})` : "";
 
   return (
-    `${saludo} Te escribo de ${d.barberia} para recordarte tu turno ` +
+    `${encabezado(d.cliente, d.barberia)} para recordarte tu turno ` +
     `${comoSeDiceElDia(d.fecha, d.hoy)} a las ${d.hora}${que}.\n` +
     `¿Confirmás que venís?`
   );
+}
+
+export type ItemDelPedido = {
+  name: string;
+  quantity: number;
+};
+
+export type DatosDelPedido = {
+  barberia: string;
+  cliente: string | null;
+  items: ItemDelPedido[];
+  totalCents: number;
+  moneda: string;
+};
+
+/**
+ * El mensaje para el que pidió algo por la vidriera.
+ *
+ * Repite lo que pidió, y eso no es relleno: le dice que alguien leyó el pedido
+ * de verdad, y si se equivocó al elegir aparece ahora y no cuando ya vino
+ * hasta el local.
+ *
+ * Dice "Serían" y no "Total", igual que la pantalla del panel: son los precios
+ * que vio en la página, y lo que se cobre se decide cuando pase.
+ *
+ * Da por sentado que el producto está, que es el caso normal. El dueño lee
+ * antes de mandar y lo reescribe si no lo tiene: un pedido no reserva stock, y
+ * poner "si es que tengo" en todos los mensajes para el caso raro los arruina
+ * todos.
+ */
+export function mensajeDePedido(d: DatosDelPedido): string {
+  const lista = listaDeProductos(d.items);
+  const que = lista === "" ? "" : `: ${lista}`;
+
+  return (
+    `${encabezado(d.cliente, d.barberia)} por tu pedido${que}. ` +
+    `Serían ${formatPrice(d.totalCents, d.moneda)}.\n` +
+    `¿Cuándo te queda cómodo pasar a buscarlo?`
+  );
+}
+
+/**
+ * "Cera mate ×2, Shampoo sólido y 2 cosas más".
+ *
+ * Se corta en tres porque un WhatsApp de ocho renglones no lo lee nadie, y el
+ * mensaje tiene que caber de un vistazo entre corte y corte. Lo que quedó
+ * afuera se cuenta en vez de desaparecer: el que lo recibe tiene que poder
+ * darse cuenta de que el pedido era más largo.
+ */
+function listaDeProductos(items: ItemDelPedido[], tope = 3): string {
+  const nombres = items.map((i) =>
+    i.quantity > 1 ? `${i.name} ×${i.quantity}` : i.name,
+  );
+
+  const sobran = nombres.length - tope;
+  const visibles = sobran > 0 ? nombres.slice(0, tope) : nombres;
+  if (sobran > 0) {
+    visibles.push(sobran === 1 ? "1 cosa más" : `${sobran} cosas más`);
+  }
+
+  if (visibles.length <= 1) return visibles[0] ?? "";
+  return `${visibles.slice(0, -1).join(", ")} y ${visibles.at(-1)}`;
+}
+
+/** Los dos mensajes arrancan igual, y tienen que sonar a la misma persona. */
+function encabezado(cliente: string | null, barberia: string): string {
+  const saludo = cliente ? `Hola ${primerNombre(cliente)}!` : "Hola!";
+  return `${saludo} Te escribo de ${barberia}`;
 }
 
 /**

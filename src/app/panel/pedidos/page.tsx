@@ -5,7 +5,9 @@ import { marcarPedido } from "@/app/panel/pedidos/actions";
 import { cargarPedidos, type PedidoDelPanel } from "@/lib/panel/pedidos";
 import { sesionDelPanel } from "@/lib/panel/session";
 import { formatPrice } from "@/lib/schedule";
-import { formatTelefono, paraWhatsApp } from "@/lib/validation";
+import type { Tenant } from "@/lib/tenant/types";
+import { formatTelefono } from "@/lib/validation";
+import { linkDeWhatsApp, mensajeDePedido } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -41,25 +43,9 @@ export default async function PedidosPage() {
         </p>
       ) : null}
 
-      <Grupo
-        titulo="Sin contestar"
-        pedidos={nuevos}
-        moneda={tenant.currency}
-        timezone={tenant.timezone}
-      />
-      <Grupo
-        titulo="Ya los contactaste"
-        pedidos={enCurso}
-        moneda={tenant.currency}
-        timezone={tenant.timezone}
-      />
-      <Grupo
-        titulo="Terminados"
-        pedidos={cerrados}
-        moneda={tenant.currency}
-        timezone={tenant.timezone}
-        apagado
-      />
+      <Grupo titulo="Sin contestar" pedidos={nuevos} tenant={tenant} />
+      <Grupo titulo="Ya los contactaste" pedidos={enCurso} tenant={tenant} />
+      <Grupo titulo="Terminados" pedidos={cerrados} tenant={tenant} apagado />
     </>
   );
 }
@@ -67,14 +53,12 @@ export default async function PedidosPage() {
 function Grupo({
   titulo,
   pedidos,
-  moneda,
-  timezone,
+  tenant,
   apagado = false,
 }: {
   titulo: string;
   pedidos: PedidoDelPanel[];
-  moneda: string;
-  timezone: string;
+  tenant: Tenant;
   apagado?: boolean;
 }) {
   if (pedidos.length === 0) return null;
@@ -87,7 +71,7 @@ function Grupo({
       <ul className={`mt-4 space-y-3 ${apagado ? "opacity-60" : ""}`}>
         {pedidos.map((p) => (
           <li key={p.id}>
-            <Ficha pedido={p} moneda={moneda} timezone={timezone} />
+            <Ficha pedido={p} tenant={tenant} />
           </li>
         ))}
       </ul>
@@ -97,17 +81,15 @@ function Grupo({
 
 function Ficha({
   pedido,
-  moneda,
-  timezone,
+  tenant,
 }: {
   pedido: PedidoDelPanel;
-  moneda: string;
-  timezone: string;
+  tenant: Tenant;
 }) {
-  const plata = (c: number) => formatPrice(c, moneda);
+  const plata = (c: number) => formatPrice(c, tenant.currency);
 
   const cuando = new Intl.DateTimeFormat("es-UY", {
-    timeZone: timezone,
+    timeZone: tenant.timezone,
     day: "numeric",
     month: "long",
     hour: "2-digit",
@@ -165,7 +147,20 @@ function Ficha({
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <a
-          href={`https://wa.me/${paraWhatsApp(pedido.clientPhone)}`}
+          href={linkDeWhatsApp(
+            pedido.clientPhone,
+            // Un pedido terminado ya se habló: ahí el chat abre en blanco,
+            // porque lo que haya para decir es otra conversación y no ésta.
+            pedido.status === "closed"
+              ? undefined
+              : mensajeDePedido({
+                  barberia: tenant.name,
+                  cliente: pedido.clientName,
+                  items: pedido.items,
+                  totalCents: pedido.totalCents,
+                  moneda: tenant.currency,
+                }),
+          )}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90"

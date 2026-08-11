@@ -3,7 +3,8 @@ import { Resend } from "resend";
 import { formatPrice } from "@/lib/schedule";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Tenant } from "@/lib/tenant/types";
-import { formatTelefono, paraWhatsApp } from "@/lib/validation";
+import { formatTelefono } from "@/lib/validation";
+import { linkDeWhatsApp, mensajeDePedido } from "@/lib/whatsapp";
 
 /**
  * Aviso al dueño de que alguien pidió algo.
@@ -126,7 +127,18 @@ export async function avisarDelPedido(
     }
 
     <tr><td style="padding:24px 32px 0;">
-      <a href="https://wa.me/${paraWhatsApp(d.telefono)}" style="display:block;padding:14px 24px;background:${c.accent};color:${c.surface};font:600 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;text-decoration:none;">Escribirle por WhatsApp</a>
+      <a href="${escapar(
+        linkDeWhatsApp(
+          d.telefono,
+          mensajeDePedido({
+            barberia: d.tenant.name,
+            cliente: d.cliente,
+            items: d.items,
+            totalCents: total,
+            moneda: d.tenant.currency,
+          }),
+        ),
+      )}" style="display:block;padding:14px 24px;background:${c.accent};color:${c.surface};font:600 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;text-decoration:none;">Escribirle por WhatsApp</a>
     </td></tr>
 
     <tr><td style="padding:24px 32px 32px;">

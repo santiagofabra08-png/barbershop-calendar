@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { linkDeWhatsApp, mensajeDeRecordatorio } from "./whatsapp.ts";
+import {
+  linkDeWhatsApp,
+  mensajeDePedido,
+  mensajeDeRecordatorio,
+} from "./whatsapp.ts";
 
 const base = {
   barberia: "Tropi Barbershop",
@@ -64,6 +68,99 @@ describe("el recordatorio", () => {
   test("un nombre de una sola palabra no se rompe", () => {
     const m = mensajeDeRecordatorio({ ...base, cliente: "Nico" });
     assert.match(m, /^Hola Nico!/);
+  });
+});
+
+const pedido = {
+  barberia: "Tropi Barbershop",
+  cliente: "Martín Rodríguez",
+  items: [{ name: "Cera mate", quantity: 2 }],
+  totalCents: 129000,
+  moneda: "UYU",
+};
+
+describe("el mensaje del pedido", () => {
+  test("repite lo que pidió y cuánto sería", () => {
+    const m = mensajeDePedido(pedido);
+
+    assert.match(m, /^Hola Martín! Te escribo de Tropi Barbershop por tu pedido/);
+    assert.match(m, /Cera mate ×2/);
+    assert.match(m, /Serían \$ ?1[.,]290/);
+    assert.match(m, /¿Cuándo te queda cómodo pasar a buscarlo\?$/);
+  });
+
+  test("uno solo no lleva cantidad", () => {
+    const m = mensajeDePedido({
+      ...pedido,
+      items: [{ name: "Peine", quantity: 1 }],
+    });
+
+    assert.match(m, /pedido: Peine\./);
+    assert.doesNotMatch(m, /×/);
+  });
+
+  test("dos van con y, tres con coma y con y", () => {
+    const dos = mensajeDePedido({
+      ...pedido,
+      items: [
+        { name: "Cera mate", quantity: 1 },
+        { name: "Peine", quantity: 1 },
+      ],
+    });
+    assert.match(dos, /pedido: Cera mate y Peine\./);
+
+    const tres = mensajeDePedido({
+      ...pedido,
+      items: [
+        { name: "Cera mate", quantity: 1 },
+        { name: "Peine", quantity: 1 },
+        { name: "Toalla", quantity: 1 },
+      ],
+    });
+    assert.match(tres, /pedido: Cera mate, Peine y Toalla\./);
+  });
+
+  // Lo que no entra se cuenta en vez de desaparecer: el que lo recibe tiene
+  // que poder darse cuenta de que su pedido era más largo.
+  test("pasando de tres, el resto se cuenta", () => {
+    const cinco = mensajeDePedido({
+      ...pedido,
+      items: [
+        { name: "Cera mate", quantity: 1 },
+        { name: "Peine", quantity: 1 },
+        { name: "Toalla", quantity: 1 },
+        { name: "Shampoo", quantity: 1 },
+        { name: "Bálsamo", quantity: 1 },
+      ],
+    });
+
+    assert.match(cinco, /Cera mate, Peine, Toalla y 2 cosas más\./);
+    assert.doesNotMatch(cinco, /Shampoo|Bálsamo/);
+  });
+
+  test("cuatro dejan una sola afuera, y se dice en singular", () => {
+    const cuatro = mensajeDePedido({
+      ...pedido,
+      items: [
+        { name: "Cera mate", quantity: 1 },
+        { name: "Peine", quantity: 1 },
+        { name: "Toalla", quantity: 1 },
+        { name: "Shampoo", quantity: 1 },
+      ],
+    });
+
+    assert.match(cuatro, /y 1 cosa más\./);
+  });
+
+  test("sin nombre saluda igual", () => {
+    const m = mensajeDePedido({ ...pedido, cliente: null });
+    assert.match(m, /^Hola! Te escribo de/);
+  });
+
+  // No debería pasar, pero un mensaje a medias es peor que uno escueto.
+  test("sin productos no queda un dos puntos colgando", () => {
+    const m = mensajeDePedido({ ...pedido, items: [] });
+    assert.match(m, /por tu pedido\. Serían/);
   });
 });
 
