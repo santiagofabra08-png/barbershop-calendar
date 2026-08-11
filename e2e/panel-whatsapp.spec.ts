@@ -135,6 +135,46 @@ test("un turno que todavía no pasó abre WhatsApp con el recordatorio escrito",
   expect(href).toContain("wa.me/59899123456");
 });
 
+test("el pedido de la vidriera abre WhatsApp con lo que pidió adentro", async ({
+  page,
+  context,
+}) => {
+  // La vidriera es pública, así que primero hay que dejar de ser el dueño.
+  await context.clearCookies();
+
+  const nombre = `Pedido ${Date.now().toString().slice(-6)}`;
+
+  await page.goto("/productos");
+  await page.getByRole("button", { name: "Lo quiero" }).first().click();
+  await expect(page.getByText(/1 producto/)).toBeVisible({ timeout: 10_000 });
+
+  await page.getByLabel("Tu nombre").fill(nombre);
+  await page.getByLabel("Teléfono").fill("099123456");
+  await page.getByRole("button", { name: "Enviar el pedido" }).click();
+  await expect(page).toHaveURL(/\/productos\/listo/, { timeout: 20_000 });
+
+  await entrar(page);
+  await page.goto("/panel/pedidos");
+
+  const boton = page
+    .locator("li", { has: page.getByText(nombre, { exact: true }) })
+    .locator('a[href*="wa.me"]')
+    .last();
+
+  const href = await boton.getAttribute("href");
+  const texto = new URL(href!).searchParams.get("text");
+
+  expect(texto, "el mensaje tiene que viajar en el link").not.toBeNull();
+  expect(texto).toContain("Barbería de Prueba");
+  expect(texto).toContain("por tu pedido");
+  // El producto de la barbería de prueba. Que aparezca es lo que demuestra que
+  // los renglones del pedido llegaron hasta el mensaje y no solo el total.
+  expect(texto).toContain("Cera de prueba");
+  expect(texto).toContain("Serían");
+  expect(texto).toContain("¿Cuándo te queda cómodo pasar a buscarlo?");
+  expect(href).toContain("wa.me/59899123456");
+});
+
 test("un turno que ya empezó abre el chat en blanco, a propósito", async ({
   page,
 }, info) => {
