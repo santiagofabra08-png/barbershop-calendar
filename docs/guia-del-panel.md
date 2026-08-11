@@ -145,7 +145,7 @@ en la agenda de papel.
 
 ### Qué podés hacer en cada turno
 
-**WhatsApp** — abre el chat con el cliente y **el mensaje ya escrito**. Lo leés,
+**Recordar** — abre el chat con el cliente y **el mensaje ya escrito**. Lo leés,
 lo cambiás si querés, y mandás. Sale algo así:
 
 > Hola Martín! Te escribo de Tropi Barbershop para recordarte tu turno mañana a
@@ -160,9 +160,10 @@ lo cambiás si querés, y mandás. Sale algo así:
 último toque lo das vos. Mandar solo, por afuera de WhatsApp, es la forma más
 rápida de que le bloqueen el número al local.
 
-En un turno que ya empezó, o en uno que marcaste como que no vino, el chat abre
-en blanco. Un recordatorio ahí llega tarde, y lo que haya para decir depende de
-qué pasó.
+**El botón te dice cuál de los dos es.** En un turno que ya empezó, o en uno que
+marcaste como que no vino, dice **WhatsApp** y el chat abre en blanco: un
+recordatorio ahí llega tarde, y lo que haya para decir depende de qué pasó.
+Mientras diga **Recordar**, el mensaje va escrito.
 
 **No vino** — para el cliente que reservó y no apareció.
 

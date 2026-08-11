@@ -87,11 +87,17 @@ async function cargarTurno(
   return nombre;
 }
 
-/** El `href` del botón de WhatsApp del turno que se llama así. */
-function whatsappDe(page: import("@playwright/test").Page, nombre: string) {
+/**
+ * El botón de WhatsApp del turno que se llama así.
+ *
+ * Se busca por posición y no por nombre a propósito: el nombre es justamente
+ * lo que esta prueba tiene que verificar. Buscarlo por "Recordar" haría que la
+ * prueba pase por definición.
+ */
+function botonDe(page: import("@playwright/test").Page, nombre: string) {
   return page
     .locator("li", { has: page.getByText(nombre, { exact: true }) })
-    .getByRole("link", { name: "WhatsApp" })
+    .locator('a[href*="wa.me"]')
     .last();
 }
 
@@ -105,7 +111,13 @@ test("un turno que todavía no pasó abre WhatsApp con el recordatorio escrito",
   const hora = horaLibre(info.project.name, 15);
   const nombre = await cargarTurno(page, dia(1), hora);
 
-  const href = await whatsappDe(page, nombre).getAttribute("href");
+  const boton = botonDe(page, nombre);
+
+  // La etiqueta es la mitad de la función: dice cuál de los dos botones es
+  // antes de tocarlo. Sin esto, un chat en blanco no se distingue de un bug.
+  await expect(boton).toHaveText("Recordar");
+
+  const href = await boton.getAttribute("href");
   expect(href).toBeTruthy();
 
   const texto = new URL(href!).searchParams.get("text");
@@ -130,7 +142,9 @@ test("un turno que ya empezó abre el chat en blanco, a propósito", async ({
   // se le pone la hora a la que llegó, que ya pasó. El chat abre vacío porque
   // un recordatorio ahí llega tarde, y eso se parece mucho a que esté roto.
   const nombre = await cargarTurno(page, dia(-1), horaLibre(info.project.name, 10));
+  const boton = botonDe(page, nombre);
 
-  const href = await whatsappDe(page, nombre).getAttribute("href");
-  expect(href).toBe("https://wa.me/59899123456");
+  // Y acá dice otra cosa, que es lo que avisa que el chat va a abrir vacío.
+  await expect(boton).toHaveText("WhatsApp");
+  expect(await boton.getAttribute("href")).toBe("https://wa.me/59899123456");
 });

@@ -154,6 +154,30 @@ function Turno({
   const duracion =
     enMinutos(turno.endLocal) - enMinutos(turno.startLocal) || null;
 
+  /*
+   * El recordatorio, solo mientras siga sirviendo de recordatorio. Para un
+   * turno que ya empezó, o uno marcado como que no vino, el chat abre en
+   * blanco: ahí lo que hay para decir depende de qué pasó, y adivinarlo mal es
+   * peor que no escribir nada.
+   *
+   * De eso sale la etiqueta del botón, y no es un detalle. Antes decía
+   * "WhatsApp" en los dos casos y no había forma de saber cuál te tocaba: el
+   * que diseñó esto probó con un turno ya empezado, vio el chat vacío y creyó
+   * que estaba roto. Si le pasa a quien lo escribió, le pasa a cualquiera. La
+   * etiqueta es lo que hace visible una regla que si no es adivinanza.
+   */
+  const recordatorio =
+    yaEmpezo || turno.status !== "confirmed"
+      ? undefined
+      : mensajeDeRecordatorio({
+          barberia: tenant.name,
+          cliente: turno.clientName,
+          servicio: turno.serviceName,
+          fecha: turno.dateLocal,
+          hora: turno.startLocal,
+          hoy,
+        });
+
   return (
     <div
       className={[
@@ -210,29 +234,12 @@ function Turno({
 
         {turno.clientPhone ? (
           <a
-            href={linkDeWhatsApp(
-              turno.clientPhone,
-              // El recordatorio se abre escrito solo si todavía sirve de
-              // recordatorio. Para un turno que ya empezó, o para uno que ya
-              // se marcó como que no vino, el chat abre en blanco: ahí lo que
-              // hay para decir depende de qué pasó, y adivinarlo mal es peor
-              // que no escribir nada.
-              yaEmpezo || turno.status !== "confirmed"
-                ? undefined
-                : mensajeDeRecordatorio({
-                    barberia: tenant.name,
-                    cliente: turno.clientName,
-                    servicio: turno.serviceName,
-                    fecha: turno.dateLocal,
-                    hora: turno.startLocal,
-                    hoy,
-                  }),
-            )}
+            href={linkDeWhatsApp(turno.clientPhone, recordatorio)}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"
           >
-            WhatsApp
+            {recordatorio ? "Recordar" : "WhatsApp"}
           </a>
         ) : null}
       </div>
