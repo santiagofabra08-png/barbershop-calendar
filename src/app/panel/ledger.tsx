@@ -4,7 +4,7 @@ import { armarTira } from "@/lib/panel/day-strip";
 import type { TurnoDelPanel } from "@/lib/panel/data";
 import { formatDuration, formatPrice } from "@/lib/schedule";
 import { enMinutos } from "@/lib/panel/day-strip";
-import { paraWhatsApp } from "@/lib/validation";
+import { linkDeWhatsApp, mensajeDeRecordatorio } from "@/lib/whatsapp";
 import type { Tenant } from "@/lib/tenant/types";
 
 /**
@@ -22,6 +22,7 @@ export function Ledger({
   turnos,
   tenant,
   ahora,
+  hoy,
   diaPasado,
   nombrePorBarbero,
 }: {
@@ -29,6 +30,8 @@ export function Ledger({
   tenant: Tenant;
   /** "HH:MM" si el día que se mira es hoy; null si no. */
   ahora: string | null;
+  /** "YYYY-MM-DD" local de verdad, que no es el día que se está mirando. */
+  hoy: string;
   /** El día que se mira ya terminó. */
   diaPasado: boolean;
   /** Con más de un barbero a la vista, cada turno dice de quién es. */
@@ -88,6 +91,7 @@ export function Ledger({
               <Turno
                 turno={a.turno}
                 tenant={tenant}
+                hoy={hoy}
                 nombrePorBarbero={nombrePorBarbero}
                 // Un turno que todavía no empezó no puede haber faltado: el
                 // botón aparece recién cuando la pregunta tiene sentido.
@@ -108,11 +112,13 @@ export function Ledger({
 function Turno({
   turno,
   tenant,
+  hoy,
   nombrePorBarbero,
   yaEmpezo,
 }: {
   turno: TurnoDelPanel;
   tenant: Tenant;
+  hoy: string;
   nombrePorBarbero: Map<string, string> | null;
   yaEmpezo: boolean;
 }) {
@@ -204,7 +210,24 @@ function Turno({
 
         {turno.clientPhone ? (
           <a
-            href={`https://wa.me/${paraWhatsApp(turno.clientPhone)}`}
+            href={linkDeWhatsApp(
+              turno.clientPhone,
+              // El recordatorio se abre escrito solo si todavía sirve de
+              // recordatorio. Para un turno que ya empezó, o para uno que ya
+              // se marcó como que no vino, el chat abre en blanco: ahí lo que
+              // hay para decir depende de qué pasó, y adivinarlo mal es peor
+              // que no escribir nada.
+              yaEmpezo || turno.status !== "confirmed"
+                ? undefined
+                : mensajeDeRecordatorio({
+                    barberia: tenant.name,
+                    cliente: turno.clientName,
+                    servicio: turno.serviceName,
+                    fecha: turno.dateLocal,
+                    hora: turno.startLocal,
+                    hoy,
+                  }),
+            )}
             target="_blank"
             rel="noopener noreferrer"
             className="ml-auto rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"

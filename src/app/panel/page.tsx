@@ -127,6 +127,7 @@ export default async function AgendaPage({
         turnos={delDia}
         tenant={tenant}
         ahora={fecha === hoy.date ? hoy.time : null}
+        hoy={hoy.date}
         diaPasado={fecha < hoy.date}
         nombrePorBarbero={nombrePorBarbero}
       />

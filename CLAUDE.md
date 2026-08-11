@@ -39,8 +39,9 @@ Don't add extra libraries without asking.
 
 ## Notifications
 - Send an email confirmation automatically when a booking is made.
-- For WhatsApp reminders: the dashboard shows tomorrow's bookings with a button that opens WhatsApp with the message pre-filled. Owner taps to send.
+- For WhatsApp reminders: the dashboard shows tomorrow's bookings with a button that opens WhatsApp with the message pre-filled (`src/lib/whatsapp.ts`). Owner taps to send.
 - Don't build automated/unofficial WhatsApp sending — it risks getting the shop's number banned.
+- Whatever the landing page claims about a feature has to be true of the code. The pre-filled message was promised there for two weeks before it existed; the guide, which described the button honestly, was the only thing that caught it.
 
 ## Branding
 - Each shop has its own logo and colors, stored as data and applied with CSS variables.
@@ -88,6 +89,11 @@ para no tener que reconstruirlo leyendo todo.
 - `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
 - `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
+- `src/lib/whatsapp.ts` — el recordatorio ya escrito y el link a `wa.me`. Puro:
+  `hoy` entra como argumento, que es lo que deja probar que el turno de mañana
+  dice "mañana". El mensaje sale escrito solo si todavía sirve de recordatorio;
+  para un turno que ya empezó el chat abre en blanco, porque ahí lo que hay
+  para decir depende de qué pasó.
 - `src/lib/carrito.ts` — elegir productos y contar lo que da. Puro y neutral.
   Vive fuera de `panel/` porque lo usan el ticket, el mostrador y la vidriera
   pública, y la página pública no tiene por qué depender del panel para sumar.
@@ -107,6 +113,10 @@ para no tener que reconstruirlo leyendo todo.
   `crear-barberia` y `sembrar-demo`, a propósito: el alta que le corrés a un
   cliente que paga es exactamente la que se ejercita cada vez que rehacés las
   demos, en vez de una copia parecida que puede haber quedado atrás.
+- `scripts/guia.mts` — envuelve `docs/guia-del-panel.html` en un archivo suelto
+  (`docs/guia-para-mandar.html`) que se le manda a una barbería. La fuente no
+  lleva `<!doctype>` porque está escrita para publicarse como artefacto, y sin
+  eso el navegador la abre en modo quirks.
 - `supabase/migrations/` — el esquema, en SQL versionado y numerado.
 - `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
 

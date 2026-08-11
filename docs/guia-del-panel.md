@@ -145,8 +145,24 @@ en la agenda de papel.
 
 ### Qué podés hacer en cada turno
 
-**WhatsApp** — abre el chat con el cliente, con su número ya puesto. Sirve para
-recordarle el turno del día siguiente.
+**WhatsApp** — abre el chat con el cliente y **el mensaje ya escrito**. Lo leés,
+lo cambiás si querés, y mandás. Sale algo así:
+
+> Hola Martín! Te escribo de Tropi Barbershop para recordarte tu turno mañana a
+> las 15:00 (Corte clásico).
+> ¿Confirmás que venís?
+
+> **Termina en una pregunta a propósito.** Un recordatorio que no espera
+> respuesta no sirve para lo único que importa: enterarte de que no viene
+> mientras todavía podés darle esa hora a otro.
+
+**Nada se manda solo.** El mensaje queda escrito esperándote en WhatsApp y el
+último toque lo das vos. Mandar solo, por afuera de WhatsApp, es la forma más
+rápida de que le bloqueen el número al local.
+
+En un turno que ya empezó, o en uno que marcaste como que no vino, el chat abre
+en blanco. Un recordatorio ahí llega tarde, y lo que haya para decir depende de
+qué pasó.
 
 **No vino** — para el cliente que reservó y no apareció.
 
@@ -636,6 +652,11 @@ El cliente dice que le da igual con quién cortarse, y el reparto lo decide el
 servidor: entre los que están libres a esa hora, le toca **al que menos turnos
 tiene ese día**. Si empatan, manda el orden del equipo. Así el trabajo se
 empareja solo en vez de caerle siempre al primero de la lista.
+
+**¿Puedo cambiar el mensaje de WhatsApp antes de mandarlo?**
+Sí. Se abre escrito en el campo de WhatsApp como si lo hubieras tecleado vos:
+borrás, agregás y mandás cuando querés. Es un punto de partida para no escribir
+lo mismo veinte veces por día, no un texto fijo.
 
 **Un cliente quiere cancelar y no encuentra el mail.**
 Cancelalo vos desde la agenda, o marcalo como que no vino si ya pasó.
