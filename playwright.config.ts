@@ -17,6 +17,17 @@ const SLUG = process.env.E2E_SLUG ?? `e2e-${Date.now().toString(36)}`;
 process.env.E2E_SLUG = SLUG;
 
 /**
+ * El puerto, por si el 3000 está ocupado.
+ *
+ * No es hipotético: acá el 3000 lo tenía otro proyecto y la corrida moría con
+ * "Timed out waiting for webServer", que no dice nada de lo que realmente
+ * pasaba. `E2E_PORT=3010 npm run test:e2e` y listo.
+ *
+ * El puerto no afecta a qué barbería se resuelve: el host se compara sin él.
+ */
+const PUERTO = process.env.E2E_PORT ?? "3000";
+
+/**
  * Las pruebas que abren un navegador de verdad.
  *
  * Todo lo demás que probamos habla con la base y nunca toca un botón. Acá se
@@ -42,7 +53,7 @@ export default defineConfig({
   globalTeardown: "./e2e/limpiar.ts",
 
   use: {
-    baseURL: `http://${SLUG}.lvh.me:3000`,
+    baseURL: `http://${SLUG}.lvh.me:${PUERTO}`,
     // Traza solo cuando algo falla: es lo que deja ver qué pasó sin tener que
     // reproducirlo a mano.
     trace: "retain-on-failure",
@@ -65,12 +76,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npm run dev",
+    command: `npm run dev -- --port ${PUERTO}`,
     // Un archivo estático y no la portada: en `localhost` no hay subdominio, y
     // en producción sin subdominio no hay barbería, así que `/` responde 404 y
     // Playwright creería que el servidor no está listo. El ícono responde
     // siempre, corra en desarrollo o compilado.
-    url: "http://localhost:3000/icon.svg",
+    url: `http://localhost:${PUERTO}/icon.svg`,
     reuseExistingServer: true,
     timeout: 120_000,
   },
