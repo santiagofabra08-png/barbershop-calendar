@@ -49,3 +49,8 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 e2e/.acceso.json
+
+# Videos de referencia. Pesan decenas de MB y no los necesita ni la
+# aplicación ni el despliegue: git guarda cada versión para siempre.
+docs/*.mp4
+docs/*.mov

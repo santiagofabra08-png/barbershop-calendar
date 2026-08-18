@@ -202,11 +202,53 @@ export async function slugLibre(admin: Admin, slug: string): Promise<boolean> {
 }
 
 /**
+ * Todos los archivos que una barbería dejó en Storage.
+ *
+ * Cada bucket guarda una carpeta por barbería, con el id como nombre, y adentro
+ * subcarpetas (`productos`, `logos`). Se listan las dos vueltas y se devuelven
+ * las rutas completas, que es lo que `remove` espera.
+ */
+async function archivosDe(admin: Admin, tenantId: string): Promise<Map<string, string[]>> {
+  const porBucket = new Map<string, string[]>();
+  const { data: buckets } = await admin.storage.listBuckets();
+
+  for (const bucket of buckets ?? []) {
+    const rutas: string[] = [];
+    const { data: raiz } = await admin.storage.from(bucket.name).list(tenantId, { limit: 1000 });
+
+    for (const entrada of raiz ?? []) {
+      // Sin `id` es una carpeta, no un archivo. Storage no lista en profundidad.
+      if (entrada.id) {
+        rutas.push(`${tenantId}/${entrada.name}`);
+        continue;
+      }
+      const { data: dentro } = await admin.storage
+        .from(bucket.name)
+        .list(`${tenantId}/${entrada.name}`, { limit: 1000 });
+      for (const archivo of dentro ?? []) {
+        if (archivo.id) rutas.push(`${tenantId}/${entrada.name}/${archivo.name}`);
+      }
+    }
+
+    if (rutas.length > 0) porBucket.set(bucket.name, rutas);
+  }
+
+  return porBucket;
+}
+
+/**
  * Borra una barbería y todo lo suyo.
  *
  * Las cuentas de `auth` no cuelgan del tenant, así que el borrado en cascada no
  * las alcanza: hay que ir a buscarlas antes de que desaparezca la fila que las
  * nombra.
+ *
+ * Y los archivos de Storage tampoco. Durante meses no los borró nadie: cada
+ * corrida de las pruebas de navegador subía la foto de un producto, la barbería
+ * se borraba al terminar y la foto quedaba en un bucket PÚBLICO para siempre.
+ * Se habían juntado 24 archivos de 15 barberías que ya no existían. Con una
+ * barbería de prueba es basura; con un cliente que se da de baja, son las fotos
+ * de su local siguiendo accesibles con el link.
  */
 export async function borrarBarberia(admin: Admin, slug: string): Promise<void> {
   const { data: tenant } = await admin
@@ -224,6 +266,12 @@ export async function borrarBarberia(admin: Admin, slug: string): Promise<void> 
 
   for (const b of barberos ?? []) {
     if (b.user_id) await admin.auth.admin.deleteUser(b.user_id as string);
+  }
+
+  // Antes de borrar la fila: después no queda de dónde sacar el id.
+  const archivos = await archivosDe(admin, tenant.id as string);
+  for (const [bucket, rutas] of archivos) {
+    await admin.storage.from(bucket).remove(rutas);
   }
 
   await admin.from("tenants").delete().eq("id", tenant.id);

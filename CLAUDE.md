@@ -117,6 +117,8 @@ para no tener que reconstruirlo leyendo todo.
   `crear-barberia` y `sembrar-demo`, a propósito: el alta que le corrés a un
   cliente que paga es exactamente la que se ejercita cada vez que rehacés las
   demos, en vez de una copia parecida que puede haber quedado atrás.
+- `scripts/limpiar-storage.mts` — archivos de Storage que quedaron sin
+  barbería. Mira y cuenta; borra solo con `--borrar`.
 - `scripts/guia.mts` — envuelve `docs/guia-del-panel.html` en un archivo suelto
   (`docs/guia-para-mandar.html`) que se le manda a una barbería. La fuente no
   lleva `<!doctype>` porque está escrita para publicarse como artefacto, y sin
@@ -160,6 +162,13 @@ para no tener que reconstruirlo leyendo todo.
   mismo.** El cierre suma turnos cobrados *y* ventas de mostrador; la pantalla
   de Cobros también. Si una de las dos se olvida de algo, la diferencia aparece
   como plata que sobra y el cierre deja de servir para lo único que sirve.
+- **Borrar una barbería se lleva sus archivos.** Storage no cuelga del tenant,
+  así que el borrado en cascada no lo alcanza: `borrarBarberia` lista y borra
+  las carpetas del bucket antes de borrar la fila, porque después no queda de
+  dónde sacar el id. Durante meses no lo hizo nadie y se juntaron 24 archivos
+  públicos de 15 barberías que ya no existían, uno por cada corrida de las
+  pruebas de navegador. Con una barbería de prueba es basura; con un cliente
+  que se da de baja, son las fotos de su local siguiendo accesibles con el link.
 - **RLS filtra filas, `GRANT` filtra columnas.** Que una fila se pueda ver no
   significa que todas sus columnas se puedan ver. `barbers` es público para
   `anon` —la página muestra quién atiende— y por eso el mail y el teléfono del
@@ -369,6 +378,31 @@ la consulta de la fila del barbero devuelve cero filas **sin error**. Como
 de barbería que veía la aplicación era el de una corrida anterior, así que hay
 una caché sobre `cargarTenant` que conviene entender antes de tocar nada.
 
+## El panel de prueba por visitante, pensado y postergado
+
+La portada deja probar la mitad del cliente; del panel solo muestra capturas.
+La idea era crear una barbería descartable por visitante, sembrada con una
+semana creíble, que se borra sola a las horas. `crearBarberia` y
+`sembrarJornada` ya hacen la mitad difícil.
+
+Se frenó a propósito, y conviene releer esto antes de retomarlo:
+
+- **Cada prueba es una barbería entera**: tenant, barberos, servicios, horarios,
+  medio centenar de turnos y un usuario de `auth` que cuenta para el plan.
+- **Cada prueba es una página pública en el dominio.** El que entra puede
+  cambiar el nombre del local y subir fotos, o sea publicar lo que quiera en una
+  página de `turnosforbarber.com` y pasar el link. Un límite por IP no frena eso:
+  con una vez alcanza.
+- **Apagarla no sirve**: con `is_active = false` la página pública desaparece,
+  pero la única política de lectura de `tenants` exige `is_active` también para
+  quien tiene sesión, así que el panel se rompe igual.
+- **El marcador va en tabla aparte, no en `tenants`.** `tenants` tiene lectura
+  pública para `anon` sin restricción de columnas, así que una columna nueva ahí
+  la lee cualquiera. Iba a llevar el hash de la IP del visitante.
+
+Si se retoma: pedir el mail antes de crear nada, y resolver lo de las fotos
+antes de abrir la puerta.
+
 ## Lo que está a medio camino
 - **Nico** es un barbero de prueba en la base de Tropi.
 - **Barbería Central** y **Studio Norte** son de demostración, creadas por
@@ -426,6 +460,20 @@ que el local descansa: entiende que el producto no anda.
   lista a un competidor y sumar cosas que suenan bien. Es la forma más rápida
   de que alguien pague, no lo encuentre, pida la baja el primer mes y lo
   cuente. Al agregar o sacar una función del producto, tocar esa lista.
+
+**La demo cierra el círculo.** Al reservar ahí adentro, la página del turno le
+manda a la portada —por `postMessage`, con destino explícito y nunca `"*"`— el
+recordatorio que le escribiría el barbero, y la portada lo muestra. Así el
+visitante ve la mitad del cliente y la del barbero con el mismo turno, el que él
+acaba de sacar. El texto sale de `mensajeDeRecordatorio`, la función que usa el
+panel: un ejemplo escrito a mano se vería igual hoy y empezaría a mentir el día
+que el mensaje cambie. Vive en `src/components/aviso-vitrina.tsx`, no dibuja
+nada, y solo habla si está dentro de un iframe.
+
+⚠️ El lado que recibe no tiene prueba automática, y el motivo está escrito en
+`e2e/vitrina.spec.ts`: para que la portada aparezca en desarrollo hay que vaciar
+`DEV_TENANT_SLUG`, y ahí reservar rompe por el bug de caché sobre `cargarTenant`.
+Se verifica a mano contra una compilación de producción.
 
 La demo incrustada se pide con `?vitrina=1`, que **solo esconde la barra de
 scroll**: una barra gris cruzando el teléfono dibujado arruina la ilusión. Nada
