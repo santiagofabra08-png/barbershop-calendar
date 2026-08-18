@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { AVISO_RESERVA } from "@/lib/demo";
 
 /**
  * La barbería de demostración, incrustada y funcionando.
@@ -26,7 +28,53 @@ const MODOS: { id: Modo; texto: string }[] = [
 
 export function Demo({ url, dominio }: { url: string; dominio: string }) {
   const [modo, setModo] = useState<Modo>("celular");
+  const [recordatorio, setRecordatorio] = useState<string | null>(null);
+  const despues = useRef<HTMLDivElement>(null);
   const enCelular = modo === "celular";
+
+  /*
+   * Cuando el visitante reserva ahí adentro, la demo avisa.
+   *
+   * Hasta acá la demo mostraba la mitad que el visitante nunca va a usar: la
+   * del cliente. Lo que está evaluando es la del barbero. Este es el momento
+   * exacto para mostrársela, porque el turno del que hablamos es el que él
+   * mismo acaba de sacar.
+   *
+   * El origen se compara siempre. `window` recibe mensajes de cualquiera, así
+   * que sin este chequeo cualquier pestaña podría dibujarle texto propio a la
+   * página de ventas.
+   */
+  useEffect(() => {
+    let origenDemo: string;
+    try {
+      origenDemo = new URL(url).origin;
+    } catch {
+      return;
+    }
+
+    function alRecibir(e: MessageEvent) {
+      if (e.origin !== origenDemo) return;
+
+      const d = e.data as { tipo?: unknown; mensaje?: unknown } | null;
+      if (!d || d.tipo !== AVISO_RESERVA || typeof d.mensaje !== "string") return;
+
+      setRecordatorio(d.mensaje);
+    }
+
+    window.addEventListener("message", alRecibir);
+    return () => window.removeEventListener("message", alRecibir);
+  }, [url]);
+
+  // Si lo revelado quedó abajo de la pantalla, no sirve de nada. Se acompaña
+  // con un desplazamiento suave y solo en ese caso: mover la página cuando ya
+  // se está viendo es marearlo por nada.
+  useEffect(() => {
+    if (recordatorio === null) return;
+    const caja = despues.current?.getBoundingClientRect();
+    if (caja && caja.top > window.innerHeight - 80) {
+      despues.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [recordatorio]);
 
   return (
     <div>
@@ -88,6 +136,49 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
           />
         </div>
       </div>
+
+      <div ref={despues}>
+        {recordatorio !== null ? <YaEstá mensaje={recordatorio} /> : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Lo que pasa del otro lado del mostrador, con el turno que acaba de sacar.
+ *
+ * El mensaje **no está escrito acá**: lo calculó la barbería con la misma
+ * función que usa el panel de verdad, y viajó desde adentro del iframe.
+ * Escribir un ejemplo a mano se vería igual hoy y empezaría a mentir el día que
+ * el mensaje cambie, sin que nadie se entere.
+ */
+function YaEstá({ mensaje }: { mensaje: string }) {
+  return (
+    <div className="revelado mt-10 border-t border-[color:var(--vidrio)] pt-8">
+      <p className="text-xs font-semibold tracking-[0.18em] text-[color:var(--barbicide)] uppercase">
+        Y del otro lado del mostrador
+      </p>
+
+      <h3 className="mt-3 font-[family-name:var(--font-cartel)] text-2xl leading-tight tracking-tight sm:text-3xl">
+        Ese turno ya está en la agenda del barbero.
+      </h3>
+
+      <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+        No tuvo que anotar nada. Y cuando quiera recordártelo, toca un botón y
+        WhatsApp se le abre con esto ya escrito:
+      </p>
+
+      <div className="burbuja mt-5">
+        {mensaje.split("\n").map((linea, i) => (
+          <p key={i}>{linea}</p>
+        ))}
+      </div>
+
+      <p className="mt-5 max-w-xl text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+        Fijate también en tu correo: la confirmación ya te llegó, con la marca
+        de la barbería y el link para cancelar. Eso es todo lo que hace falta
+        para que un cliente reserve y no falte.
+      </p>
     </div>
   );
 }

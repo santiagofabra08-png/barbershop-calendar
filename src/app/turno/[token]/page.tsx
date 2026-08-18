@@ -3,11 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { cancelar } from "@/app/reservar/actions";
+import { AvisoVitrina } from "@/components/aviso-vitrina";
 import { IconoDescarga } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
-import { formatDuration, formatPrice } from "@/lib/schedule";
+import { origenDeLaPortada } from "@/lib/demo";
+import { formatDuration, formatPrice, nowInTimeZone } from "@/lib/schedule";
+import { mensajeDeRecordatorio } from "@/lib/whatsapp";
 import { createClient } from "@/lib/supabase/server";
 import { cargarBarberia } from "@/lib/tenant/load";
 import { currentTenantSlug } from "@/lib/tenant/resolve";
@@ -75,6 +78,24 @@ export default async function PaginaDelTurno({
   const turno = (filas as Turno[] | null)?.[0];
   if (!turno) notFound();
 
+  /*
+   * El recordatorio que le mandaría el barbero, calculado con la misma función
+   * que usa el panel. No se dibuja acá: viaja a la portada cuando esta página
+   * está incrustada en la demo de la página de ventas.
+   *
+   * Sale de la función de verdad y no de un texto de ejemplo escrito a mano,
+   * que es la diferencia entre mostrar el producto y actuarlo. Si un día el
+   * mensaje cambia, esto cambia solo.
+   */
+  const recordatorio = mensajeDeRecordatorio({
+    barberia: data.tenant.name,
+    cliente: turno.cliente,
+    servicio: turno.servicio,
+    fecha: turno.fecha,
+    hora: turno.hora.slice(0, 5),
+    hoy: nowInTimeZone(data.tenant.timezone).date,
+  });
+
   const [y, m, d] = turno.fecha.split("-").map(Number);
   const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   const cancelado = turno.estado === "cancelled";
@@ -82,6 +103,12 @@ export default async function PaginaDelTurno({
   return (
     <>
       <TenantTheme tenant={data.tenant} />
+      {!cancelado ? (
+        <AvisoVitrina
+          mensaje={recordatorio}
+          destino={origenDeLaPortada(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "")}
+        />
+      ) : null}
       <ShopHeader tenant={data.tenant} compact />
 
       <main className="mx-auto w-full max-w-lg flex-1 px-5 pt-10 pb-16 sm:px-8">

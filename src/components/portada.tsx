@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Demo } from "./portada-demo";
 import { Funciones } from "./portada-funciones";
 import { Registro } from "./portada-registro";
-import { SLUG_DEMO } from "@/lib/demo";
+import { SLUG_DEMO, protocoloDe } from "@/lib/demo";
 import "../app/portada.css";
 
 /**
@@ -251,14 +251,10 @@ export function Portada() {
   const contacto = destinoDeContacto();
   const precio = precioMensual();
 
-  // El protocolo se deduce del dominio: en desarrollo la demo vive en
-  // `demo.lvh.me:3000`, que no tiene certificado.
+  // El protocolo lo decide `protocoloDe`, que ahora también necesita la
+  // página del turno para saber a qué origen puede hablarle.
   const dominioCompleto = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "";
-  const protocolo = dominioCompleto.includes("localhost") ||
-    dominioCompleto.includes("lvh.me")
-    ? "http"
-    : "https";
-  const urlDemo = `${protocolo}://${SLUG_DEMO}.${dominioCompleto}`;
+  const urlDemo = `${protocoloDe(dominioCompleto)}://${SLUG_DEMO}.${dominioCompleto}`;
 
   return (
     <div className={`portada ${cartel.variable} flex min-h-full flex-col`}>

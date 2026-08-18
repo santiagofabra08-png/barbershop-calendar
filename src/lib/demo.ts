@@ -29,3 +29,36 @@ export const SLUG_DEMO = "demo";
  */
 export const REGLA_DE_LIMPIEZA =
   "Borra todos los turnos de la demo. Siempre filtrando por tenant_id.";
+
+/**
+ * El protocolo que le corresponde al dominio raíz.
+ *
+ * En desarrollo la demo vive en `demo.lvh.me:3000`, que no tiene certificado.
+ * Vivía escrito adentro de la portada, y ahora lo necesita también la página
+ * del turno para saber a qué origen puede hablarle. Dos copias de esta regla
+ * es una copia de más.
+ */
+export function protocoloDe(dominioRaiz: string): string {
+  return dominioRaiz.includes("localhost") || dominioRaiz.includes("lvh.me")
+    ? "http"
+    : "https";
+}
+
+/**
+ * El origen de la portada: `https://turnosforbarber.com`.
+ *
+ * Se usa como destino de `postMessage` cuando la demo le avisa a la página de
+ * ventas que alguien reservó. **Nunca `"*"`**: con comodín, el mensaje se lo
+ * lleva cualquier sitio que decida incrustar la demo en un iframe. Acá no viaja
+ * nada secreto, pero un destino abierto es una costumbre que después se copia a
+ * un lugar donde sí importa.
+ *
+ * Devuelve null sin dominio configurado, y entonces no se avisa nada.
+ */
+export function origenDeLaPortada(dominioRaiz: string): string | null {
+  if (dominioRaiz === "") return null;
+  return `${protocoloDe(dominioRaiz)}://${dominioRaiz}`;
+}
+
+/** El tipo de mensaje que la demo le manda a la portada. */
+export const AVISO_RESERVA = "turno-reservado-en-la-demo";

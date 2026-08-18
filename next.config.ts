@@ -20,7 +20,11 @@ const origenesDeDesarrollo = (
   // el mismo camino que usa producción —el subdominio— y no por la salida de
   // emergencia de `DEV_TENANT_SLUG`.
   process.env.DEV_ALLOWED_ORIGINS ??
-  "192.168.*.*,10.*.*.*,172.16.*.*,*.local,*.lvh.me"
+  // `lvh.me` pelado va aparte de `*.lvh.me`: el comodín no cubre el dominio
+  // sin subdominio, y ahí vive la portada. Sin esto, la portada se dibujaba
+  // pero no hidrataba —el conmutador celular/computadora no respondía— y en
+  // desarrollo parecía un bug de la página.
+  "192.168.*.*,10.*.*.*,172.16.*.*,*.local,lvh.me,*.lvh.me"
 )
   .split(",")
   .map((o) => o.trim())

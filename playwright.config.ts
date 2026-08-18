@@ -77,6 +77,14 @@ export default defineConfig({
 
   webServer: {
     command: `npm run dev -- --port ${PUERTO}`,
+    /*
+     * El dominio raíz tiene que traer el puerto real de la corrida.
+     * `slugFromHost` lo ignora para resolver la barbería, pero el aviso que la
+     * demo le manda a la portada viaja con un origen exacto —puerto incluido—,
+     * y con el puerto de `.env.local` el navegador descarta el mensaje sin
+     * decir nada. Lo destapó la prueba de la vitrina.
+     */
+    env: { NEXT_PUBLIC_ROOT_DOMAIN: `lvh.me:${PUERTO}` },
     // Un archivo estático y no la portada: en `localhost` no hay subdominio, y
     // en producción sin subdominio no hay barbería, así que `/` responde 404 y
     // Playwright creería que el servidor no está listo. El ícono responde

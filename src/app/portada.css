@@ -538,3 +538,51 @@
 .portada .sobre-azul:focus-visible {
   outline-color: var(--tiza);
 }
+
+/* ---- Lo que se revela después de reservar en la demo -------------------- */
+/*
+  Aparece por JavaScript, cuando la demo avisa que alguien reservó, así que acá
+  sí se puede animar la opacidad: si el navegador no soporta la animación, el
+  bloque queda visible igual. Es distinto de las secciones que entran con
+  `animation-timeline: view()`, donde un soporte a medias deja la página en
+  blanco y por eso ahí solo se mueve el desplazamiento.
+*/
+.revelado {
+  animation: revelar 0.45s ease-out both;
+}
+
+@keyframes revelar {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revelado {
+    animation: none;
+  }
+}
+
+/*
+  El mensaje se dibuja como lo que es, un WhatsApp. La esquina de abajo a la
+  izquierda sin redondear es lo que lo hace leer como burbuja y no como una
+  caja de texto más: es la forma que todo el mundo reconoce sin que se la
+  expliquen, y acá el punto entero es que se entienda sin explicación.
+*/
+.burbuja {
+  max-width: 34rem;
+  background: color-mix(in oklab, var(--barbicide) 8%, var(--tiza));
+  border: 1px solid color-mix(in oklab, var(--barbicide) 18%, transparent);
+  border-radius: 14px 14px 14px 3px;
+  padding: 0.9rem 1.15rem;
+  line-height: 1.55;
+}
+
+.burbuja p + p {
+  margin-top: 0.35rem;
+}

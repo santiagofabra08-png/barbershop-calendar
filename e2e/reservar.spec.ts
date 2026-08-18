@@ -34,7 +34,13 @@ test("un cliente reserva, ve su turno y lo cancela", async ({ page }) => {
   await expect(dias.first()).toBeVisible();
 
   // ---- ④ Hora -------------------------------------------------------------
-  const horas = page.getByRole("button", { name: /^\d{2}:\d{2}$/ });
+  // El primero que esté LIBRE, no el primero de la lista: los horarios ya
+  // tomados se siguen dibujando, tachados y deshabilitados. Mientras esta era
+  // la única prueba que reservaba, `first()` a secas alcanzaba; en cuanto otra
+  // reservó antes, se quedaba esperando un click imposible.
+  const horas = page
+    .locator("button:not([disabled])")
+    .filter({ hasText: /^\d{2}:\d{2}$/ });
   await expect(horas.first()).toBeVisible();
 
   const hora = (await horas.first().textContent())?.trim() ?? "";
