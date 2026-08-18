@@ -433,8 +433,17 @@ export function Portada() {
               un cliente tuyo. Y cambiá de aparato para ver cómo se acomoda
               sola.
             </p>
+            {/*
+              Que el mail llega ya era verdad: la demo es una barbería más y la
+              reserva dispara la confirmación como en cualquier otra. Lo que no
+              estaba era dicho, y una función que nadie sabe que existe no
+              existe. Es la forma más barata que hay de que el visitante vea el
+              producto funcionando en su propia bandeja de entrada.
+            */}
             <p className="mt-4 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-              Se vacía todos los días, así que reservá tranquilo.
+              Poné tu mail de verdad: te va a llegar la confirmación, la misma
+              que va a recibir tu cliente. Se vacía todos los días, así que
+              reservá tranquilo.
             </p>
           </div>
 
