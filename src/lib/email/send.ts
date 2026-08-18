@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 
+import { remitenteDe } from "@/lib/email/remitente";
 import type { Tenant } from "@/lib/tenant/types";
 
 /**
@@ -130,7 +131,10 @@ export async function enviarConfirmacion(
 
   try {
     const { error } = await new Resend(apiKey).emails.send({
-      from,
+      // El nombre lo pone la barbería, no el entorno: en la bandeja de entrada
+      // el remitente es casi lo único que se lee antes de abrir, y ahí tiene
+      // que decir el local donde el cliente reservó.
+      from: remitenteDe(d.tenant.name, from),
       to: d.para,
       subject: `Tu turno en ${d.tenant.name} — ${d.cuando}`,
       html: armarHtml(d),

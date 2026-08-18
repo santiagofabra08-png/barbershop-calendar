@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 
+import { remitenteDe } from "@/lib/email/remitente";
 import { formatPrice } from "@/lib/schedule";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Tenant } from "@/lib/tenant/types";
@@ -176,7 +177,9 @@ export async function avisarDelPedido(
 
   try {
     const { error } = await new Resend(apiKey).emails.send({
-      from,
+      // Firma la barbería, no el entorno: si el dueño tiene dos locales, el
+      // remitente es lo que le dice de cuál le acaban de pedir algo.
+      from: remitenteDe(d.tenant.name, from),
       to: para,
       subject: `Pedido nuevo de ${d.cliente} — ${d.tenant.name}`,
       // Contesta al cliente si tiene mail. Es el gesto obvio al leer el aviso.
