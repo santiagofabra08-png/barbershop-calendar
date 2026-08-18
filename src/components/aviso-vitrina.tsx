@@ -26,19 +26,25 @@ import { AVISO_RESERVA } from "@/lib/demo";
  */
 export function AvisoVitrina({
   mensaje,
-  destino,
+  destinos,
 }: {
   /** El recordatorio ya escrito, tal como se lo mandaría el barbero. */
   mensaje: string;
-  /** Origen de la portada. Sin él no se avisa. */
-  destino: string | null;
+  /** Orígenes donde puede estar la portada. Vacío: no se avisa. */
+  destinos: string[];
 }) {
+  // Se manda a los dos posibles —con y sin `www`— porque el que no coincide no
+  // entrega y no hace ruido. Ver `origenesDeLaPortada`.
+  const aDonde = destinos.join(" ");
+
   useEffect(() => {
-    if (!destino) return;
+    if (aDonde === "") return;
     if (window.parent === window) return;
 
-    window.parent.postMessage({ tipo: AVISO_RESERVA, mensaje }, destino);
-  }, [mensaje, destino]);
+    for (const destino of aDonde.split(" ")) {
+      window.parent.postMessage({ tipo: AVISO_RESERVA, mensaje }, destino);
+    }
+  }, [mensaje, aDonde]);
 
   return null;
 }

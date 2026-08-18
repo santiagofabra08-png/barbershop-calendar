@@ -8,7 +8,7 @@ import { IconoDescarga } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
-import { origenDeLaPortada } from "@/lib/demo";
+import { origenesDeLaPortada } from "@/lib/demo";
 import { formatDuration, formatPrice, nowInTimeZone } from "@/lib/schedule";
 import { mensajeDeRecordatorio } from "@/lib/whatsapp";
 import { createClient } from "@/lib/supabase/server";
@@ -106,7 +106,7 @@ export default async function PaginaDelTurno({
       {!cancelado ? (
         <AvisoVitrina
           mensaje={recordatorio}
-          destino={origenDeLaPortada(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "")}
+          destinos={origenesDeLaPortada(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "")}
         />
       ) : null}
       <ShopHeader tenant={data.tenant} compact />

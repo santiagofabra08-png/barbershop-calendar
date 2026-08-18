@@ -45,19 +45,31 @@ export function protocoloDe(dominioRaiz: string): string {
 }
 
 /**
- * El origen de la portada: `https://turnosforbarber.com`.
+ * Los orígenes donde puede estar viviendo la portada.
  *
- * Se usa como destino de `postMessage` cuando la demo le avisa a la página de
- * ventas que alguien reservó. **Nunca `"*"`**: con comodín, el mensaje se lo
- * lleva cualquier sitio que decida incrustar la demo en un iframe. Acá no viaja
- * nada secreto, pero un destino abierto es una costumbre que después se copia a
- * un lugar donde sí importa.
+ * Son dos y no uno, y eso lo enseñó producción: el dominio pelado redirige a
+ * `www`, así que la página de ventas se sirve en `https://www.dominio` mientras
+ * la variable de entorno dice `dominio` a secas. Como `postMessage` compara el
+ * origen entero, el mensaje salía a un destino que no existía y **el navegador
+ * lo descartaba sin decir nada**: ni un error, ni una advertencia, nada.
  *
- * Devuelve null sin dominio configurado, y entonces no se avisa nada.
+ * Se mandan los dos. Un `postMessage` a un origen que no coincide no entrega y
+ * no hace ruido, así que el que sobra no molesta y el que sirve llega. Es la
+ * misma indulgencia que ya tiene `slugFromHost`, que trata `www.dominio` y
+ * `dominio` como la misma cosa: la portada.
+ *
+ * **Nunca `"*"`.** Acá no viaja nada secreto, pero un destino abierto es una
+ * costumbre que después se copia a un lugar donde sí importa.
+ *
+ * Vacío sin dominio configurado, y entonces no se avisa nada.
  */
-export function origenDeLaPortada(dominioRaiz: string): string | null {
-  if (dominioRaiz === "") return null;
-  return `${protocoloDe(dominioRaiz)}://${dominioRaiz}`;
+export function origenesDeLaPortada(dominioRaiz: string): string[] {
+  if (dominioRaiz === "") return [];
+  const protocolo = protocoloDe(dominioRaiz);
+  return [
+    `${protocolo}://${dominioRaiz}`,
+    `${protocolo}://www.${dominioRaiz}`,
+  ];
 }
 
 /** El tipo de mensaje que la demo le manda a la portada. */
