@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { OtroLado } from "@/components/otro-lado";
 import { AVISO_RESERVA } from "@/lib/demo";
 
 /**
@@ -145,40 +146,17 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
 }
 
 /**
- * Lo que pasa del otro lado del mostrador, con el turno que acaba de sacar.
+ * El envoltorio de la portada para el bloque compartido.
  *
- * El mensaje **no está escrito acá**: lo calculó la barbería con la misma
- * función que usa el panel de verdad, y viajó desde adentro del iframe.
- * Escribir un ejemplo a mano se vería igual hoy y empezaría a mentir el día que
- * el mensaje cambie, sin que nadie se entere.
+ * Acá aparece por JavaScript, cuando la demo avisa que alguien reservó, así
+ * que entra con `.revelado`: es un momento y se lee como tal. En la página
+ * del turno de la demo el mismo bloque está desde el principio y no se anima,
+ * porque ahí no pasó nada, ya estaba.
  */
 function YaEstá({ mensaje }: { mensaje: string }) {
   return (
     <div className="revelado mt-10 border-t border-[color:var(--vidrio)] pt-8">
-      <p className="text-xs font-semibold tracking-[0.18em] text-[color:var(--barbicide)] uppercase">
-        Y del otro lado del mostrador
-      </p>
-
-      <h3 className="mt-3 font-[family-name:var(--font-cartel)] text-2xl leading-tight tracking-tight sm:text-3xl">
-        Ese turno ya está en la agenda del barbero.
-      </h3>
-
-      <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-        No tuvo que anotar nada. Y cuando quiera recordártelo, toca un botón y
-        WhatsApp se le abre con esto ya escrito:
-      </p>
-
-      <div className="burbuja mt-5">
-        {mensaje.split("\n").map((linea, i) => (
-          <p key={i}>{linea}</p>
-        ))}
-      </div>
-
-      <p className="mt-5 max-w-xl text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-        Fijate también en tu correo: la confirmación ya te llegó, con la marca
-        de la barbería y el link para cancelar. Eso es todo lo que hace falta
-        para que un cliente reserve y no falte.
-      </p>
+      <OtroLado mensaje={mensaje} />
     </div>
   );
 }

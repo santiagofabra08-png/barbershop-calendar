@@ -374,9 +374,36 @@ foto), no es de desarrollo (pasa compilado) y no se pierde la cookie de sesión
 
 Dónde está: en ese render, `sesionDelPanel()` encuentra usuario y barbería pero
 la consulta de la fila del barbero devuelve cero filas **sin error**. Como
-`/panel/…` manda a `/entrar` cuando no hay sesión, ahí nace el rebote. Y el id
-de barbería que veía la aplicación era el de una corrida anterior, así que hay
-una caché sobre `cargarTenant` que conviene entender antes de tocar nada.
+`/panel/…` manda a `/entrar` cuando no hay sesión, ahí nace el rebote.
+
+### La pista buena: el host se pierde en el redirect (en local)
+
+Se creía que había una caché sobre `cargarTenant` devolviendo el id de una
+corrida anterior. **No es una caché.** Lo que pasa es esto, y está reproducido:
+
+Corriendo en local, el render que sigue a un `redirect()` de una Server Action llega
+con **`host: localhost:<puerto>`** en vez del host real. Como `slugFromHost` no
+encuentra subdominio en `localhost`, `currentTenantSlug()` cae en la salida de
+emergencia y devuelve **`DEV_TENANT_SLUG`**: otra barbería. Recargando esa misma
+URL a mano vuelve el host de verdad y todo anda.
+
+Se ve entero reservando en la demo con `npm run dev`: la confirmación aparece
+con la marca de Tropi, y al recargar aparece con la de Barbería Modelo.
+
+Explica los dos `test.fixme` de una: en el panel, la barbería equivocada es
+justo lo que hace que la fila del barbero devuelva cero filas; y en la vitrina,
+con `DEV_TENANT_SLUG` vacío no hay a qué caer y la página del turno responde 404.
+
+**En producción no pasa**, y está verificado reservando en
+`demo.turnosforbarber.com`: ahí el host llega bien y la confirmación sale con la
+barbería correcta. Por eso esto tapa pruebas y no le pasa a nadie. Es la misma
+familia que lo de `/entrar/confirmar`, donde Next normalizaba `request.url` al
+origen interno.
+
+Está reproducido con `next dev`. Que `panel-foto` lo viera también con la
+aplicación compilada no lo contradice: compilada o no, en local el servidor
+igual escucha en `localhost` y el host que se pierde es el mismo. Lo que separa
+los dos mundos no es el modo sino el dominio.
 
 ## El panel de prueba por visitante, pensado y postergado
 
@@ -470,16 +497,41 @@ panel: un ejemplo escrito a mano se vería igual hoy y empezaría a mentir el d�
 que el mensaje cambie. Vive en `src/components/aviso-vitrina.tsx`, no dibuja
 nada, y solo habla si está dentro de un iframe.
 
+**Y también se cierra entrando derecho a la demo**, que es como se comparte el
+link la mayoría de las veces. Ahí la página del turno dibuja el mismo bloque al
+pie, en una franja con la paleta del producto (`src/components/franja-demo.tsx`).
+Cuatro cosas que conviene no revertir sin pensarlo:
+
+- **El bloque es uno solo** (`src/components/otro-lado.tsx`) y lo usan los dos
+  lados. Escrito dos veces, un día dirían cosas distintas.
+- ⚠️ **Solo la barbería demo**, comparando el slug contra `SLUG_DEMO`. La página
+  del turno es la misma para todas: sin ese `===`, un cliente de un local que
+  paga abre su confirmación y encuentra material de ventas nuestro adentro.
+- **Adentro de la portada no se dibuja.** Ahí la demo va incrustada y la portada
+  ya muestra el bloque afuera del teléfono, donde se lee. La señal es la misma
+  que usa `AvisoVitrina`, invertida: aquel habla si está dentro de un iframe,
+  este dibuja si no lo está. No se puede decidir en el servidor porque al turno
+  se llega navegando y el `?vitrina=1` del iframe queda en la página anterior.
+- **La separación la hace el fondo, no un borde.** Una barbería puede tener
+  cualquier color; el corte de superficie es lo único que se lee igual arriba de
+  un local cálido que de uno oscuro. La paleta del producto vive en
+  `src/app/producto.css` —salió de `portada.css` cuando dejó de usarla solo la
+  portada— y el título cae en la tipografía de siempre cuando la Archivo Black
+  no está cargada, que es a propósito: esa fuente solo viaja en la portada, para
+  que las páginas de las barberías no la paguen por veinte palabras.
+
 ⚠️ El lado que recibe no tiene prueba automática, y el motivo está escrito en
 `e2e/vitrina.spec.ts`: para que la portada aparezca en desarrollo hay que vaciar
-`DEV_TENANT_SLUG`, y ahí reservar rompe por el bug de caché sobre `cargarTenant`.
-Se verifica a mano contra una compilación de producción.
+`DEV_TENANT_SLUG`, y ahí reservar rompe porque el redirect de la Server Action
+pierde el host (ver "la pista buena"). Se verifica a mano contra una compilación
+de producción.
 
 ### Lo que sigue: la secuencia explicativa (decidido, sin construir)
 
-El revelado de hoy —un título y la burbuja— alcanza para el que ya entendió,
-pero no explica el mecanismo. Falta mostrar la cadena: **el cliente elige la
-hora → le aparece al barbero en la agenda → un toque y sale el mensaje.**
+Lo que hay hoy —un título y la burbuja, de los dos lados— alcanza para el que ya
+entendió, pero no explica el mecanismo. Falta mostrar la cadena: **el cliente
+elige la hora → le aparece al barbero en la agenda → un toque y sale el
+mensaje.**
 
 Decisiones tomadas:
 
@@ -488,14 +540,12 @@ Decisiones tomadas:
   mentiría el día que cambie una pantalla.
 - **El último paso lleva el turno de la persona**, con su nombre y su hora. Lo
   genérico explica el mecanismo; lo personalizado lo hace suyo.
-- **Se ve también entrando derecho a la demo**, no solo dentro de la portada,
-  porque ese link se comparte en frío. Ahí va **siempre visible**, sin tener que
-  reservar primero.
+- **En la demo va siempre visible**, sin tener que reservar primero, porque ese
+  link se comparte en frío y quien lo abre puede no reservar nunca.
 - **Va claramente separado del producto**, después del final de la página, para
-  que se lea como un agregado explicativo y no como parte de la barbería.
-- ⚠️ **Limitado a la barbería demo.** La página del turno es la misma para
-  todas: sin esa condición, un cliente de un local que paga vería material de
-  ventas en su confirmación.
+  que se lea como un agregado explicativo y no como parte de la barbería. La
+  franja de hoy ya es ese lugar: la secuencia entra ahí adentro.
+- ⚠️ **Limitado a la barbería demo**, por lo mismo que la franja.
 - Hay que **volver a correr `capturas`**: la captura de la agenda es anterior al
   botón **Recordar** y no lo muestra.
 

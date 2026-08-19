@@ -117,12 +117,16 @@ test("carga un producto con una foto rectangular y la recorta", async ({ page })
  *     consulta de la fila del barbero devuelve cero filas SIN error. Como
  *     `/panel/…` redirige a `/entrar` cuando no hay sesión, ahí nace el rebote.
  *   · Con el subdominio fijo, el id de barbería que veía la aplicación era el
- *     de la corrida ANTERIOR —o sea, hay una capa de caché sobre esa búsqueda—.
- *     Un slug distinto por corrida mejoró las cosas pero no lo eliminó.
+ *     de la corrida ANTERIOR. Se leyó como una caché sobre esa búsqueda; un
+ *     slug distinto por corrida mejoró las cosas pero no lo eliminó.
  *
- * Por dónde seguir: mirar qué pasa con la caché de `cargarTenant` durante una
- * acción de servidor, y si el proxy que refresca la sesión interfiere con la
- * respuesta de la acción.
+ * Por dónde seguir, y es una pista nueva: NO parece una caché. En local, el
+ * render que sigue a un `redirect()` de una acción de servidor llega con
+ * `host: localhost` en vez del host real, así que `currentTenantSlug()` no
+ * encuentra subdominio y cae en `DEV_TENANT_SLUG`: otra barbería. Con la
+ * barbería equivocada, la fila del barbero devuelve cero filas sin error, que
+ * es exactamente lo que se ve acá. Está reproducido reservando en la demo y
+ * anotado en CLAUDE.md, en "el host se pierde en el redirect".
  */
 test.fixme("después de guardar queda en la lista de productos", async ({ page }) => {
   await page.goto("/panel/productos/nuevo");

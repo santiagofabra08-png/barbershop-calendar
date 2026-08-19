@@ -1,0 +1,121 @@
+/*
+  La identidad del producto, separada de la de cualquier barbería.
+
+  Todo lo demás en esta aplicación se pinta con los colores de un local:
+  `--tenant-*` llega como dato y las clases de Tailwind lo consumen sin saber
+  de qué color se trata. Esto es lo contrario: la cara de Turnos for Barber,
+  que tiene que verse distinta a la de cualquier cliente.
+
+  Vive en su propio archivo, y no adentro de `portada.css`, porque ya no lo usa
+  solo la portada. La página del turno de la barbería demo también muestra un
+  bloque nuestro, y ese bloque tiene que ser el mismo de los dos lados. Escribir
+  la paleta dos veces es garantizar que un día digan cosas distintas.
+
+  La paleta sale de los materiales del local, no de una plantilla: el azulejo y
+  el talco, el esmalte de un sillón viejo, y el azul del frasco de desinfectante
+  que hay en el mostrador de toda barbería del mundo.
+*/
+.paleta-producto {
+  --porcelana: #eef0f6;
+  --esmalte: #101426;
+  --barbicide: #2e3ab0;
+  --barbicide-claro: #6470d8;
+  --vidrio: #c7cde0;
+  --tiza: #ffffff;
+}
+
+/*
+  ---- El mensaje que le mandaría el barbero ---------------------------------
+
+  Se dibuja como lo que es, un WhatsApp. La esquina de abajo a la izquierda sin
+  redondear es lo que lo hace leer como burbuja y no como una caja de texto
+  más: es la forma que todo el mundo reconoce sin que se la expliquen, y acá el
+  punto entero es que se entienda sin explicación.
+*/
+.burbuja {
+  max-width: 34rem;
+  background: color-mix(in oklab, var(--barbicide) 8%, var(--tiza));
+  border: 1px solid color-mix(in oklab, var(--barbicide) 18%, transparent);
+  border-radius: 14px 14px 14px 3px;
+  padding: 0.9rem 1.15rem;
+  line-height: 1.55;
+}
+
+.burbuja p + p {
+  margin-top: 0.35rem;
+}
+
+/*
+  ---- El bloque explicativo dentro de una barbería --------------------------
+
+  Solo la barbería demo. Ahí abajo del final de la página aparece esto, que no
+  es del local: es el producto hablando. Y tiene que leerse así, porque el link
+  de la demo se comparte en frío y quien lo abre no tiene forma de saber que la
+  barbería no existe.
+
+  Todo el trabajo de separación lo hace el fondo. Una barbería puede tener
+  cualquier color, así que el bloque pinta el suyo entero en vez de confiar en
+  un borde: el corte de superficie es lo único que se lee igual arriba de un
+  local cálido que de uno oscuro.
+
+  El borde de arriba queda igual, para el caso en que una barbería tenga un
+  fondo parecido a la porcelana y las dos superficies se toquen sin costura.
+*/
+.franja-producto {
+  background-color: var(--porcelana);
+  border-top: 1px solid var(--vidrio);
+  color: var(--esmalte);
+}
+
+/*
+  Todo lo que se toca se hunde un poco. En un teléfono no hay `hover`, así que
+  sin esto un botón no da ninguna señal de haber recibido el toque, y la gente
+  vuelve a tocar creyendo que no anduvo. Es la misma regla que la portada
+  aplica sobre sí misma.
+*/
+.franja-producto :where(button, a[href]) {
+  transition-property: background-color, color, transform, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.franja-producto :where(button, a[href]):active {
+  transform: scale(0.985);
+}
+
+/*
+  El foco de `globals.css` se dibuja con `--tenant-ink`, que acá es el color de
+  la barbería y no tiene por qué contrastar contra la porcelana. Sobre nuestra
+  franja se dibuja con el nuestro.
+*/
+.franja-producto :where(a, button, [tabindex]):focus-visible {
+  outline-color: var(--esmalte);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .franja-producto :where(button, a[href]):active {
+    transform: none;
+  }
+}
+
+/*
+  El título de lo que decimos nosotros.
+
+  Se pone en la tipografía de cartel de la portada cuando esa tipografía está
+  cargada, y en la de siempre cuando no. Es a propósito y no un descuido: la
+  Archivo Black solo viaja en la portada, para que las páginas de las barberías
+  no paguen una fuente que usan en un bloque de veinte palabras. Acá abajo del
+  turno, con la superficie ya cambiada de color, la voz distinta se lee igual.
+
+  El peso va aparte porque la Archivo Black ya viene negra: pedirle 600 haría
+  que el navegador la engorde por su cuenta y queda sucia.
+*/
+.titulo-producto {
+  font-family: var(--font-cartel, var(--font-body));
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.portada .titulo-producto {
+  font-weight: 400;
+}

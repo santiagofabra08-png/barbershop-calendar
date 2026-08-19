@@ -115,8 +115,10 @@ test("fuera de un iframe no le habla a nadie", async ({ page }) => {
  * Al vaciar esa variable la portada aparece, pero entonces reservar rompe:
  * después del redirect la aplicación no resuelve la barbería y la página del
  * turno responde "acá no hay nada", aunque el mismo link pedido por HTTP
- * devuelve el turno bien. Es el bug de caché sobre `cargarTenant` que ya está
- * anotado como abierto, y arreglarlo es otra tarea.
+ * devuelve el turno bien. El motivo está en CLAUDE.md, en "el host se pierde en
+ * el redirect": en local, el render que sigue a un `redirect()` de una acción
+ * de servidor llega con `host: localhost`, así que no hay subdominio del que
+ * sacar la barbería. Arreglarlo es otra tarea.
  *
  * Mientras tanto el receptor se verifica contra una compilación de producción
  * servida a mano, que es donde sí hidrata. Quedó comprobado que muestra el

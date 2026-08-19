@@ -5,6 +5,7 @@ import { Demo } from "./portada-demo";
 import { Funciones } from "./portada-funciones";
 import { Registro } from "./portada-registro";
 import { SLUG_DEMO, protocoloDe } from "@/lib/demo";
+import "../app/producto.css";
 import "../app/portada.css";
 
 /**
@@ -257,7 +258,9 @@ export function Portada() {
   const urlDemo = `${protocoloDe(dominioCompleto)}://${SLUG_DEMO}.${dominioCompleto}`;
 
   return (
-    <div className={`portada ${cartel.variable} flex min-h-full flex-col`}>
+    <div
+      className={`portada paleta-producto ${cartel.variable} flex min-h-full flex-col`}
+    >
       {/* ---- Encabezado ---------------------------------------------- */}
       {/*
         Se queda arriba al bajar. En una página larga, el botón de arrancar la

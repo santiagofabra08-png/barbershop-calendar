@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 
 import { cancelar } from "@/app/reservar/actions";
 import { AvisoVitrina } from "@/components/aviso-vitrina";
+import { FranjaDemo } from "@/components/franja-demo";
 import { IconoDescarga } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
 import { TenantTheme } from "@/components/tenant-theme";
-import { origenesDeLaPortada } from "@/lib/demo";
+import { SLUG_DEMO, origenesDeLaPortada, urlDeLaPortada } from "@/lib/demo";
 import { formatDuration, formatPrice, nowInTimeZone } from "@/lib/schedule";
 import { mensajeDeRecordatorio } from "@/lib/whatsapp";
 import { createClient } from "@/lib/supabase/server";
@@ -80,8 +81,14 @@ export default async function PaginaDelTurno({
 
   /*
    * El recordatorio que le mandaría el barbero, calculado con la misma función
-   * que usa el panel. No se dibuja acá: viaja a la portada cuando esta página
-   * está incrustada en la demo de la página de ventas.
+   * que usa el panel.
+   *
+   * Tiene dos destinos, y ninguno es la barbería:
+   *
+   *   · Viaja a la portada cuando esta página está incrustada en la demo de la
+   *     página de ventas, y la portada lo muestra afuera del teléfono.
+   *   · Se dibuja acá abajo cuando la barbería es la demo y la página se abrió
+   *     suelta, que es como se comparte el link.
    *
    * Sale de la función de verdad y no de un texto de ejemplo escrito a mano,
    * que es la diferencia entre mostrar el producto y actuarlo. Si un día el
@@ -100,14 +107,19 @@ export default async function PaginaDelTurno({
   const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   const cancelado = turno.estado === "cancelled";
 
+  /*
+   * La franja explicativa es solo de la barbería demo. Esta página la comparten
+   * todas: sin este `===`, un cliente de un local que paga abriría su
+   * confirmación y encontraría material de ventas nuestro adentro.
+   */
+  const esLaDemo = slug === SLUG_DEMO;
+  const raiz = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "";
+
   return (
     <>
       <TenantTheme tenant={data.tenant} />
       {!cancelado ? (
-        <AvisoVitrina
-          mensaje={recordatorio}
-          destinos={origenesDeLaPortada(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "")}
-        />
+        <AvisoVitrina mensaje={recordatorio} destinos={origenesDeLaPortada(raiz)} />
       ) : null}
       <ShopHeader tenant={data.tenant} compact />
 
@@ -212,6 +224,14 @@ export default async function PaginaDelTurno({
       </main>
 
       <ShopFooter tenant={data.tenant} workingHours={data.workingHours} />
+
+      {esLaDemo && !cancelado ? (
+        <FranjaDemo
+          mensaje={recordatorio}
+          barberia={data.tenant.name}
+          urlPortada={urlDeLaPortada(raiz)}
+        />
+      ) : null}
     </>
   );
 }

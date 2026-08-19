@@ -74,3 +74,24 @@ export function origenesDeLaPortada(dominioRaiz: string): string[] {
 
 /** El tipo de mensaje que la demo le manda a la portada. */
 export const AVISO_RESERVA = "turno-reservado-en-la-demo";
+
+/**
+ * La portada del producto, para linkear desde adentro de la demo.
+ *
+ * Se arma del dominio raíz y no se escribe a mano, por lo mismo que el slug
+ * vive acá: en desarrollo la portada está en `http://lvh.me:3000` y en
+ * producción en `https://turnosforbarber.com`, y un link fijo manda a la
+ * persona a un lugar que no existe en la mitad de los casos.
+ *
+ * Va al dominio pelado a propósito, aunque en producción redirija a `www`: es
+ * la dirección que se dice en voz alta. La redirección la resuelve el
+ * navegador sin que nadie la vea. `origenesDeLaPortada` es distinto, y por eso
+ * son dos funciones: aquello compara orígenes exactos, donde el `www` decide
+ * si el mensaje llega o se descarta en silencio.
+ *
+ * Vacío sin dominio configurado, y entonces no se ofrece el link.
+ */
+export function urlDeLaPortada(dominioRaiz: string): string {
+  if (dominioRaiz === "") return "";
+  return `${protocoloDe(dominioRaiz)}://${dominioRaiz}`;
+}

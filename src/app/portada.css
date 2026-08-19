@@ -11,18 +11,11 @@
   sistema de las barberías, y esto es lo contrario. Mezclarlos invitaría a que
   alguien use un color de acá en una pantalla de allá.
 
-  La paleta sale de los materiales del local, no de una plantilla:
-  el azulejo y el talco, el esmalte de un sillón viejo, y el azul del frasco
-  de desinfectante que hay en el mostrador de toda barbería del mundo.
+  La paleta no está acá sino en `producto.css`, porque ya no la usa solo esta
+  página: la franja explicativa que aparece dentro de la barbería demo también
+  es nuestra y tiene que salir del mismo lugar.
 */
 .portada {
-  --porcelana: #eef0f6;
-  --esmalte: #101426;
-  --barbicide: #2e3ab0;
-  --barbicide-claro: #6470d8;
-  --vidrio: #c7cde0;
-  --tiza: #ffffff;
-
   /*
     El poste de barbero ya existe en `globals.css` y se pinta con las variables
     del local. Acá no hay local, así que se las damos: el mismo objeto, con los
@@ -566,23 +559,4 @@
   .revelado {
     animation: none;
   }
-}
-
-/*
-  El mensaje se dibuja como lo que es, un WhatsApp. La esquina de abajo a la
-  izquierda sin redondear es lo que lo hace leer como burbuja y no como una
-  caja de texto más: es la forma que todo el mundo reconoce sin que se la
-  expliquen, y acá el punto entero es que se entienda sin explicación.
-*/
-.burbuja {
-  max-width: 34rem;
-  background: color-mix(in oklab, var(--barbicide) 8%, var(--tiza));
-  border: 1px solid color-mix(in oklab, var(--barbicide) 18%, transparent);
-  border-radius: 14px 14px 14px 3px;
-  padding: 0.9rem 1.15rem;
-  line-height: 1.55;
-}
-
-.burbuja p + p {
-  margin-top: 0.35rem;
 }
