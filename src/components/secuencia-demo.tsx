@@ -129,6 +129,11 @@ export function SecuenciaDemo({
         quality={95}
         priority={i === 0}
         sizes="(min-width: 640px) 26rem, 88vw"
+        // Sin esto, arrastrar sobre la foto para pasar de paso no hace nada: el
+        // navegador entiende que la estás arrastrando para copiarla a otro
+        // lado, se queda con el gesto y el `pointerup` nunca llega. Con el dedo
+        // no pasa, así que se descubre solo si alguien lo prueba con el mouse.
+        draggable={false}
         className="secuencia-foto"
       />
     ) : (
