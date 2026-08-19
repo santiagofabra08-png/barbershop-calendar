@@ -235,6 +235,8 @@ export default async function PaginaDelTurno({
           mensaje={recordatorio}
           barberia={data.tenant.name}
           urlPortada={urlDeLaPortada(raiz)}
+          // Acá el turno del último paso es el que la persona acaba de sacar.
+          propio
         />
       ) : null}
     </>

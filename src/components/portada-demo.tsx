@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { ChatDeWhatsApp } from "@/components/chat-whatsapp";
 import { OtroLado } from "@/components/otro-lado";
 import { AVISO_RESERVA } from "@/lib/demo";
 
@@ -157,14 +158,33 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
  * El envoltorio de la portada para el bloque compartido.
  *
  * Acá aparece por JavaScript, cuando la demo avisa que alguien reservó, así
- * que entra con `.revelado`: es un momento y se lee como tal. En la página
- * del turno de la demo el mismo bloque está desde el principio y no se anima,
- * porque ahí no pasó nada, ya estaba.
+ * que entra con `.revelado`: es un momento y se lee como tal. En la barbería
+ * demo el mismo bloque está desde el principio y no se anima, porque ahí no
+ * pasó nada, ya estaba.
+ *
+ * **Acá va el chat solo, no la secuencia de tres pasos.** No es un olvido: esta
+ * página ya explica el mecanismo por su cuenta, con la demo viva justo arriba y
+ * las capturas del panel más abajo. Repetirlo acá sería contar dos veces lo
+ * mismo en la misma pantalla. La secuencia existe para el que llegó por el link
+ * de la demo suelto y no tiene ninguna de esas dos cosas a mano.
  */
 function YaEstá({ cliente, mensaje }: { cliente: string; mensaje: string }) {
   return (
     <div className="revelado mt-10 border-t border-[color:var(--vidrio)] pt-8">
-      <OtroLado cliente={cliente} mensaje={mensaje} />
+      <OtroLado titulo="Ese turno ya está en la agenda del barbero.">
+        <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+          Nadie tuvo que anotar nada. Para recordártelo, toca un botón y
+          WhatsApp se le abre así:
+        </p>
+
+        <div className="mt-5">
+          <ChatDeWhatsApp contacto={cliente} mensaje={mensaje} />
+        </div>
+
+        <p className="mt-5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+          La confirmación también te llegó por mail.
+        </p>
+      </OtroLado>
     </div>
   );
 }

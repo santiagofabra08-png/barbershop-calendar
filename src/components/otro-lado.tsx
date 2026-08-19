@@ -1,40 +1,31 @@
-import { ChatDeWhatsApp } from "@/components/chat-whatsapp";
-
 import "../app/producto.css";
 
 /**
- * Lo que pasa del otro lado del mostrador, con el turno que la persona acaba
- * de sacar.
+ * El marco de lo que decimos nosotros del otro lado del mostrador.
  *
- * Se muestra en dos lugares, y por eso vive acá y no adentro de ninguno de los
- * dos:
+ * Se usa en dos lugares, y por eso vive acá y no adentro de ninguno de los dos:
  *
  *   · En la **portada**, debajo de la demo incrustada, cuando el visitante
- *     reserva ahí adentro y la demo avisa.
- *   · En la **página del turno de la barbería demo**, para el que llegó por el
- *     link de la demo suelto y nunca vio la portada. Ese link se comparte en
- *     frío, y hasta ahora esa persona veía solo la mitad del cliente.
+ *     reserva ahí adentro y la demo avisa. Ahí adentro va el chat solo: la
+ *     página de ventas ya explica el resto por su cuenta, arriba y abajo.
+ *   · En la **barbería demo**, para el que llegó por el link suelto y nunca vio
+ *     la portada. Ese link se comparte en frío, y esa persona no tiene ninguna
+ *     otra explicación a mano: ahí adentro va la secuencia entera.
  *
- * El mensaje **no está escrito acá**: lo calculó la barbería con la misma
- * función que usa el panel de verdad. Un ejemplo escrito a mano se vería igual
- * hoy y empezaría a mentir el día que el mensaje cambie, sin que nadie se
- * entere.
- *
- * **Corto a propósito.** La primera versión explicaba lo mismo en tres párrafos
- * y no la leía nadie: el que llega acá ya reservó, no vino a leer. El chat es
- * la prueba y se entiende solo; el texto apenas tiene que llevar hasta él.
+ * Lo que comparten es esto —el rótulo y el título— más `ChatDeWhatsApp`, que es
+ * la pieza que no puede diferir de un lado al otro. El cuerpo lo pone cada
+ * lugar, porque no tienen el mismo trabajo que hacer.
  *
  * Módulo neutral: sin `"use client"` ni nada de servidor, porque lo importan
  * los dos lados.
  */
 export function OtroLado({
-  cliente,
-  mensaje,
+  titulo,
+  children,
 }: {
-  /** Cómo lo tiene guardado el barbero. Es el nombre del contacto en el chat. */
-  cliente: string;
-  /** El recordatorio ya escrito, tal como sale de `mensajeDeRecordatorio`. */
-  mensaje: string;
+  /** Una sola frase. Cambia si el turno es de la persona o es un ejemplo. */
+  titulo: string;
+  children: React.ReactNode;
 }) {
   return (
     <>
@@ -43,21 +34,10 @@ export function OtroLado({
       </p>
 
       <h3 className="titulo-producto mt-3 text-2xl leading-tight sm:text-3xl">
-        Ese turno ya está en la agenda del barbero.
+        {titulo}
       </h3>
 
-      <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-        Nadie tuvo que anotar nada. Para recordártelo, toca un botón y WhatsApp
-        se le abre así:
-      </p>
-
-      <div className="mt-5">
-        <ChatDeWhatsApp contacto={cliente} mensaje={mensaje} />
-      </div>
-
-      <p className="mt-5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-        La confirmación también te llegó por mail.
-      </p>
+      {children}
     </>
   );
 }

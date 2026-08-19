@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FranjaDemo } from "@/components/franja-demo";
 import { IconoEtiqueta, IconoReloj } from "@/components/icons";
 import { Portada } from "@/components/portada";
 import { ShopFooter, ShopHeader } from "@/components/shop-chrome";
@@ -15,8 +16,11 @@ import {
   nowInTimeZone,
   weekdayName,
 } from "@/lib/schedule";
+import { SLUG_DEMO, urlDeLaPortada } from "@/lib/demo";
+import type { Day } from "@/lib/schedule";
 import { cargarBarberia, cargarOcupados } from "@/lib/tenant/load";
 import { currentTenantSlug } from "@/lib/tenant/resolve";
+import { mensajeDeRecordatorio } from "@/lib/whatsapp";
 
 // La grilla depende de la hora exacta en que alguien entra. Cachearla la
 // dejaría mostrando turnos de otro día.
@@ -91,6 +95,25 @@ export default async function PaginaDeReservas({
   // es lo decide el cliente más abajo, y adelantarlo sería mentir.
   const service = services.length === 1 ? services[0] : null;
   const hayAgenda = opciones.length > 0 && activos.length > 0;
+
+  /*
+   * ---- La franja explicativa de la barbería demo --------------------------
+   *
+   * ⚠️ Solo la demo, comparando contra `SLUG_DEMO`. Esta página es la misma
+   * para todas: sin ese `===`, un cliente entra a reservar en su barbería y se
+   * encuentra material de ventas nuestro al pie.
+   *
+   * Va también acá y no solo después de reservar porque el link de la demo se
+   * comparte en frío: lo más probable es que quien lo abre mire los horarios y
+   * cierre sin reservar nada, y esa persona es justamente la que necesita la
+   * explicación.
+   *
+   * El turno del ejemplo sale del primer horario libre de verdad, el mismo que
+   * la persona está viendo arriba. Podría inventarse una fecha y una hora, pero
+   * un ejemplo que coincide con lo que hay en pantalla se lee como el producto
+   * y no como un folleto.
+   */
+  const ejemplo = esLaDemo(slug) ? primerHueco(opciones) : null;
 
   return (
     <>
@@ -192,6 +215,65 @@ export default async function PaginaDeReservas({
         photoUrl={FOTO_PROVISORIA}
         photoAlt={`La estación de trabajo de ${tenant.name}`}
       />
+
+      {ejemplo ? (
+        <FranjaDemo
+          cliente={CLIENTE_DE_EJEMPLO}
+          mensaje={mensajeDeRecordatorio({
+            barberia: tenant.name,
+            cliente: CLIENTE_DE_EJEMPLO,
+            servicio: ejemplo.servicio,
+            fecha: ejemplo.fecha,
+            hora: ejemplo.hora,
+            hoy,
+          })}
+          barberia={tenant.name}
+          urlPortada={urlDeLaPortada(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "")}
+        />
+      ) : null}
     </>
   );
+}
+
+/** La franja explicativa es solo de la barbería de demostración. */
+function esLaDemo(slug: string): boolean {
+  return slug === SLUG_DEMO;
+}
+
+/**
+ * Un nombre ilustrativo, no el de nadie.
+ *
+ * Con apellido de una letra, como se anota un cliente en un cuaderno de verdad
+ * y como ya se escriben los nombres del cuaderno de la portada. Acá adentro no
+ * hay ningún turno todavía —la persona no reservó nada—, así que el mensaje del
+ * último paso necesita un destinatario de ejemplo. Que se lea como ejemplo es
+ * parte del punto.
+ */
+const CLIENTE_DE_EJEMPLO = "Martín R.";
+
+/**
+ * El primer horario libre de la grilla que la persona está mirando.
+ *
+ * Devuelve `null` si no queda ninguno, y entonces la franja no se dibuja: un
+ * ejemplo con una hora inventada valdría menos que no mostrar nada, porque la
+ * gracia es que sea el mismo turno que se ve arriba.
+ */
+function primerHueco(
+  opciones: { service: { name: string }; agendas: { days: Day[] }[] }[],
+): { servicio: string; fecha: string; hora: string } | null {
+  for (const opcion of opciones) {
+    for (const agenda of opcion.agendas) {
+      for (const dia of agenda.days) {
+        const hueco = dia.slots.find((s) => s.available);
+        if (hueco) {
+          return {
+            servicio: opcion.service.name,
+            fecha: dia.date,
+            hora: hueco.time,
+          };
+        }
+      }
+    }
+  }
+  return null;
 }

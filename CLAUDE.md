@@ -526,32 +526,54 @@ Cuatro cosas que conviene no revertir sin pensarlo:
 pierde el host (ver "la pista buena"). Se verifica a mano contra una compilación
 de producción.
 
-### Lo que sigue: la secuencia explicativa (decidido, sin construir)
+### La secuencia explicativa
 
-Lo que hay hoy —un título y la burbuja, de los dos lados— alcanza para el que ya
-entendió, pero no explica el mecanismo. Falta mostrar la cadena: **el cliente
-elige la hora → le aparece al barbero en la agenda → un toque y sale el
-mensaje.**
+Un título y un mensaje alcanzaban para el que ya había entendido, pero no
+explicaban el mecanismo. Adentro de la franja va la cadena entera, en tres pasos
+que avanzan solos (`src/components/secuencia-demo.tsx`):
 
-Decisiones tomadas:
+1. **El cliente elige la hora** — recorte de la grilla pública, con un horario
+   elegido y su resplandor.
+2. **Le aparece al barbero en la agenda** — recorte del panel: dos turnos, el
+   hueco entre ellos y el botón **Recordar**.
+3. **Un toque, y WhatsApp se abre escrito** — no es una foto: es
+   `ChatDeWhatsApp` con el mensaje de esta persona.
 
-- **Tres pasos con capturas de verdad**, sacadas por `scripts/capturas.mts`, que
-  avanzan solas. Nada de recrear el panel en HTML: se vería igual de bien hoy y
-  mentiría el día que cambie una pantalla.
-- **El último paso lleva el turno de la persona**, con su nombre y su hora. Lo
-  genérico explica el mecanismo; lo personalizado lo hace suyo.
-- **En la demo va siempre visible**, sin tener que reservar primero, porque ese
-  link se comparte en frío y quien lo abre puede no reservar nunca.
-- **Va claramente separado del producto**, después del final de la página, para
-  que se lea como un agregado explicativo y no como parte de la barbería. La
-  franja de hoy ya es ese lugar: la secuencia entra ahí adentro.
-- ⚠️ **Limitado a la barbería demo**, por lo mismo que la franja.
-- Hay que **volver a correr `capturas`**: la captura de la agenda es anterior al
-  botón **Recordar** y no lo muestra.
+Lo que conviene no revertir sin pensarlo:
 
-Se descartó por ahora un video corto grabado por script. Es lo más intuitivo y
-lo más caro, y no puede llevar el turno de la persona. Se revisa cuando la
-secuencia esté y se haya visto con gente.
+- **Los dos primeros son capturas del sitio de verdad**, de `scripts/capturas.mts`
+  (`paso-elegir-hora.png`, `paso-agenda.png`). Recrear las pantallas en HTML se
+  vería igual de bien hoy y mentiría el día que cambie el panel.
+- ⚠️ **La captura de la agenda tiene que ser un turno de la web, no uno cargado a
+  mano.** La jornada sembrada mezcla los dos a propósito, y el script filtra por
+  `hasNotText: "Cargado a mano"`: con ese cartelito al lado, el paso mostraría lo
+  contrario de lo que dice.
+- **El paso 3 lleva el turno de la persona.** Lo genérico explica el mecanismo;
+  el turno propio lo hace suyo.
+- **La caja tiene alto fijo.** Las tres piezas tienen formas distintas y a su
+  aire la página crecía y se achicaba en cada cambio: eso no se lee como una
+  animación sino como que algo se rompió, y corre de lugar lo que está abajo
+  justo cuando alguien iba a tocarlo.
+- **Con `prefers-reduced-motion` se ven los tres pasos, uno abajo del otro.** No
+  es una versión degradada: es lo mismo sin nada que se mueva, y es también lo
+  que se ve si el JavaScript no corre.
+- **Las barritas de arriba** dicen cuántos pasos hay, en cuál va y cuánto falta.
+  Tocar una detiene el avance para siempre: quien tomó el control se lo queda.
+
+**Está en las dos pantallas de la demo**, no solo después de reservar: quien abre
+ese link en frío lo más probable es que mire los horarios y cierre. En la página
+de reservas el turno del ejemplo sale de **un horario libre de verdad**, el mismo
+que la persona ve arriba, con un nombre ilustrativo (`Martín R.`); si no queda
+ningún hueco, la franja no se dibuja, porque un ejemplo con una hora inventada
+vale menos que nada.
+
+⚠️ **En la portada va el chat solo, sin la secuencia**, y no es un olvido: esa
+página ya explica el mecanismo con la demo viva arriba y las capturas del panel
+abajo. Repetirlo sería contar dos veces lo mismo en la misma pantalla.
+
+Se descartó un video corto grabado por script. Es lo más intuitivo y lo más caro,
+y no puede llevar el turno de la persona. Se revisa cuando esto se haya visto con
+gente.
 
 La demo incrustada se pide con `?vitrina=1`, que **solo esconde la barra de
 scroll**: una barra gris cruzando el teléfono dibujado arruina la ilusión. Nada

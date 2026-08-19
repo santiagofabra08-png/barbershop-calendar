@@ -352,3 +352,159 @@
     animation: none;
   }
 }
+
+/*
+  ---- La secuencia de tres pasos --------------------------------------------
+
+  El orden es la explicación: el cliente elige, le aparece al barbero, sale el
+  mensaje. Por eso los pasos van numerados, que es de las pocas veces en que un
+  número al costado dice algo y no decora: acá hay un antes y un después.
+
+  Avanzan solas. El que abrió el link de la demo no vino a estudiar una
+  infografía, y tres bloques uno abajo del otro son tres oportunidades de dejar
+  de leer.
+*/
+.secuencia {
+  max-width: 26rem;
+}
+
+/*
+  Las barritas de arriba hacen dos cosas a la vez: dicen cuántos pasos hay y
+  muestran cuánto falta para el próximo. Una fila de puntitos diría solo lo
+  primero, y entonces el avance solo se leería como que la página se mueve por
+  su cuenta.
+*/
+.secuencia-barras {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.secuencia-barra {
+  flex: 1;
+  height: 3px;
+  padding: 0;
+  border-radius: 999px;
+  background-color: color-mix(in oklab, var(--esmalte) 14%, transparent);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/*
+  El área de toque es de 3px de alto, que no se puede tocar con un dedo. Se
+  agranda por abajo sin mover nada de lugar.
+*/
+.secuencia-barra::after {
+  content: "";
+  display: block;
+  position: relative;
+  top: -0.75rem;
+  height: 1.75rem;
+}
+
+.secuencia-barra > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--barbicide);
+}
+
+.secuencia-barra > span.corriendo {
+  animation: llenar linear both;
+}
+
+/* Los que ya pasaron, y el que se eligió a mano, quedan llenos y quietos. */
+.secuencia-barra > span.lleno {
+  width: 100%;
+}
+
+@keyframes llenar {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.secuencia-numero {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--barbicide);
+  color: var(--tiza);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/*
+  La caja no cambia de alto al pasar de un paso al otro.
+
+  Las tres piezas tienen formas distintas —una grilla casi cuadrada, un renglón
+  bien apaisado y un chat— y dejándolas a su aire la página crecía y se achicaba
+  sola en cada cambio. Eso no se lee como una animación: se lee como que algo se
+  rompió, y encima corre de lugar lo que está abajo justo cuando alguien iba a
+  tocarlo.
+*/
+.secuencia-caja {
+  display: grid;
+  place-items: center;
+  min-height: 17rem;
+}
+
+@media (min-width: 640px) {
+  .secuencia-caja {
+    min-height: 19rem;
+  }
+}
+
+.secuencia-foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 17rem;
+  object-fit: contain;
+  object-position: center;
+  border: 1px solid var(--vidrio);
+  border-radius: 12px;
+  background-color: var(--tiza);
+  box-shadow: 0 12px 30px -22px color-mix(in oklab, var(--esmalte) 60%, transparent);
+}
+
+@media (min-width: 640px) {
+  .secuencia-foto {
+    max-height: 19rem;
+  }
+}
+
+/*
+  Cada paso entra desde el costado, como cuando pasás una foto con el dedo.
+  Antes subía y se desvanecía, y no se notaba: parecía que la imagen cambiaba
+  sola. Entrando de costado se lee "vino la siguiente", que es lo que pasó.
+*/
+.secuencia-entra {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  animation: correr 0.4s cubic-bezier(0.16, 0.84, 0.28, 1) both;
+}
+
+@keyframes correr {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secuencia-entra {
+    animation: none;
+  }
+}

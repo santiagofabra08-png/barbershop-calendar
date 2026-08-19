@@ -23,7 +23,7 @@
  * seguridad, solo un secreto más para perder.
  */
 import { mkdir } from "node:fs/promises";
-import { chromium, type Page } from "@playwright/test";
+import { chromium, type Locator, type Page } from "@playwright/test";
 
 import { clienteAdmin, contrasenia } from "./lib/alta.mts";
 import {
@@ -85,6 +85,24 @@ await mkdir(DESTINO, { recursive: true });
 const navegador = await chromium.launch();
 let sacadas = 0;
 
+/**
+ * Un recorte de una parte de la pantalla, no del teléfono entero.
+ *
+ * La secuencia explicativa muestra tres pasos uno atrás de otro, y ahí una
+ * pantalla completa no sirve: a ese tamaño no se lee nada y el paso pierde lo
+ * único que tenía que mostrar. Un recorte es lo que hace alguien cuando te
+ * acerca el celular y te señala con el dedo.
+ *
+ * Sale del sitio de verdad igual que las otras: si mañana cambia la pantalla,
+ * se corre el comando y vuelve a ser cierto.
+ */
+async function recorte(pieza: Locator, nombre: string) {
+  await pieza.first().scrollIntoViewIfNeeded();
+  await pieza.first().screenshot({ path: `${DESTINO}/${nombre}.png` });
+  console.log(`  ✓ ${nombre}.png (recorte)`);
+  sacadas++;
+}
+
 /** Una captura, con la ventana de un teléfono. */
 async function foto(page: Page, url: string, nombre: string, espera?: string) {
   await page.goto(url, { waitUntil: "networkidle", timeout: 45_000 });
@@ -115,6 +133,37 @@ try {
   console.log("\n  La página pública");
   await foto(page, en(SLUG_DEMO, "/"), "publica-demo", "h1");
 
+  /*
+   * Paso 1 de la secuencia: el cliente elige la hora.
+   *
+   * Se toca un horario antes de disparar para que salga uno elegido, con su
+   * resplandor. Una grilla sin nada elegido muestra la pantalla; con algo
+   * elegido muestra a alguien usándola, que es lo que el paso cuenta.
+   *
+   * Y se elige un día de más adelante, no hoy: corriendo el comando de tarde,
+   * hoy queda con tres o cuatro horarios sueltos y la foto muestra una barbería
+   * sin lugar. Un día entero muestra la grilla como es.
+   *
+   * Tocar un horario acá no reserva nada: la reserva pasa en /reservar.
+   */
+  await page.getByRole("button", { name: /^Corte/ }).first().click();
+  const barbero = page.getByRole("button", { name: "Andrés" });
+  if (await barbero.count()) await barbero.click();
+
+  const dias = page.locator('section[aria-labelledby="paso-3"] button');
+  await dias.first().waitFor({ timeout: 20_000 });
+  await dias.nth(Math.min(2, (await dias.count()) - 1)).click();
+  await page.waitForTimeout(600);
+
+  const libre = page
+    .locator('section[aria-labelledby="paso-4"] button:not([disabled])')
+    .first();
+  await libre.waitFor({ timeout: 20_000 });
+  await libre.click();
+  await page.waitForTimeout(900);
+
+  await recorte(page.locator('section[aria-labelledby="paso-4"]'), "paso-elegir-hora");
+
   // La misma pantalla en dos barberías distintas: es lo que prueba que cada
   // local se ve con su marca y no todos iguales con otro nombre.
   await foto(page, en("barberia-central", "/"), "marca-clara", "h1");
@@ -144,6 +193,51 @@ try {
   // La agenda de mañana: es la pantalla donde están los botones de WhatsApp
   // para recordarle el turno a cada cliente.
   await foto(page, en(SLUG_DEMO, `/panel?d=${manana}`), "panel-agenda");
+
+  /*
+   * Paso 2 de la secuencia: el turno ya está en la agenda, con el botón que
+   * abre WhatsApp al lado. Es el renglón el que cuenta el paso, así que se
+   * recorta el renglón y no la pantalla entera.
+   *
+   * Se busca por el botón y no por posición: cuál es el primer turno con
+   * Recordar depende de la hora a la que se corra el comando.
+   */
+  const renglon = page
+    .locator("li")
+    .filter({ has: page.getByRole("link", { name: "Recordar" }) })
+    // Uno que haya entrado por la web, no uno cargado a mano. La jornada
+    // sembrada mezcla los dos a propósito, y el paso dice "nadie tuvo que
+    // anotar nada": con el cartelito de "Cargado a mano" al lado estaría
+    // mostrando exactamente lo contrario.
+    .filter({ hasNotText: "Cargado a mano" })
+    .first();
+
+  if (await renglon.count()) {
+    /*
+     * El renglón solo, recortado justo, queda como una tarjeta suelta flotando
+     * en el paso. Con el de abajo se lee lo que es: un día armado, uno atrás
+     * del otro. Por eso no es una foto del elemento sino una franja de alto
+     * fijo que arranca en el turno que tiene el botón.
+     */
+    await renglon.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+
+    const caja = await renglon.boundingBox();
+    if (!caja) throw new Error("no pude medir el renglón de la agenda");
+
+    await page.evaluate((y) => window.scrollBy(0, y), caja.y - 120);
+    await page.waitForTimeout(400);
+
+    await page.screenshot({
+      path: `${DESTINO}/paso-agenda.png`,
+      clip: { x: 0, y: 112, width: TELEFONO.width, height: 300 },
+    });
+    console.log("  ✓ paso-agenda.png (recorte)");
+    sacadas++;
+  } else {
+    console.log("  ! sin ningún turno de la web con Recordar: no salió paso-agenda");
+  }
+
   await foto(page, en(SLUG_DEMO, "/panel/cobros"), "panel-cobros");
   await foto(page, en(SLUG_DEMO, "/panel/semana"), "panel-semana");
 
