@@ -26,8 +26,19 @@ import { mensajeDeRecordatorio } from "@/lib/whatsapp";
 // dejaría mostrando turnos de otro día.
 export const dynamic = "force-dynamic";
 
-// TODO: la foto de la barbería va a Supabase Storage, como la marca.
-const FOTO_PROVISORIA = "/dev/tropi-estacion.jpg";
+/*
+ * La foto del local todavía no existe como dato.
+ *
+ * Acá había una constante con la foto de Tropi, y la pasaba **todas** las
+ * barberías: cada local mostraba al pie la estación de trabajo de otro, con un
+ * texto alternativo que decía "La estación de trabajo de {su nombre}". Con una
+ * sola barbería en la base era invisible; con la segunda es material de otro
+ * negocio presentado como propio.
+ *
+ * `ShopFooter` ya dibuja bien sin foto, así que hasta que sea un dato de cada
+ * barbería —una columna y una subida desde Ajustes, como el logo— no se pasa
+ * ninguna. Mejor un pie sin foto que un pie con la foto equivocada.
+ */
 
 export async function generateMetadata(): Promise<Metadata> {
   const slug = await currentTenantSlug();
@@ -209,12 +220,7 @@ export default async function PaginaDeReservas({
         ) : null}
       </main>
 
-      <ShopFooter
-        tenant={tenant}
-        workingHours={workingHours}
-        photoUrl={FOTO_PROVISORIA}
-        photoAlt={`La estación de trabajo de ${tenant.name}`}
-      />
+      <ShopFooter tenant={tenant} workingHours={workingHours} />
 
       {ejemplo ? (
         <FranjaDemo
