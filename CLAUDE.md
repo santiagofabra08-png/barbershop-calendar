@@ -557,8 +557,15 @@ Lo que conviene no revertir sin pensarlo:
 - **Con `prefers-reduced-motion` se ven los tres pasos, uno abajo del otro.** No
   es una versión degradada: es lo mismo sin nada que se mueva, y es también lo
   que se ve si el JavaScript no corre.
-- **Las barritas de arriba** dicen cuántos pasos hay, en cuál va y cuánto falta.
-  Tocar una detiene el avance para siempre: quien tomó el control se lo queda.
+- **No hay que esperarlas.** Se pasa con las flechas de los costados, tocando
+  una barrita o con el dedo. Al principio solo estaba lo de la barrita y no
+  alcanzaba, y no porque no funcionara: tres píxeles de alto no parecen un
+  control, parecen un adorno, así que el que quería adelantar no sabía que
+  podía. Al primer toque el reloj se apaga para siempre: quien empezó a manejar
+  maneja, y seguir corriendo por debajo le movería la pantalla mientras lee.
+- **Las barritas** dicen cuántos pasos hay, en cuál va y cuánto falta. Las
+  flechas dan la vuelta en las dos puntas, así ninguna queda muerta: una flecha
+  apagada obliga a mirar en qué paso estás antes de tocarla.
 
 **Está en las dos pantallas de la demo**, no solo después de reservar: quien abre
 ese link en frío lo más probable es que mire los horarios y cierre. En la página

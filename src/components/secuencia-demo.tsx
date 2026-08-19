@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { ChatDeWhatsApp } from "@/components/chat-whatsapp";
 
@@ -22,9 +22,15 @@ import { ChatDeWhatsApp } from "@/components/chat-whatsapp";
  * la misma función que usa el panel. Lo genérico explica el mecanismo; el turno
  * propio lo hace suyo.
  *
- * Avanzan solas porque el que abrió esto no vino a estudiar una infografía. El
- * que quiera manejarlas toca una barrita y ahí se quedan quietas: tomó el
- * control y no se lo saca nadie.
+ * Avanzan solas porque el que abrió esto no vino a estudiar una infografía,
+ * pero **no hay que esperarlas**: se pasa con las flechas, tocando una barrita
+ * o con el dedo. Al principio solo estaba lo de la barrita y no alcanzaba, y no
+ * porque no funcionara: tres píxeles de alto no parecen un control, parecen un
+ * adorno, así que el que quería adelantar no sabía que podía.
+ *
+ * Al primer toque el reloj se apaga para siempre. El que empezó a manejar
+ * maneja: seguir corriendo por debajo le movería la pantalla justo cuando está
+ * leyendo.
  */
 
 type Paso = {
@@ -71,6 +77,23 @@ export function SecuenciaDemo({
 }) {
   const [paso, setPaso] = useState(0);
   const [manual, setManual] = useState(false);
+  const desde = useRef<{ x: number; y: number } | null>(null);
+
+  /*
+   * Moverse a mano, por donde sea: las flechas, una barrita o el dedo.
+   *
+   * Da la vuelta en las dos puntas, así ninguna flecha queda muerta: una flecha
+   * apagada obliga a mirar en qué paso estás antes de tocarla, que es
+   * exactamente el trabajo que uno no quiere hacer.
+   *
+   * Y apaga el avance solo. El que empezó a manejar maneja: seguir corriendo el
+   * reloj por debajo le movería la pantalla justo cuando está leyendo.
+   */
+  const ir = useCallback((destino: number) => {
+    const n = PASOS.length;
+    setPaso(((destino % n) + n) % n);
+    setManual(true);
+  }, []);
 
   /*
    * Quien pidió menos movimiento no ve una secuencia sino los tres pasos, uno
@@ -128,17 +151,31 @@ export function SecuenciaDemo({
 
   return (
     <div className="secuencia">
+      {/*
+        Las flechas y las barritas van juntas, en la misma fila: es un solo
+        lugar donde se ve dónde estás y cómo moverte.
+
+        Se podía pasar de paso tocando una barrita, pero eso no se ve. Una
+        barrita de tres píxeles no parece un control, parece un adorno, así que
+        el que quería adelantar no tenía más remedio que esperar.
+      */}
       <div className="secuencia-barras">
+        <button
+          type="button"
+          aria-label="Paso anterior"
+          onClick={() => ir(paso - 1)}
+          className="secuencia-flecha"
+        >
+          <Flecha />
+        </button>
+
         {PASOS.map((p, i) => (
           <button
             key={p.titulo}
             type="button"
             aria-label={`Paso ${i + 1}: ${p.titulo}`}
             aria-current={i === paso}
-            onClick={() => {
-              setPaso(i);
-              setManual(true);
-            }}
+            onClick={() => ir(i)}
             className="secuencia-barra"
           >
             {/*
@@ -163,15 +200,45 @@ export function SecuenciaDemo({
             />
           </button>
         ))}
+
+        <button
+          type="button"
+          aria-label="Paso siguiente"
+          onClick={() => ir(paso + 1)}
+          className="secuencia-flecha secuencia-flecha-derecha"
+        >
+          <Flecha />
+        </button>
       </div>
 
       <div className="mt-4">
         <Titulo numero={paso + 1} texto={PASOS[paso].titulo} />
       </div>
 
-      {/* La caja no cambia de alto al pasar de un paso al otro: si creciera y
-          se achicara, lo de abajo saltaría solo y se lee como un error. */}
-      <div className="secuencia-caja mt-3">
+      {/*
+        La caja no cambia de alto al pasar de un paso al otro: si creciera y se
+        achicara, lo de abajo saltaría solo y se lee como un error.
+
+        Y se pasa con el dedo, que en un teléfono es lo primero que alguien
+        intenta con una imagen que va cambiando. Se exige medio centímetro de
+        movimiento horizontal para que arrastrar la página hacia abajo, o
+        seleccionar un pedazo del mensaje, no cuenten como pasar de paso.
+      */}
+      <div
+        className="secuencia-caja mt-3"
+        onPointerDown={(e) => {
+          desde.current = { x: e.clientX, y: e.clientY };
+        }}
+        onPointerUp={(e) => {
+          const p0 = desde.current;
+          desde.current = null;
+          if (!p0) return;
+          const dx = e.clientX - p0.x;
+          const dy = e.clientY - p0.y;
+          if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+          ir(dx < 0 ? paso + 1 : paso - 1);
+        }}
+      >
         <div key={paso} className="secuencia-entra">
           {cuerpo(paso)}
         </div>
@@ -188,5 +255,20 @@ function Titulo({ numero, texto }: { numero: number; texto: string }) {
         {texto}
       </span>
     </p>
+  );
+}
+
+/** La punta de flecha. Apunta a la derecha; la de la izquierda se espeja. */
+function Flecha() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden className="size-3.5">
+      <path
+        d="m6 3 5 5-5 5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

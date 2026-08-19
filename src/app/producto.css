@@ -376,7 +376,8 @@
 */
 .secuencia-barras {
   display: flex;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .secuencia-barra {
@@ -506,5 +507,59 @@
 @media (prefers-reduced-motion: reduce) {
   .secuencia-entra {
     animation: none;
+  }
+}
+
+/*
+  Las flechas, al lado de las barritas.
+
+  Se podía pasar de paso tocando una barrita, pero eso no se ve: tres píxeles de
+  alto no parecen un control, parecen un adorno. Sin una flecha a la vista, el
+  que quería adelantar no tenía más remedio que esperar el turno del reloj, y
+  esperar es justo lo que nadie hace en una página que está evaluando.
+
+  Van en la misma fila que las barritas y no abajo del todo, para que dónde
+  estás y cómo moverte sean una sola cosa y no dos.
+*/
+.secuencia-flecha {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--vidrio);
+  background-color: var(--tiza);
+  color: color-mix(in oklab, var(--esmalte) 70%, transparent);
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color 150ms,
+    border-color 150ms;
+}
+
+.secuencia-flecha:hover {
+  border-color: var(--barbicide);
+  background-color: var(--barbicide);
+  color: var(--tiza);
+}
+
+.secuencia-flecha:active {
+  transform: scale(0.94);
+}
+
+.secuencia-flecha:focus-visible {
+  outline: 2px solid var(--esmalte);
+  outline-offset: 2px;
+}
+
+/* La misma punta, dada vuelta: un solo dibujo para las dos. */
+.secuencia-flecha:not(.secuencia-flecha-derecha) svg {
+  transform: scaleX(-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secuencia-flecha:active {
+    transform: none;
   }
 }
