@@ -475,6 +475,34 @@ nada, y solo habla si está dentro de un iframe.
 `DEV_TENANT_SLUG`, y ahí reservar rompe por el bug de caché sobre `cargarTenant`.
 Se verifica a mano contra una compilación de producción.
 
+### Lo que sigue: la secuencia explicativa (decidido, sin construir)
+
+El revelado de hoy —un título y la burbuja— alcanza para el que ya entendió,
+pero no explica el mecanismo. Falta mostrar la cadena: **el cliente elige la
+hora → le aparece al barbero en la agenda → un toque y sale el mensaje.**
+
+Decisiones tomadas:
+
+- **Tres pasos con capturas de verdad**, sacadas por `scripts/capturas.mts`, que
+  avanzan solas. Nada de recrear el panel en HTML: se vería igual de bien hoy y
+  mentiría el día que cambie una pantalla.
+- **El último paso lleva el turno de la persona**, con su nombre y su hora. Lo
+  genérico explica el mecanismo; lo personalizado lo hace suyo.
+- **Se ve también entrando derecho a la demo**, no solo dentro de la portada,
+  porque ese link se comparte en frío. Ahí va **siempre visible**, sin tener que
+  reservar primero.
+- **Va claramente separado del producto**, después del final de la página, para
+  que se lea como un agregado explicativo y no como parte de la barbería.
+- ⚠️ **Limitado a la barbería demo.** La página del turno es la misma para
+  todas: sin esa condición, un cliente de un local que paga vería material de
+  ventas en su confirmación.
+- Hay que **volver a correr `capturas`**: la captura de la agenda es anterior al
+  botón **Recordar** y no lo muestra.
+
+Se descartó por ahora un video corto grabado por script. Es lo más intuitivo y
+lo más caro, y no puede llevar el turno de la persona. Se revisa cuando la
+secuencia esté y se haya visto con gente.
+
 La demo incrustada se pide con `?vitrina=1`, que **solo esconde la barra de
 scroll**: una barra gris cruzando el teléfono dibujado arruina la ilusión. Nada
 más cambia, a propósito. La demo tiene que ser la página de verdad y no una
