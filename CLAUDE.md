@@ -430,11 +430,27 @@ Se frenó a propósito, y conviene releer esto antes de retomarlo:
 Si se retoma: pedir el mail antes de crear nada, y resolver lo de las fotos
 antes de abrir la puerta.
 
-## Lo que está a medio camino
+## Ninguna barbería de la base es un cliente todavía
+
+Conviene saberlo antes de pesar cualquier riesgo, porque cambia todas las
+cuentas: **hoy no hay una sola persona usando esto para trabajar.**
+
+- **Tropi Barbershop no es un cliente.** Es la maqueta con la que se construyó
+  la plataforma: un local concreto que sirvió para no diseñar en el aire. Nadie
+  reservó nunca un turno ahí. Sus datos y su guía de marca están en
+  `brand/tropi-barbershop/` y siguen sirviendo de referencia, y el tenant sigue
+  haciendo falta como contraparte de `probar-aislamiento`, que necesita dos
+  barberías para probar que una no ve a la otra.
 - **Nico** es un barbero de prueba en la base de Tropi.
 - **Barbería Central** y **Studio Norte** son de demostración, creadas por
-  `sembrar-demo`. No son clientes. Antes de salir a producción de verdad hay que
-  decidir si se borran o se dejan como vidriera para mostrar el producto.
+  `sembrar-demo`. Antes de salir a producción de verdad hay que decidir si se
+  borran o se dejan como vidriera para mostrar el producto.
+- **Barbería Modelo** (`demo`) es la que muestra la portada. Se vacía sola todos
+  los días.
+
+Mientras esto siga así, **una migración o un cambio grande no le arruina el día
+a nadie**, y es el momento más barato para hacerlos. La primera barbería real
+entra a partir de agosto de 2026; desde ese día la cuenta es otra.
 
 ## El resplandor de lo elegido
 Lo que está elegido ahora mismo lleva `.glow` (o `.glow-accent`), y nada más.
