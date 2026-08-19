@@ -25,9 +25,12 @@ import { AVISO_RESERVA } from "@/lib/demo";
  *     dibujara algo, ya sería otra página.
  */
 export function AvisoVitrina({
+  cliente,
   mensaje,
   destinos,
 }: {
+  /** Cómo lo tiene guardado el barbero: el nombre del contacto en el chat. */
+  cliente: string;
   /** El recordatorio ya escrito, tal como se lo mandaría el barbero. */
   mensaje: string;
   /** Orígenes donde puede estar la portada. Vacío: no se avisa. */
@@ -42,9 +45,9 @@ export function AvisoVitrina({
     if (window.parent === window) return;
 
     for (const destino of aDonde.split(" ")) {
-      window.parent.postMessage({ tipo: AVISO_RESERVA, mensaje }, destino);
+      window.parent.postMessage({ tipo: AVISO_RESERVA, cliente, mensaje }, destino);
     }
-  }, [mensaje, aDonde]);
+  }, [cliente, mensaje, aDonde]);
 
   return null;
 }

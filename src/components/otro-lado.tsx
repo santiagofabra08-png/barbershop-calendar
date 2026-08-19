@@ -1,3 +1,5 @@
+import { ChatDeWhatsApp } from "@/components/chat-whatsapp";
+
 import "../app/producto.css";
 
 /**
@@ -19,13 +21,21 @@ import "../app/producto.css";
  * entere.
  *
  * **Corto a propósito.** La primera versión explicaba lo mismo en tres párrafos
- * y no la leía nadie: el que llega acá ya reservó, no vino a leer. La burbuja
- * es la prueba y se entiende sola; el texto solo tiene que llevar hasta ella.
+ * y no la leía nadie: el que llega acá ya reservó, no vino a leer. El chat es
+ * la prueba y se entiende solo; el texto apenas tiene que llevar hasta él.
  *
  * Módulo neutral: sin `"use client"` ni nada de servidor, porque lo importan
  * los dos lados.
  */
-export function OtroLado({ mensaje }: { mensaje: string }) {
+export function OtroLado({
+  cliente,
+  mensaje,
+}: {
+  /** Cómo lo tiene guardado el barbero. Es el nombre del contacto en el chat. */
+  cliente: string;
+  /** El recordatorio ya escrito, tal como sale de `mensajeDeRecordatorio`. */
+  mensaje: string;
+}) {
   return (
     <>
       <p className="text-xs font-semibold tracking-[0.18em] text-[color:var(--barbicide)] uppercase">
@@ -41,10 +51,8 @@ export function OtroLado({ mensaje }: { mensaje: string }) {
         se le abre así:
       </p>
 
-      <div className="burbuja mt-5">
-        {mensaje.split("\n").map((linea, i) => (
-          <p key={i}>{linea}</p>
-        ))}
+      <div className="mt-5">
+        <ChatDeWhatsApp contacto={cliente} mensaje={mensaje} />
       </div>
 
       <p className="mt-5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">

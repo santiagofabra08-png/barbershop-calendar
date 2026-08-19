@@ -29,7 +29,10 @@ const MODOS: { id: Modo; texto: string }[] = [
 
 export function Demo({ url, dominio }: { url: string; dominio: string }) {
   const [modo, setModo] = useState<Modo>("celular");
-  const [recordatorio, setRecordatorio] = useState<string | null>(null);
+  const [recordatorio, setRecordatorio] = useState<{
+    cliente: string;
+    mensaje: string;
+  } | null>(null);
   const despues = useRef<HTMLDivElement>(null);
   const enCelular = modo === "celular";
 
@@ -56,10 +59,13 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
     function alRecibir(e: MessageEvent) {
       if (e.origin !== origenDemo) return;
 
-      const d = e.data as { tipo?: unknown; mensaje?: unknown } | null;
-      if (!d || d.tipo !== AVISO_RESERVA || typeof d.mensaje !== "string") return;
+      const d = e.data as
+        | { tipo?: unknown; cliente?: unknown; mensaje?: unknown }
+        | null;
+      if (!d || d.tipo !== AVISO_RESERVA) return;
+      if (typeof d.mensaje !== "string" || typeof d.cliente !== "string") return;
 
-      setRecordatorio(d.mensaje);
+      setRecordatorio({ cliente: d.cliente, mensaje: d.mensaje });
     }
 
     window.addEventListener("message", alRecibir);
@@ -139,7 +145,9 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
       </div>
 
       <div ref={despues}>
-        {recordatorio !== null ? <YaEstá mensaje={recordatorio} /> : null}
+        {recordatorio !== null ? (
+          <YaEstá cliente={recordatorio.cliente} mensaje={recordatorio.mensaje} />
+        ) : null}
       </div>
     </div>
   );
@@ -153,10 +161,10 @@ export function Demo({ url, dominio }: { url: string; dominio: string }) {
  * del turno de la demo el mismo bloque está desde el principio y no se anima,
  * porque ahí no pasó nada, ya estaba.
  */
-function YaEstá({ mensaje }: { mensaje: string }) {
+function YaEstá({ cliente, mensaje }: { cliente: string; mensaje: string }) {
   return (
     <div className="revelado mt-10 border-t border-[color:var(--vidrio)] pt-8">
-      <OtroLado mensaje={mensaje} />
+      <OtroLado cliente={cliente} mensaje={mensaje} />
     </div>
   );
 }

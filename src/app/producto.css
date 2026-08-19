@@ -25,24 +25,159 @@
 }
 
 /*
-  ---- El mensaje que le mandaría el barbero ---------------------------------
+  ---- El chat de WhatsApp, dibujado ----------------------------------------
 
-  Se dibuja como lo que es, un WhatsApp. La esquina de abajo a la izquierda sin
-  redondear es lo que lo hace leer como burbuja y no como una caja de texto
-  más: es la forma que todo el mundo reconoce sin que se la expliquen, y acá el
-  punto entero es que se entienda sin explicación.
+  Antes acá había una burbuja suelta con el texto adentro. Se entendía que era
+  un mensaje, pero no que era WhatsApp ni de quién a quién: el que lo miraba
+  tenía que creerlo en vez de reconocerlo.
+
+  Los colores son los de la app y no los del producto, y esa es toda la señal
+  que hace falta: el verde de mandar y el beige del fondo alcanzan para que
+  cualquiera sepa qué está mirando sin un logo, que no nos pertenece.
+
+  El texto va en la caja de escribir, no en una burbuja enviada. Ver
+  `chat-whatsapp.tsx`: no es una decisión de dibujo sino de qué promete el
+  producto.
 */
-.burbuja {
-  max-width: 34rem;
-  background: color-mix(in oklab, var(--barbicide) 8%, var(--tiza));
-  border: 1px solid color-mix(in oklab, var(--barbicide) 18%, transparent);
-  border-radius: 14px 14px 14px 3px;
-  padding: 0.9rem 1.15rem;
-  line-height: 1.55;
+.chat {
+  --chat-verde: #075e54;
+  --chat-mandar: #25d366;
+  --chat-papel: #ece5dd;
+  --chat-barra: #e5e9eb;
+
+  max-width: 26rem;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: var(--tiza);
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--esmalte) 8%, transparent),
+    0 20px 44px -24px color-mix(in oklab, var(--esmalte) 50%, transparent);
 }
 
-.burbuja p + p {
-  margin-top: 0.35rem;
+.chat-barra {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background-color: var(--chat-verde);
+  color: #fff;
+}
+
+.chat-volver {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.chat-inicial {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: rgb(255 255 255 / 0.22);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chat-nombre {
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  El chat está vacío porque es la primera vez que le escribe por este turno.
+  Poner una conversación inventada arriba sería inventar clientes.
+*/
+.chat-cuerpo {
+  display: grid;
+  place-items: center;
+  padding: 1rem 0;
+  background-color: var(--chat-papel);
+}
+
+.chat-dia {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background-color: rgb(255 255 255 / 0.75);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--esmalte) 55%, transparent);
+}
+
+.chat-escribir {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background-color: var(--chat-barra);
+  border-top: 1px solid color-mix(in oklab, var(--esmalte) 8%, transparent);
+}
+
+.chat-campo {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 18px;
+  background-color: var(--tiza);
+  color: var(--esmalte);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* Cada renglón del mensaje, como los escribió `mensajeDeRecordatorio`. */
+.chat-campo span {
+  display: block;
+}
+
+/*
+  El cursor de escritura. Parpadea porque un cursor parpadea, y quieto sigue
+  siendo un cursor: por eso el que pidió menos movimiento lo ve fijo y no lo
+  pierde.
+*/
+.chat-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background-color: var(--chat-verde);
+  animation: latir 1.1s steps(1, end) infinite;
+}
+
+@keyframes latir {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-cursor {
+    animation: none;
+  }
+}
+
+.chat-mandar {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--chat-mandar);
+  color: #fff;
 }
 
 /*

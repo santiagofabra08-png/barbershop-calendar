@@ -28,10 +28,13 @@ import { OtroLado } from "@/components/otro-lado";
  * y el `?vitrina=1` del iframe queda en la página anterior.
  */
 export function FranjaDemo({
+  cliente,
   mensaje,
   barberia,
   urlPortada,
 }: {
+  /** Cómo lo tiene guardado el barbero: el nombre del contacto en el chat. */
+  cliente: string;
   /** El recordatorio ya escrito, tal como se lo mandaría el barbero. */
   mensaje: string;
   /** El nombre de la barbería demo. Nunca escrito a mano: llega como dato. */
@@ -101,10 +104,10 @@ export function FranjaDemo({
     <>
       <section
         ref={franja}
-        className="franja-producto paleta-producto px-5 py-14 sm:px-8 sm:py-20"
+        className="franja-producto paleta-producto px-5 py-11 sm:px-8 sm:py-20"
       >
         <div className="mx-auto w-full max-w-lg">
-          <OtroLado mensaje={mensaje} />
+          <OtroLado cliente={cliente} mensaje={mensaje} />
 
           <div className="mt-9 border-t border-[color:var(--vidrio)] pt-7">
             <p className="text-sm leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_65%,transparent)]">

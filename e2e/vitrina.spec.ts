@@ -21,7 +21,9 @@ const PUERTO = process.env.E2E_PORT ?? "3000";
 const PORTADA = `http://lvh.me:${PUERTO}`;
 
 /** Reserva un turno y devuelve la dirección de la página del turno. */
-async function reservar(page: import("@playwright/test").Page): Promise<string> {
+async function reservar(
+  page: import("@playwright/test").Page,
+): Promise<{ url: string; cliente: string }> {
   await page.goto("/");
   await page.getByRole("button", { name: /^Corte/ }).click();
   await page.getByRole("button", { name: "Ana" }).click();
@@ -43,30 +45,33 @@ async function reservar(page: import("@playwright/test").Page): Promise<string> 
   await page.getByRole("link", { name: "Continuar" }).click();
   await expect(page).toHaveURL(/\/reservar/);
 
-  await page.getByLabel("Nombre").fill(`Vitrina ${Date.now().toString().slice(-5)}`);
+  const cliente = `Vitrina ${Date.now().toString().slice(-5)}`;
+  await page.getByLabel("Nombre").fill(cliente);
   await page.getByLabel("Teléfono").fill("099123456");
   await page.getByLabel("Mail").fill("e2e-vitrina@ejemplo.com");
   await page.getByRole("button", { name: "Reservar turno" }).click();
 
   await expect(page).toHaveURL(/\/turno\//, { timeout: 15_000 });
-  return page.url();
+  return { url: page.url(), cliente };
 }
 
+type Aviso = { cliente?: unknown; mensaje?: unknown };
+
 test("la página del turno le pasa el recordatorio a la portada", async ({ page }) => {
-  const urlTurno = await reservar(page);
+  const turno = await reservar(page);
 
   // Desde la portada, que es el único origen al que la demo le habla.
   await page.goto(PORTADA);
 
-  const mensaje = await page.evaluate(async (src) => {
-    return await new Promise<string | null>((resolve) => {
+  const aviso = await page.evaluate(async (src) => {
+    return await new Promise<Aviso | null>((resolve) => {
       const t = setTimeout(() => resolve(null), 20000);
 
       window.addEventListener("message", (e) => {
-        const d = e.data as { tipo?: string; mensaje?: string } | null;
-        if (d && typeof d.mensaje === "string" && d.tipo?.includes("turno")) {
+        const d = e.data as { tipo?: string } | null;
+        if (d && typeof d.tipo === "string" && d.tipo.includes("turno")) {
           clearTimeout(t);
-          resolve(d.mensaje);
+          resolve(d as Aviso);
         }
       });
 
@@ -74,22 +79,29 @@ test("la página del turno le pasa el recordatorio a la portada", async ({ page 
       marco.src = src;
       document.body.appendChild(marco);
     });
-  }, urlTurno);
+  }, turno.url);
 
-  assertRecordatorio(mensaje);
-});
+  expect(aviso, "la demo tiene que avisarle a la portada").not.toBeNull();
 
-function assertRecordatorio(mensaje: string | null) {
-  expect(mensaje, "la demo tiene que avisarle a la portada").not.toBeNull();
   // El texto sale de la función de verdad, con el nombre del local y la hora
   // del turno: si algún día se reemplazara por un ejemplo escrito a mano, esto
   // seguiría pasando, así que lo que se mira es que traiga los datos reales.
-  expect(mensaje).toContain("Barbería de Prueba");
-  expect(mensaje).toContain("¿Confirmás que venís?");
-}
+  expect(aviso?.mensaje).toContain("Barbería de Prueba");
+  expect(aviso?.mensaje).toContain("¿Confirmás que venís?");
+
+  /*
+   * El nombre del contacto viaja aparte del texto, y tiene que seguir yendo.
+   * La portada dibuja el chat con ese nombre arriba y descarta el aviso que no
+   * lo traiga: si un día se dejara de mandar, el revelado no aparecería nunca
+   * más y no habría ni un error en la consola que lo contara.
+   */
+  expect(aviso?.cliente, "el aviso tiene que traer el nombre del contacto").toBe(
+    turno.cliente,
+  );
+});
 
 test("fuera de un iframe no le habla a nadie", async ({ page }) => {
-  const urlTurno = await reservar(page);
+  const turno = await reservar(page);
 
   // La misma página abierta derecho, sin nadie que la contenga. No tiene por
   // qué mandar nada, y si lo hiciera sería a una ventana que no es la suya.
@@ -102,7 +114,7 @@ test("fuera de un iframe no le habla a nadie", async ({ page }) => {
   });
 
   expect(hubo, "no debería mandarse ningún mensaje").toBe(false);
-  expect(page.url()).toBe(urlTurno);
+  expect(page.url()).toBe(turno.url);
 });
 
 /*

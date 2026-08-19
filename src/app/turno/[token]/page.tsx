@@ -119,7 +119,11 @@ export default async function PaginaDelTurno({
     <>
       <TenantTheme tenant={data.tenant} />
       {!cancelado ? (
-        <AvisoVitrina mensaje={recordatorio} destinos={origenesDeLaPortada(raiz)} />
+        <AvisoVitrina
+          cliente={turno.cliente}
+          mensaje={recordatorio}
+          destinos={origenesDeLaPortada(raiz)}
+        />
       ) : null}
       <ShopHeader tenant={data.tenant} compact />
 
@@ -227,6 +231,7 @@ export default async function PaginaDelTurno({
 
       {esLaDemo && !cancelado ? (
         <FranjaDemo
+          cliente={turno.cliente}
           mensaje={recordatorio}
           barberia={data.tenant.name}
           urlPortada={urlDeLaPortada(raiz)}
