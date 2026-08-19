@@ -119,3 +119,101 @@
 .portada .titulo-producto {
   font-weight: 400;
 }
+
+/*
+  ---- La barra que avisa que hay algo abajo ---------------------------------
+
+  Sin esto la franja no existe para casi nadie, y no es una impresión: medido en
+  un teléfono de 390×844, empieza a 1133px, o sea 289px pasado el corte de
+  pantalla y detrás del pie entero del local, con dirección y horarios. En uno
+  de 360×740 son 450px. La persona ve "turno confirmado", agrega el recordatorio
+  al calendario y cierra, que es exactamente lo que vino a hacer.
+
+  Va fija abajo y no al final de la página justamente por eso: no depende del
+  alto de la pantalla ni de lo largo que sea el pie del local. Se va sola en
+  cuanto la franja aparece, porque una barra que anuncia algo que ya está a la
+  vista es una barra que tapa.
+
+  **Son dos capas y tiene que seguir siéndolo.** El envoltorio se ocupa de irse
+  y el botón de entrar. Estaban en el mismo elemento y la barra no se iba nunca:
+  una animación con `fill-mode: both` deja su valor final pegado a la propiedad,
+  así que el `translate` del keyframe le ganaba al de la salida. No se ve como
+  un error de CSS, se ve como que el botón quedó tapando la pantalla.
+
+  Solo se mueve el desplazamiento, nunca la opacidad. Si un navegador no
+  entendiera la animación, la barra queda visible en su lugar; animando opacidad
+  quedaría invisible y no habría forma de enterarse de que hay algo abajo.
+*/
+.pico-envoltorio {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  translate: -50% 0;
+  transition: translate 0.32s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Llegó: se va por abajo y deja de recibir toques y foco. */
+.pico-envoltorio.se-fue {
+  translate: -50% calc(100% + 2.5rem);
+  pointer-events: none;
+}
+
+.pico-producto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.85rem 1.15rem;
+
+  border-radius: 999px;
+  background-color: var(--barbicide);
+  color: var(--tiza);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  box-shadow:
+    0 2px 6px color-mix(in oklab, var(--esmalte) 22%, transparent),
+    0 16px 32px -14px color-mix(in oklab, var(--esmalte) 60%, transparent);
+
+  /* Entra un rato después de cargar: si sube junto con la página, se lee como
+     parte del turno y no como algo que apareció para avisar. */
+  animation: asomar 0.5s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+  animation-delay: 0.7s;
+  transition: background-color 150ms;
+}
+
+@keyframes asomar {
+  from {
+    translate: 0 calc(100% + 2.5rem);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+.pico-producto:hover,
+.pico-producto:active {
+  background-color: var(--esmalte);
+}
+
+.pico-producto:focus-visible {
+  outline: 2px solid var(--esmalte);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pico-envoltorio {
+    transition: none;
+  }
+
+  .pico-envoltorio.se-fue {
+    display: none;
+  }
+
+  .pico-producto {
+    animation: none;
+  }
+}

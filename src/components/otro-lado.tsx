@@ -18,6 +18,10 @@ import "../app/producto.css";
  * hoy y empezaría a mentir el día que el mensaje cambie, sin que nadie se
  * entere.
  *
+ * **Corto a propósito.** La primera versión explicaba lo mismo en tres párrafos
+ * y no la leía nadie: el que llega acá ya reservó, no vino a leer. La burbuja
+ * es la prueba y se entiende sola; el texto solo tiene que llevar hasta ella.
+ *
  * Módulo neutral: sin `"use client"` ni nada de servidor, porque lo importan
  * los dos lados.
  */
@@ -33,9 +37,8 @@ export function OtroLado({ mensaje }: { mensaje: string }) {
       </h3>
 
       <p className="mt-4 max-w-xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-        Reservaste solo, desde el teléfono, sin llamar ni esperar respuesta. Del
-        otro lado nadie tuvo que anotar nada. Y cuando el barbero quiera
-        recordártelo, toca un botón y WhatsApp se le abre con esto ya escrito:
+        Nadie tuvo que anotar nada. Para recordártelo, toca un botón y WhatsApp
+        se le abre así:
       </p>
 
       <div className="burbuja mt-5">
@@ -44,10 +47,8 @@ export function OtroLado({ mensaje }: { mensaje: string }) {
         ))}
       </div>
 
-      <p className="mt-5 max-w-xl text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
-        Fijate también en tu correo: la confirmación ya te llegó, con la marca
-        de la barbería y el link para cancelar. Eso es todo lo que hace falta
-        para que un cliente reserve y no falte.
+      <p className="mt-5 text-sm text-[color:color-mix(in_oklab,var(--esmalte)_55%,transparent)]">
+        La confirmación también te llegó por mail.
       </p>
     </>
   );
