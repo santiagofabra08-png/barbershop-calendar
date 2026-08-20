@@ -106,6 +106,54 @@ oscuros (`src/lib/tenant/tono.ts`). No hay nada que configurar.
 Los colores se cambian desde **Ajustes** cuando ellos quieran: son datos, no
 código.
 
+## Los archivos, y cuál es cuál
+
+Llegaron el 21 de agosto de 2026. Las fotos están achicadas a 1600 px de lado
+largo: la carpeta pesaba 21 MB de originales de celular y esto es material de
+consulta, no lo que sirve la aplicación. Los originales los tiene Santiago, y
+son los que se suben al panel.
+
+### Logos
+
+Los cuatro son PNG de 1024×1024. **Los dos "secundarios" tienen transparencia
+real**; los "principales" traen el fondo pegado.
+
+| Archivo | Qué es | Para qué |
+| --- | --- | --- |
+| `als-sobre-claro.png` | "ALS" en negro, con alfa | `logo_light_url` |
+| `als-sobre-oscuro.png` | "ALS" en blanco, con alfa | `logo_dark_url` |
+| `emblema-fondo-negro.png` | el círculo con tijera y navaja | Instagram |
+| `emblema-fondo-blanco.png` | el mismo, sobre blanco | Instagram |
+
+⚠️ Los dos emblemas **no sirven para el encabezado**: el fondo pegado se ve como
+un cuadrado con borde sobre la franja de la página. Son preciosos y son para
+otra cosa.
+
+Como la paleta de AL Studio es oscura, la página va a usar
+`als-sobre-oscuro.png` casi siempre. El otro hace falta igual: lo elige el
+fondo, no el archivo.
+
+### Y una cosa que los logos contestan
+
+**No hay celeste turquesa en ninguno.** Son blanco, negro y plata. El turquesa
+salió de lo que dijeron ellos, así que o viene del Instagram o es un color que
+usan y no está en la marca. Vale confirmarlo antes de dejarlo como `accent`: un
+turquesa al lado de un monograma cromado puede quedar hermoso o puede quedar
+pegado con cinta.
+
+### Las fotos de los barberos, y por qué no entran en un círculo
+
+Son las dos la **misma pose**: la mano adelante con la herramienta ocupando el
+centro, la cara atrás. En la de Lucas la cara además está desenfocada y arriba a
+la derecha.
+
+Recortadas a un círculo de 48 px no se ve una cara, se ve una mano con una
+tijera. Y en chico las dos se parecen entre sí, que es lo contrario de lo que
+tiene que hacer un avatar: distinguir a uno del otro de un vistazo.
+
+Hacen falta **dos fotos de cara**, plano corto, mirando a cámara. Estas dos se
+usan en grande, donde la composición sí funciona.
+
 ## Las fotos que faltan
 
 Santiago va a subir a esta carpeta:
