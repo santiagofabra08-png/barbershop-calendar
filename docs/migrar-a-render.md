@@ -210,6 +210,31 @@ cortados con `…`. Después, **Verify** en Render.
 curl -s "https://dns.google/resolve?name=_acme-challenge.turnosforbarber.com&type=TXT"
 ```
 
+#### El corte se puede probar entero antes de hacerlo
+
+No hace falta cambiar el DNS para saber si va a andar. `curl --resolve` resuelve
+un nombre a la IP que uno le diga, salteándose el DNS: así se le pide a Render que
+conteste como si el dominio ya apuntara ahí, con el sitio todavía en Vercel.
+
+```sh
+IP=216.24.57.1
+for h in demo.turnosforbarber.com tropi-barbershop.turnosforbarber.com          www.turnosforbarber.com turnosforbarber.com; do
+  t=$(curl -s --resolve "$h:443:$IP" "https://$h/" | grep -o '<title>[^<]*</title>')
+  c=$(curl -s -o /dev/null --resolve "$h:443:$IP" -w '%{http_code}/%{ssl_verify_result}' "https://$h/")
+  printf '%-42s %-9s %s
+' "$h" "$c" "$t"
+done
+```
+
+`ssl_verify_result` en `0` quiere decir que el certificado valida. Y el título de
+cada subdominio tiene que nombrar **su** barbería: eso es lo único que prueba que
+Render resuelve el tenant desde el header `host`, que es la pieza de la que
+depende el producto entero y la única que la URL de `onrender.com` no ejercita.
+
+Corrido el 20 de agosto de 2026, antes de tocar nada: comodín de Let's Encrypt
+validando, las tres barberías devolviendo la suya, y el pelado con su 301 a
+`www`. Con eso, la tanda 2 dejó de ser un salto.
+
 #### Tanda 2 · El corte
 
 Recién cuando el comodín diga verificado y con certificado.
