@@ -273,10 +273,17 @@ En el SMTP de Supabase, **`Username` es literalmente la palabra `resend`**, no
 el mail ni la API key. Es el campo que más veces queda mal, y el error que
 devuelve es un 500 vacío que no dice nada.
 
-**Pendiente**: `turnos@…` es solo un remitente, no una casilla. Si un cliente
-contesta la confirmación —"no voy a poder ir"— esa respuesta se pierde. Hay que
-reenviarla a alguien, y cuando se venda a barberías de verdad tiene que ir al
-mail del local y no al nuestro. Va junto con el alta de barberías.
+**Las respuestas ya no se pierden, pero llegan al lugar equivocado.**
+`turnos@turnosforbarber.com` es un remitente, no una casilla, así que si un
+cliente contesta la confirmación —"no voy a poder ir"— esa respuesta necesitaba
+un destino. Lo tiene: el reenvío de Porkbun la manda a la casilla de Santiago.
+
+Alcanza mientras las barberías sean de prueba. **Con barberías de verdad está
+mal**, y de una forma que no se nota: la clienta avisa que no viene, el mensaje
+llega a una casilla nuestra, y la dueña se entera cuando el turno no aparece. El
+reenvío tiene que ir al mail del local, o el remitente tiene que llevar el
+`replyTo` de cada barbería. Lo segundo es una línea en `send.ts` y no depende de
+ningún panel de DNS.
 
 El link vuelve a `/entrar/confirmar`, que canja el código y redirige. Esa ruta
 arma la dirección con el header `host` y **no** con `request.url`: Next
