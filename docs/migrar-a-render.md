@@ -176,11 +176,15 @@ En el servicio → **Settings → Custom Domains**, agregar los tres:
 Render va a mostrar, para cada uno, qué registro espera. Anotarlos: llevan el id
 del servicio adentro.
 
-⚠️ **Hoy el dominio pelado redirige a `www` con un 308**, y eso lo hace Vercel,
-no el código: `turnosforbarber.com` manda a `www.turnosforbarber.com`. En Render
-esa redirección no existe sola. Hay que elegir cuál de los dos es el canónico y
-redirigir el otro, o quedan dos direcciones sirviendo la misma portada. No rompe
-nada, pero parte las estadísticas en dos y ensucia los links que ya circulan.
+**El redirect del pelado a `www` lo resuelve Render solo.** En Vercel eso era un
+308 de la plataforma, no del código, y se iba a perder al migrar: quedaban dos
+direcciones sirviendo la misma portada. Al agregar `www`, Render agrega el
+dominio pelado por su cuenta y lo deja redirigiendo. No hay que hacer nada, pero
+sí hay que mirar que la lista lo diga.
+
+El apex va con un registro **`A` a `216.24.57.1`**, no con el CNAME que muestra el
+cuadro: un CNAME en la raíz de un dominio no es válido, y el propio cuadro lo
+aclara abajo.
 
 ### 5 · Cambiar los registros en Vercel DNS
 
