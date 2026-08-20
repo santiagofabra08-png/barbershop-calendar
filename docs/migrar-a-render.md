@@ -361,8 +361,36 @@ cuenta— y que ande una no dice nada de la otra.
 
 Apagado del DNS pero sin borrar el proyecto.
 
-**Volver atrás es poner los A de `216.198.79.*` de nuevo.** Nada más. Por eso el
-proyecto no se borra hasta que pase una semana tranquila.
+**Volver atrás son dos cosas**, y en este orden: reconectar el dominio al proyecto
+en *Connected Projects*, y borrar los tres registros que agregamos (`@` A, `www`
+CNAME, `*` CNAME). Al sacarlos, los `ALIAS` por defecto de Vercel vuelven a
+mandar solos, porque nunca se fueron: no se pueden borrar, solo pisar.
+
+Por eso el proyecto no se borra hasta que pase una semana tranquila.
+
+### Lo que hay que saber al verificar: el DNS de tu casa miente
+
+Durante toda la verificación, el router de la red local siguió devolviendo las
+direcciones viejas de Vercel bastante después del corte, ignorando el TTL de 60
+segundos. Eso se ve como un **404 que dice "The deployment could not be found on
+Vercel"**, y es facilísimo leerlo como que la migración salió mal.
+
+Peor: no es parejo. `curl` recibía Render y Chromium recibía Vercel **al mismo
+tiempo**, así que una prueba automática puede fallar mientras el sitio anda
+perfecto.
+
+La forma de saber la verdad es no preguntarle al resolvedor local:
+
+```sh
+# La respuesta autoritativa, sin cachés en el medio.
+curl -s "https://dns.google/resolve?name=www.turnosforbarber.com&type=A"
+
+# Y después pedirle a esa IP directamente.
+curl -s --resolve "www.turnosforbarber.com:443:216.24.57.7" https://www.turnosforbarber.com/
+```
+
+Para el navegador, el equivalente es lanzarlo con
+`--host-resolver-rules=MAP www.turnosforbarber.com <ip>`.
 
 ---
 
