@@ -188,24 +188,92 @@ aclara abajo.
 
 ### 5 · Cambiar los registros en Vercel DNS
 
-Acá empieza el corte. En Vercel → Domains → `turnosforbarber.com` → DNS.
+En Vercel → Domains → `turnosforbarber.com` → DNS. Va **en dos tandas**, y la
+separación importa: la primera no mueve tráfico, así que el certificado comodín
+se emite mientras el sitio sigue sirviéndose desde Vercel. Recién con el
+certificado listo se corta.
 
-**Se borran** los A de `@`, `www` y `*` que apuntan a `216.198.79.*`.
+#### Tanda 1 · Los dos registros de verificación
+
+Nadie visita estas direcciones: agregarlas no cambia nada para ningún visitante.
+
+| Nombre | Tipo | Valor |
+|---|---|---|
+| `_acme-challenge` | CNAME | `barbershop-calendar-br9c.verify.renderdns.com` |
+| `_cf-custom-hostname` | CNAME | `barbershop-calendar-br9c.hostname.renderdns.com` |
+
+Copiar los valores con el botón de Render, no tipearlos: en pantalla salen
+cortados con `…`. Después, **Verify** en Render.
+
+```sh
+# Que el desafío llegue a la zona de Render, y con token adentro.
+curl -s "https://dns.google/resolve?name=_acme-challenge.turnosforbarber.com&type=TXT"
+```
+
+#### Tanda 2 · El corte
+
+Recién cuando el comodín diga verificado y con certificado.
+
+**Se borran** los A de `@`, `www` y `*` que apuntan a `216.198.79.1` y
+`216.198.79.65`.
 
 **Se agregan:**
 
 | Nombre | Tipo | Valor |
 |---|---|---|
-| `@` | A | `216.24.57.1` (o ALIAS al `onrender.com` si Vercel lo permite) |
-| `www` | CNAME | `<tu-app>.onrender.com` |
-| `*` | CNAME | `<tu-app>.onrender.com` |
-| `_acme-challenge` | CNAME | `<id-del-servicio>.verify.renderdns.com` |
-| `_cf-custom-hostname` | CNAME | `<id-del-servicio>.hostname.renderdns.com` |
+| `@` | A | `216.24.57.1` |
+| `www` | CNAME | `barbershop-calendar-br9c.onrender.com` |
+| `*` | CNAME | `barbershop-calendar-br9c.onrender.com` |
 
-⚠️ **No tocar los MX, ni el TXT del `@`, ni nada que empiece con `send` o
-`resend._domainkey`.** Son el correo, y no tienen nada que ver con el hosting.
+El `@` va con `A` y no con `CNAME`: un CNAME en la raíz de un dominio no es
+válido, y el propio cuadro de Render lo aclara.
+
+Si Vercel no deja borrar esos A, es porque los administra mientras el dominio
+esté asignado al proyecto: sacar el dominio del proyecto en *Settings → Domains*.
+Eso no borra la zona ni los registros de correo.
+
+#### Lo que no se toca, ni una vez
+
+```
+@                  MX    fwd1.porkbun.com, fwd2.porkbun.com
+@                  TXT   v=spf1 include:_spf.porkbun.com ~all
+send               TXT   v=spf1 include:amazonses.com ~all
+send               MX    feedback-smtp.sa-east-1.amazonses.com
+resend._domainkey  TXT   p=MIGfMA0GCSqGSIb3DQEB…
+```
+
+⚠️ Son el correo. Si se pierden los tres de Resend, los mails de confirmación
+dejan de salir **en silencio**, porque un fallo de mail nunca rompe una reserva.
+Conviene mirarlos después de cada toque al DNS, que cuesta un comando:
+
+```sh
+for r in "turnosforbarber.com MX" "turnosforbarber.com TXT"          "send.turnosforbarber.com MX" "send.turnosforbarber.com TXT"          "resend._domainkey.turnosforbarber.com TXT"; do
+  set -- $r
+  echo "$1 ($2): $(curl -s "https://dns.google/resolve?name=$1&type=$2" |
+    grep -o '"data":"[^"]*"' | head -2 | tr '
+' ' ')"
+done
+```
 
 ⚠️ **Borrar los AAAA si hay alguno**: Render es solo IPv4.
+
+#### Los CAA, que pueden bloquear el certificado
+
+La zona trae tres registros `CAA` que puso Vercel:
+
+```
+0 issue "sectigo.com"   0 issue "letsencrypt.org"   0 issue "pki.goog"
+```
+
+Un `CAA` es una lista blanca de qué autoridades pueden emitir certificados para
+el dominio. Una autoridad que no esté en la lista tiene prohibido emitir, **aunque
+el desafío del DNS le dé bien**, y el error que se ve no dice "CAA" por ningún
+lado: dice que el certificado falló.
+
+No hay ningún `issuewild`, así que la lista vale igual para los comodines, y
+Let's Encrypt está adentro. Si aun así el certificado no sale después de
+reintentar, estos tres son el sospechoso, y existen para Vercel: se borran. Un
+dominio sin `CAA` no queda desprotegido, simplemente no restringe.
 
 ### 6 · Esperar el certificado y probar, en este orden
 
