@@ -150,6 +150,12 @@ En el servicio → **Settings → Custom Domains**, agregar los tres:
 Render va a mostrar, para cada uno, qué registro espera. Anotarlos: llevan el id
 del servicio adentro.
 
+⚠️ **Hoy el dominio pelado redirige a `www` con un 308**, y eso lo hace Vercel,
+no el código: `turnosforbarber.com` manda a `www.turnosforbarber.com`. En Render
+esa redirección no existe sola. Hay que elegir cuál de los dos es el canónico y
+redirigir el otro, o quedan dos direcciones sirviendo la misma portada. No rompe
+nada, pero parte las estadísticas en dos y ensucia los links que ya circulan.
+
 ### 5 · Cambiar los registros en Vercel DNS
 
 Acá empieza el corte. En Vercel → Domains → `turnosforbarber.com` → DNS.
