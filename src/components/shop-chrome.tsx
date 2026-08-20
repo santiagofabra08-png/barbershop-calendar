@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { IconoCalendario, IconoUbicacion } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
+import { plazoEnPalabras } from "@/lib/plazo";
 import { summarizeHours } from "@/lib/schedule";
 import type { Tenant, WorkingHour } from "@/lib/tenant/types";
 
@@ -167,8 +168,8 @@ export function ShopFooter({
           </div>
 
           <p className="text-sm leading-relaxed text-muted sm:col-span-2">
-            Se paga en el local, en efectivo o por transferencia. Podés cancelar
-            hasta una hora antes del turno.
+            Se paga en el local, en efectivo o por transferencia. Podés cancelar{" "}
+            {plazoEnPalabras(tenant.cancelDeadlineMinutes)} del turno.
           </p>
         </div>
       </div>

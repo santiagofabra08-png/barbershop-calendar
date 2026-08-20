@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 import { remitenteDe } from "@/lib/email/remitente";
+import { plazoEnPalabras } from "@/lib/plazo";
 import type { Tenant } from "@/lib/tenant/types";
 
 /**
@@ -81,7 +82,7 @@ function armarHtml(d: DatosConfirmacion): string {
       <a href="${escapar(d.urlTurno)}" style="display:block;padding:14px 24px;background:${c.accent};color:${c.surface};font:600 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;text-decoration:none;">Ver o cancelar el turno</a>
       <p style="margin:14px 0 0;font:400 13px/1.6 Helvetica,Arial,sans-serif;color:${c.inkMuted};">
         Guardá este mail: el link de arriba es la forma de cancelar si no podés ir.
-        Se puede cancelar hasta una hora antes.
+        Se puede cancelar ${plazoEnPalabras(d.tenant.cancelDeadlineMinutes)}.
       </p>
     </td></tr>
 
@@ -106,7 +107,7 @@ function armarTexto(d: DatosConfirmacion): string {
     d.tenant.address ? `\nDónde: ${d.tenant.address}` : "",
     "",
     `Ver o cancelar: ${d.urlTurno}`,
-    "Se puede cancelar hasta una hora antes.",
+    `Se puede cancelar ${plazoEnPalabras(d.tenant.cancelDeadlineMinutes)}.`,
     "",
     "Se paga en el local, en efectivo o por transferencia.",
   ]

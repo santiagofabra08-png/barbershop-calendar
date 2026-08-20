@@ -1,3 +1,4 @@
+import { plazoEnPalabras } from "@/lib/plazo";
 import { localToUtc } from "@/lib/schedule";
 import { createClient } from "@/lib/supabase/server";
 import { cargarBarberia } from "@/lib/tenant/load";
@@ -83,7 +84,7 @@ export async function GET(
 
   const descripcion = [
     `${turno.servicio ?? "Turno"} con ${turno.barbero}.`,
-    "Se paga en el local. Podés cancelar hasta una hora antes desde el link del mail.",
+    `Se paga en el local. Podés cancelar ${plazoEnPalabras(tenant.cancelDeadlineMinutes)} desde el link del mail.`,
   ].join(" ");
 
   const lineas = [
