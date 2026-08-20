@@ -239,8 +239,29 @@ validando, las tres barberías devolviendo la suya, y el pelado con su 301 a
 
 Recién cuando el comodín diga verificado y con certificado.
 
-**Se borran** los A de `@`, `www` y `*` que apuntan a `216.198.79.1` y
-`216.198.79.65`.
+**No hay ningún registro `A` que borrar**, aunque el DNS público devuelva
+direcciones. Lo que sirve el sitio son dos `ALIAS` con candado:
+
+```
+*    ALIAS   0dec17d92f87e80e.vercel-dns-017.com     🔒 "Vercel automatically manages …"
+     ALIAS   0dec17d92f87e80e.vercel-dns-017.com     🔒 (nombre vacío: el dominio pelado)
+```
+
+El `*` cubre **todos** los subdominios, `www` incluido, y por eso no existe
+ningún registro `www`. Tienen candado porque los genera la sección **Connected
+Projects** de arriba: mientras el dominio esté conectado al proyecto, Vercel los
+sirve y no deja poner nada encima. Los tres `CAA` están igual.
+
+Entonces el corte es **desconectar, y después agregar**:
+
+1. En **Connected Projects**, desconectar los tres nombres. Es desconectar del
+   proyecto, **no** sacar el dominio de la cuenta: la zona tiene que seguir en
+   Vercel hasta la etapa 2.
+2. Los `ALIAS` con candado desaparecen solos.
+3. Agregar los tres de abajo.
+
+Entre 1 y 3 el dominio queda sin resolver unos minutos. Es el único rato de
+inactividad de toda la migración, y por eso se hace mientras no haya clientes.
 
 **Se agregan:**
 
@@ -253,9 +274,8 @@ Recién cuando el comodín diga verificado y con certificado.
 El `@` va con `A` y no con `CNAME`: un CNAME en la raíz de un dominio no es
 válido, y el propio cuadro de Render lo aclara.
 
-Si Vercel no deja borrar esos A, es porque los administra mientras el dominio
-esté asignado al proyecto: sacar el dominio del proyecto en *Settings → Domains*.
-Eso no borra la zona ni los registros de correo.
+Lo que **no** se toca de esa lista: los TXT y MX sin candado, que son el correo,
+y los dos de verificación de la tanda 1.
 
 #### Lo que no se toca, ni una vez
 
