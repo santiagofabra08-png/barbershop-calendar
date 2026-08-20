@@ -1,0 +1,49 @@
+# Vacía la agenda de la barbería demo, una vez por día.
+#
+# Antes lo disparaba `vercel.json`. Render no lee ese archivo y su servicio de
+# tareas programadas cuesta un mínimo de un dólar por mes, así que la llamada
+# la hace GitHub: `/api/limpiar-demo` es un endpoint HTTP y con el secreto
+# alcanza.
+#
+# Se puede reservar de verdad adentro de la demo, que es el punto de la portada.
+# Sin limpiarla, en unas semanas no queda un horario libre para mostrar y la
+# demo deja de demostrar nada.
+#
+# El `CRON_SECRET` va en Settings → Secrets and variables → Actions del
+# repositorio, con el mismo valor que tiene la variable en Render.
+
+name: Vaciar la demo
+
+on:
+  schedule:
+    # 06:00 UTC, o sea las 3 de la mañana en Montevideo: la agenda del día ya
+    # terminó y todavía no empezó la del siguiente.
+    - cron: "0 6 * * *"
+  # Para poder dispararla a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a /api/limpiar-demo
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secreto CRON_SECRET del repositorio."
+            exit 1
+          fi
+
+          # `--fail-with-body` para que un 401 o un 500 corten el paso en rojo
+          # y además dejen ver qué contestó el servidor. Sin eso, curl devuelve
+          # 0 aunque el servidor haya rechazado la llamada, y la tarea aparece
+          # en verde durante meses sin haber limpiado nunca.
+          # Va al `www` y no al dominio pelado: el pelado devuelve un 301 al
+          # `www`, curl sin `-L` no lo sigue, y `--fail-with-body` solo falla
+          # con 400 o más. O sea que con el dominio pelado esta tarea quedaba
+          # en verde sin haber limpiado nunca.
+          curl --fail-with-body --silent --show-error \
+               --max-time 60 \
+               --header "Authorization: Bearer $CRON_SECRET" \
+               "https://www.turnosforbarber.com/api/limpiar-demo"
