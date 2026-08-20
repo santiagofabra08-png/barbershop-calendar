@@ -122,14 +122,16 @@ cada visita. Cargadas después del build, no entran.
 | `NEXT_PUBLIC_APP_URL` | `https://turnosforbarber.com` |
 | `NEXT_PUBLIC_CONTACT_WHATSAPP` | |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | |
-| `NEXT_PUBLIC_PRECIO_MENSUAL` · `_MONEDA` | |
-| `NEXT_PUBLIC_PRECIO_MENSUAL_ALT` · `_MONEDA_ALT` | |
+| `NEXT_PUBLIC_PRECIO_MENSUAL` | |
+| `NEXT_PUBLIC_PRECIO_MONEDA` | |
+| `NEXT_PUBLIC_PRECIO_MENSUAL_ALT` | |
+| `NEXT_PUBLIC_PRECIO_MONEDA_ALT` | |
 | `SOLICITUDES_MAIL` | A dónde llega el aviso de la portada |
 | `CRON_SECRET` | Lo único que protege `/api/limpiar-demo` |
 | `RESEND_API_KEY` | |
-| `RESEND_FROM` | `Tropi Barbershop <turnos@turnosforbarber.com>` hoy. **Conviene cambiar el nombre a `Turnos for Barber`**: de acá sale solo la dirección para los mails de las barberías, pero el nombre se usa tal cual en el aviso de la portada, que no es de ninguna barbería. |
+| `RESEND_FROM` | `Turnos for Barber <turnos@turnosforbarber.com>`. **Cambia respecto de Vercel**, que dice `Tropi Barbershop`: de acá sale solo la dirección para los mails de las barberías, pero el nombre se usa tal cual en el aviso de la portada, que no es de ninguna barbería. |
 | `NODE_VERSION` | `24` |
-| `DEV_TENANT_SLUG` | **No cargarla.** En producción se ignora, pero dejarla invita a un accidente. |
+| `DEV_TENANT_SLUG` · `DEV_ALLOWED_ORIGINS` | **No cargarlas.** Son de desarrollo: en producción se ignoran, pero dejarlas invita a un accidente el día que alguien las lea sin contexto. |
 
 ### 3 · Verificar en el `onrender.com`, antes de tocar el DNS
 
