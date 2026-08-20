@@ -1,178 +1,155 @@
-# Poner la aplicación en internet
+# Cómo está puesto en internet
 
 De la computadora de Santiago a `{barbería}.turnosforbarber.com`, andando.
 
-Se hace una sola vez. Después, cada barbería nueva es solo correr
-`crear-barberia` — el subdominio ya funciona sin tocar nada más, porque el
-certificado y el DNS son comodín.
+Describe el estado real, no una receta a seguir: esto ya está hecho. Después de
+esto, cada barbería nueva es solo correr `crear-barberia`, porque el subdominio
+funciona sin tocar nada más: el certificado y el DNS son comodín.
+
+**Estuvo en Vercel hasta el 20 de agosto de 2026.** La mudanza, con el porqué y
+el paso a paso, está en `migrar-a-render.md`. Si algo de acá no cuadra con lo que
+ves, ese documento tiene la historia.
 
 ---
 
-## El orden importa, y este es el motivo
+## Las cuatro piezas, y quién hace qué
 
-El paso 3 **muda el DNS de Porkbun a Vercel**. No es opcional: un dominio
-comodín (`*.turnosforbarber.com`) es la única forma de que cada barbería nueva
-tenga su subdominio sin que nadie toque un registro, y Vercel solo emite el
-certificado comodín si maneja el DNS él mismo. Necesita responder un desafío
-DNS cada vez que renueva el certificado, y para eso tiene que poder escribir.
+| | Dónde | Qué hace |
+|---|---|---|
+| El código | GitHub, `barbershop-calendar` | cada `push` a `main` dispara un despliegue |
+| La aplicación | **Render**, servicio web `barbershop-calendar` | corre `next start` |
+| La zona DNS | **Vercel**, todavía | resuelve el dominio y guarda el correo |
+| El correo | Resend y Supabase | dos sistemas distintos, ver abajo |
 
-La consecuencia es la trampa de todo esto: **al cambiar los nameservers, los
-registros que están en Porkbun dejan de existir para el mundo.** Incluidos los
-tres de Resend. Si se mudan los nameservers y no se rehacen esos tres, los mails
-de confirmación dejan de salir y nada avisa —un fallo de mail nunca rompe una
-reserva, a propósito—.
-
-Por eso los registros de Resend se cargan en Vercel **antes** de tocar los
-nameservers en Porkbun, y no después. Vercel deja escribir la zona desde que el
-dominio existe en la cuenta; simplemente nadie la consulta todavía. Cuando los
-nameservers cambian, esos tres registros ya están del otro lado esperando y el
-correo no se cae ni un minuto.
-
-Al revés —mudar primero y cargar después— el correo queda roto todo el tiempo
-que tardes en acordarte.
+⚠️ **La zona DNS sigue en Vercel aunque la aplicación ya no.** Es deliberado: la
+mudanza se hizo en dos etapas para poder saber qué se rompió si algo se rompía.
+Mover la zona a Porkbun es la etapa 2, pendiente. Mientras tanto, el dominio
+depende de una cuenta de Vercel que ya no aloja nada.
 
 ---
 
-## 1 · El código a GitHub
+## El servicio en Render
 
-Hoy el proyecto existe en una carpeta, en una computadora. Eso ya es un motivo
-suficiente, pero además es lo que le permite a Vercel desplegar solo: `git push`
-y a los dos minutos está arriba.
+- **Web Service**, no Static Site: esta aplicación es dinámica de punta a punta.
+  El tenant sale del header `host` en cada pedido, hay Server Actions, y la clave
+  de servicio tiene que quedarse del lado del servidor.
+- Runtime **Node**. Build `npm run build`, start `npm start`.
+- Instancia **Starter**. La gratuita se duerme y la primera visita del día tarda
+  medio minuto en despertar, que en una página de reservas es fatal.
+- **Node 24**, fijado con la variable `NODE_VERSION=24`: no está declarado en
+  `engines`, así que sin esa variable Render elige otra.
 
-En github.com → **New repository**:
+### Las variables de entorno
 
-- Nombre: `barbershop-calendar`
-- **Private**
-- **Sin** README, sin .gitignore, sin licencia — el repositorio ya los tiene y
-  agregarlos desde la web crea un conflicto al primer push.
+Las `NEXT_PUBLIC_*` **se escriben adentro del código al construirlo**, no se leen
+en cada visita. Cargadas después del primer build, no entran: hay que volver a
+desplegar.
 
-Y después, acá:
-
-```
-git remote add origin https://github.com/<usuario>/barbershop-calendar.git
-git push -u origin main
-```
-
-`.env.local` no se sube: está en `.gitignore`. Las credenciales viajan por otro
-lado (paso 2).
-
----
-
-## 2 · El proyecto en Vercel
-
-vercel.com → **Add New → Project** → importar el repositorio.
-
-Framework Next.js, detectado solo. No tocar los comandos de build.
-
-**Antes de darle Deploy**, cargar las variables de entorno. Son las mismas de
-`.env.local` con dos cambiadas y una que no va:
-
-| Variable | Valor en producción |
+| Variable | Nota |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | igual que en `.env.local` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | igual que en `.env.local` |
-| `SUPABASE_SERVICE_ROLE_KEY` | igual que en `.env.local` |
-| `RESEND_API_KEY` | igual que en `.env.local` |
-| `RESEND_FROM` | igual que en `.env.local` |
-| `NEXT_PUBLIC_ROOT_DOMAIN` | **`turnosforbarber.com`** ← cambia |
-| `NEXT_PUBLIC_APP_URL` | **`https://turnosforbarber.com`** ← cambia |
-| `DEV_TENANT_SLUG` | **no cargarla** |
+| `NEXT_PUBLIC_SUPABASE_URL` | |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | |
+| `SUPABASE_SERVICE_ROLE_KEY` | ⚠️ Saltea RLS. Nunca con prefijo `NEXT_PUBLIC_`. |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | `turnosforbarber.com`, sin protocolo ni puerto |
+| `NEXT_PUBLIC_APP_URL` | `https://turnosforbarber.com` |
+| `NEXT_PUBLIC_CONTACT_WHATSAPP` | |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | hoy sin cargar: sin ella la portada no ofrece mail |
+| `NEXT_PUBLIC_PRECIO_MENSUAL` | |
+| `NEXT_PUBLIC_PRECIO_MONEDA` | |
+| `NEXT_PUBLIC_PRECIO_MENSUAL_ALT` | |
+| `NEXT_PUBLIC_PRECIO_MONEDA_ALT` | |
+| `SOLICITUDES_MAIL` | a dónde llega el aviso de la portada |
+| `CRON_SECRET` | lo único que protege `/api/limpiar-demo` |
+| `RESEND_API_KEY` | |
+| `RESEND_FROM` | `Turnos for Barber <turnos@turnosforbarber.com>` |
+| `NODE_VERSION` | `24` |
+| `DEV_TENANT_SLUG` · `DEV_ALLOWED_ORIGINS` | **no cargarlas** |
 
-`DEV_TENANT_SLUG` es la salida de emergencia para desarrollar en `localhost`,
-que no tiene subdominio. En producción el código la ignora igual, pero cargarla
-es dejar escrito que una barbería es especial, y ninguna lo es.
+`DEV_TENANT_SLUG` es la salida de emergencia para desarrollar en `localhost`, que
+no tiene subdominio. En producción el código la ignora igual, pero cargarla es
+dejar escrito que una barbería es especial, y ninguna lo es.
 
-La `SUPABASE_SERVICE_ROLE_KEY` va **sin** el prefijo `NEXT_PUBLIC_`. Es lo que
-la mantiene fuera del navegador: Next manda al cliente todo lo que empieza con
+La `SUPABASE_SERVICE_ROLE_KEY` va **sin** el prefijo `NEXT_PUBLIC_`. Es lo que la
+mantiene fuera del navegador: Next manda al cliente todo lo que empieza con
 `NEXT_PUBLIC_` y nada más. Esa clave saltea RLS entera.
 
 ---
 
-## 3 · El dominio comodín
+## Los dominios
 
-En el proyecto → **Settings → Domains → Add Domain**, y agregar **dos**:
+En el servicio → **Settings → Custom Domains** están los tres:
 
 ```
-turnosforbarber.com
 *.turnosforbarber.com
+turnosforbarber.com        ← redirige a www, lo arma Render solo
+www.turnosforbarber.com
 ```
 
-Al guardar el comodín, Vercel activa sus nameservers solo y muestra cuáles son
-—generalmente `ns1.vercel-dns.com` y `ns2.vercel-dns.com`, pero **copiar los que
-muestre la pantalla**, no estos—.
+**Render cuenta 2 de 2 dominios**: el que solo redirige no ocupa cupo. Eso
+importa el día que una barbería quiera su propio dominio, que ahí sí suma.
 
-**Anotarlos y no cambiar nada en Porkbun todavía.** Primero va el paso 4.
+### Los registros, en la zona de Vercel
+
+| Nombre | Tipo | Valor | Para qué |
+|---|---|---|---|
+| `@` | A | `216.24.57.1` | el dominio pelado |
+| `www` | CNAME | `barbershop-calendar-br9c.onrender.com` | la portada |
+| `*` | CNAME | `barbershop-calendar-br9c.onrender.com` | cada barbería |
+| `_acme-challenge` | CNAME | `barbershop-calendar-br9c.verify.renderdns.com` | el certificado comodín |
+| `_cf-custom-hostname` | CNAME | `barbershop-calendar-br9c.hostname.renderdns.com` | la protección de Cloudflare |
+
+El `@` va con `A` y no con `CNAME`: un CNAME en la raíz de un dominio no es
+válido.
+
+⚠️ **Vercel tiene dos `ALIAS` propios que no se pueden borrar**, con candado y el
+comentario "Vercel automatically manages…". No hace falta: *"adding additional
+DNS Records will override the values of them"*. Los registros de arriba los
+pisan. Eso también es la vuelta atrás, si alguna vez hace falta: se sacan los
+tres primeros y los de Vercel vuelven a mandar solos.
 
 ---
 
-## 4 · Cargar los registros de Resend en Vercel (antes de mudar)
+## El correo son dos sistemas, y no son el mismo
 
-En Vercel → **el dominio → DNS Records**, cargar estos tres. Son los que están
-hoy en Porkbun, sacados de la API de Resend, así que están completos y sin
-tipear a mano:
+Los mails de la barbería, confirmación de turno y pedido nuevo, salen por
+**Resend**. Los de la cuenta, recuperar contraseña, salen por **Supabase**. Hay
+dos configuraciones que pueden estar mal por separado, y ninguna avisa: un fallo
+de mail nunca rompe una reserva, a propósito.
 
-**1 · DKIM — la firma que prueba que el mail es tuyo**
-
-```
-Tipo:   TXT
-Nombre: resend._domainkey
-Valor:  p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDQaADYJI2L4OZzwLqfrKfjgvayvITsBjpK0c5jfrmo49wuI0CD6ui2bVGo6CAzdcY+OCwxA1nFr/HgeAdHNHK9yYKsqxkmHCsuu3jOi8goicEiW2GNMpPRBfpOKbH23Hit/zskpYXvjWwCftSQwpp2Utg5QlS8bLo271v/IcAsgQIDAQAB
-```
-
-**2 · SPF (MX) — a dónde vuelven los rebotes**
+### Los cinco registros que no se tocan nunca
 
 ```
-Tipo:      MX
-Nombre:    send
-Valor:     feedback-smtp.sa-east-1.amazonses.com
-Prioridad: 10
+@                  MX    fwd1.porkbun.com (10), fwd2.porkbun.com (20)
+@                  TXT   v=spf1 include:_spf.porkbun.com ~all
+send               MX    feedback-smtp.sa-east-1.amazonses.com (10)
+send               TXT   v=spf1 include:amazonses.com ~all
+resend._domainkey  TXT   p=MIGfMA0GCSqGSIb3DQEB…   ← el DKIM, largo
 ```
 
-**3 · SPF (TXT) — quién tiene permiso de mandar en nombre del dominio**
+Los tres de `send` y `resend._domainkey` son de Resend. Si se pierden, los mails
+de confirmación dejan de salir **en silencio**. Los dos de `@` son el reenvío de
+Porkbun, que es lo que hace que una respuesta a `turnos@` llegue a algún lado.
 
-```
-Tipo:   TXT
-Nombre: send
-Valor:  v=spf1 include:amazonses.com ~all
-```
+Cuidado con el DKIM al recrearlo: es largo y algunos paneles lo cortan al
+pegarlo. Si queda truncado, Resend lo marca como no verificado.
 
-Cuidado con el DKIM: es largo y algunos paneles lo cortan al pegarlo. Si queda
-truncado, Resend lo marca como no verificado.
+Conviene mirarlos después de cada toque al DNS, que cuesta un comando:
 
-Con los tres cargados, la zona de Vercel ya es una copia completa de lo que
-importa de Porkbun. Recién ahí:
-
----
-
-## 5 · Mudar los nameservers
-
-En Porkbun → el dominio → **NS / Nameservers** → reemplazar los de Porkbun por
-los de Vercel, los que quedaron anotados en el paso 3.
-
-Tarda entre unos minutos y unas horas en propagarse. Vercel muestra el estado
-del dominio; cuando pasa a válido, emite el certificado comodín solo.
-
-Cuando propague, en resend.com/domains el dominio tiene que seguir diciendo
-**verified**. Si dice *pending*, esperar: está mirando un DNS a medio propagar.
-
-Y después, la prueba de verdad, que no es la pantalla de Resend:
-
-```
-node --env-file=.env.local scripts/probar-mail.mts
-node --env-file=.env.local scripts/probar-recuperar.mts
+```sh
+for r in "turnosforbarber.com MX" "turnosforbarber.com TXT" \
+         "send.turnosforbarber.com MX" "send.turnosforbarber.com TXT" \
+         "resend._domainkey.turnosforbarber.com TXT"; do
+  set -- $r
+  echo "$1 ($2): $(curl -s "https://dns.google/resolve?name=$1&type=$2" | grep -o 'data[^,]*' | head -2)"
+done
 ```
 
-Las **dos**. Son dos sistemas de correo distintos —el del local sale por Resend,
-el de la cuenta por Supabase— y que ande uno no dice nada del otro.
-
----
-
-## 6 · Supabase tiene que conocer el dominio nuevo
+### Supabase tiene que conocer el dominio
 
 Supabase → **Authentication → URL Configuration**:
 
 - **Site URL**: `https://turnosforbarber.com`
-- **Redirect URLs**: agregar `https://*.turnosforbarber.com/**`
+- **Redirect URLs**: `https://*.turnosforbarber.com/**`
 
 El comodín es lo que hace que el link de recuperar contraseña vuelva a la
 barbería correcta. Sin eso, Supabase rechaza el redirect y la persona queda
@@ -183,38 +160,92 @@ Dejar también las de desarrollo (`http://localhost:3000/**`,
 
 ---
 
-## 7 · Probar contra producción, no contra la pantalla de Vercel
+## La tarea que vacía la demo
 
-Que el despliegue diga "Ready" no dice nada sobre si una persona puede reservar.
+`.github/workflows/limpiar-demo.yml`, todos los días a las 06:00 UTC. Render no
+lee `vercel.json`, y su servicio de tareas programadas cuesta un mínimo de un
+dólar por mes: `/api/limpiar-demo` es un endpoint HTTP y una acción de GitHub lo
+llama gratis.
 
-```
-node --env-file=.env.local scripts/probar-cliente.mts tropi-barbershop https://tropi-barbershop.turnosforbarber.com
-```
+El `CRON_SECRET` va como **secreto del repositorio** en GitHub (*Settings →
+Secrets and variables → Actions*), con el mismo valor que la variable en Render.
 
-Reserva un turno de verdad, abre el link, cancela, y verifica que el hueco vuelva
-a quedar libre. Es la única prueba que abre la aplicación de verdad, y con la
-URL de producción la abre **allá**.
-
-Y a mano, una vez, desde el celular: entrar, reservar, y que llegue el mail.
+⚠️ Apunta al `www` y **no** al dominio pelado. El pelado devuelve un 301, `curl`
+sin `-L` no lo sigue, y `--fail-with-body` solo falla con 400 o más: contra el
+pelado la tarea quedaba en verde sin haber limpiado nunca.
 
 ---
 
-## Lo que queda pendiente y conviene saber antes
+## Probar contra producción, no contra la pantalla del panel
 
-**El dominio pelado muestra un 404.** `turnosforbarber.com` sin subdominio no es
-ninguna barbería, así que la aplicación no tiene qué mostrar y responde el 404
-de fábrica de Next: en inglés y con la tipografía por defecto. Funcionalmente
-está bien —no hay nada que mostrar— pero es la primera pantalla que ve un dueño
-de barbería que escribe el dominio para ver qué es esto. Vale una página propia
-antes de salir a vender.
+Que el despliegue diga "live" no dice nada sobre si una persona puede reservar.
 
-**Un subdominio equivocado también.** `cualquier-cosa.turnosforbarber.com`
-resuelve, llega a la aplicación y responde 404. Correcto, pero el mismo 404 feo.
+```
+node --env-file=.env.local scripts/probar-cliente.mts demo https://demo.turnosforbarber.com
+node --env-file=.env.local scripts/probar-mail.mts <tu-mail>
+node --env-file=.env.local scripts/probar-recuperar.mts <tu-mail> demo
+node --env-file=.env.local scripts/probar-solicitud.mjs https://www.turnosforbarber.com/
+```
+
+Las dos del correo hay que correr **las dos**: que ande una no dice nada de la
+otra.
+
+Y una cuenta que hay que hacer, no mirar. Uno de cada ocho pedidos volvía 404 en
+el primer despliegue, y abierta a mano la página cargaba bien:
+
+```sh
+ok=0; fail=0
+for i in $(seq 1 40); do
+  c=$(curl -s -o /dev/null -w '%{http_code}' https://www.turnosforbarber.com/)
+  if [ "$c" = "200" ]; then ok=$((ok+1)); else fail=$((fail+1)); fi
+done
+echo "200: $ok  fallos: $fail"
+```
+
+⚠️ **Hay una capa de Cloudflare delante de Render.** Una ráfaga de 40 pedidos
+desde la misma IP le parece un ataque y los corta: eso no es la aplicación caída.
+Si sale todo mal de golpe, espaciarlos.
+
+### El DNS de tu casa miente
+
+Después de un cambio de DNS, el router de la red local sigue devolviendo las
+direcciones viejas mucho más de lo que dice el TTL. Se ve como un **404 que dice
+"The deployment could not be found on Vercel"**, y es facilísimo leerlo como que
+algo salió mal.
+
+Peor: no es parejo. `curl` recibía Render y Chromium recibía Vercel **al mismo
+tiempo**, así que una prueba automática puede fallar con el sitio andando
+perfecto.
+
+Para saber la verdad hay que no preguntarle al resolvedor local:
+
+```sh
+curl -s "https://dns.google/resolve?name=www.turnosforbarber.com&type=A"
+curl -s --resolve "www.turnosforbarber.com:443:216.24.57.7" https://www.turnosforbarber.com/
+```
+
+Para el navegador, el equivalente es lanzarlo con
+`--host-resolver-rules=MAP www.turnosforbarber.com <ip>`.
+
+---
+
+## Lo que conviene saber
 
 **El certificado comodín cubre un nivel solo.** `tropi.turnosforbarber.com` sí;
 `a.b.turnosforbarber.com` no. No importa: `slugFromHost` ya rechaza los
 subdominios anidados a propósito.
 
-**Los dominios propios de cada barbería** —que una use `tropibarber.com` en vez
-del subdominio— son otra cosa y van después. Se agregan uno por uno en Vercel y
-requieren que el dueño toque su propio DNS.
+**Un subdominio que no es de nadie responde el 404 nuestro**, en castellano ("No
+encontramos esa página"), no el de fábrica de Next.
+
+**Los dominios propios de cada barbería**, que una use `tubarber.com` en vez del
+subdominio, se agregan uno por uno en Render, requieren que la dueña toque su
+propio DNS, y **suman al cupo de dominios**, que hoy está en 2 de 2.
+
+**512 MB de RAM y 5 GB de tráfico** es lo que trae el plan. Medido: la portada
+pesa 584 KB por visita nueva y la página de una barbería 283 KB. Las barberías no
+son el riesgo; un reel que funcione, sí. Pasado el límite son $0.15 por GB.
+
+**En el plan gratuito de Render no hay registro de pedidos HTTP.** Es el motivo
+más probable de tener que pasar a Pro algún día: cuando una dueña diga "no me
+anda" y no haya dónde mirar.

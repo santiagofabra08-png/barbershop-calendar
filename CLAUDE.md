@@ -11,7 +11,7 @@ Two surfaces:
 - Next.js (App Router) + TypeScript
 - Tailwind CSS (compiled, not the CDN)
 - Supabase (Postgres, Auth, Row Level Security)
-- Vercel for hosting
+- Render for hosting (GitHub deploys on push)
 
 Don't add extra libraries without asking.
 
@@ -492,11 +492,14 @@ Tres decisiones que conviene no revertir sin pensarlo:
   Una foto también envejece, pero se vuelve a sacar con un comando.
 - **La demo se vacía todos los días.** Se puede reservar de verdad ahí adentro
   —ése es el punto—, y sin limpiar, en unas semanas no queda un horario libre
-  para mostrar. Lo hace `/api/limpiar-demo`, que llama Vercel una vez por día
-  (`vercel.json`). Borra **todos** los turnos de esa barbería, siempre filtrando
-  por `tenant_id`: ese `eq` es lo único que separa "vaciar la demo" de
-  "borrarle la agenda a un cliente". El slug vive en `src/lib/demo.ts`, en un
-  solo lugar, porque lo necesitan la portada, el cron y dos scripts.
+  para mostrar. Lo hace `/api/limpiar-demo`, que llama una acción programada de
+  GitHub una vez por día (`.github/workflows/limpiar-demo.yml`). Va al `www` y no
+  al dominio pelado, que devuelve un 301 que `curl` no sigue: contra el pelado la
+  tarea quedaba en verde sin haber limpiado nunca. Borra **todos** los turnos de
+  esa barbería, siempre filtrando por `tenant_id`: ese `eq` es lo único que
+  separa "vaciar la demo" de "borrarle la agenda a un cliente". El slug vive en
+  `src/lib/demo.ts`, en un solo lugar, porque lo necesitan la portada, la tarea
+  y dos scripts.
 - **No hay testimonios.** Con una sola barbería usándolo, inventar una reseña
   es fabricar prueba social, y el rubro es chico: alguien busca esa barbería,
   no la encuentra, y lo que se rompe es la credibilidad. La prueba es la demo
