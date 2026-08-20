@@ -1,0 +1,7 @@
+Las fotos van acá, en subcarpetas:
+
+  barberos/   Agustín y Lucas
+  trabajos/   cortes hechos por ellos
+  local/      el espacio de trabajo
+
+Material de consulta. La app no lee nada de esta carpeta.

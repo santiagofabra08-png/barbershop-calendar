@@ -1,0 +1,9 @@
+Las dos versiones del logo:
+
+  una para fondo CLARO  (dibujo oscuro)
+  una para fondo OSCURO (dibujo claro)
+
+Un logo oscuro desaparece sobre la franja negra del encabezado.
+
+SVG es lo mejor: no se pixela nunca. Si es PNG, 400 px de ancho como
+mínimo y con fondo transparente.
