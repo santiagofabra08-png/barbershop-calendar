@@ -41,7 +41,10 @@ const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
 
 try {
-  await p.goto(SITIO, { waitUntil: "networkidle" });
+  // `domcontentloaded` y no `networkidle`: la portada lleva la demo incrustada
+  // en un iframe, así que la red nunca se queda del todo quieta. Lo que hace
+  // falta para trabajar es el formulario, y para eso se espera al formulario.
+  await p.goto(SITIO, { waitUntil: "domcontentloaded" });
 
   // ---- El precio -----------------------------------------------------------
   const bloque = await p.locator("#precio").innerText();
@@ -58,7 +61,6 @@ try {
 
   // ---- El formulario -------------------------------------------------------
   console.log("\n  El formulario");
-  await p.locator("#empezar").scrollIntoViewIfNeeded();
   // Acotado a la sección: "Teléfono" y "Mail" son etiquetas que aparecen más
   // de una vez en la página, y sin acotar Playwright no sabe cuál es cuál.
   const form = p.locator("#empezar");
@@ -92,8 +94,13 @@ try {
 
   // ---- Validación: no deja mandar cualquier cosa ---------------------------
   console.log("\n  La validación");
-  await p.reload({ waitUntil: "networkidle" });
-  await p.locator("#empezar").scrollIntoViewIfNeeded();
+  // Sin `scrollIntoViewIfNeeded`, a propósito: espera a que el elemento deje de
+  // moverse, y las secciones de la portada se deslizan con `animation-timeline:
+  // view()`, o sea que se mueven con el scroll. En un servidor holgado entraba
+  // por poco; en uno de medio CPU la prueba se caía acá sin que hubiera nada
+  // roto. `fill()` ya lleva el elemento a la vista solo.
+  await p.reload({ waitUntil: "domcontentloaded" });
+  await form.getByLabel("Tu barbería").waitFor();
   await form.getByLabel("Tu barbería").fill("X");
   await form.getByLabel("Tu nombre").fill("A");
   await form.getByLabel("Teléfono").fill("123");
