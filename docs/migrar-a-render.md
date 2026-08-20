@@ -139,6 +139,32 @@ La URL que da Render no tiene subdominio de barbería, así que ahí se tiene qu
 ver **la portada**. Con eso alcanza para saber que el build y el arranque están
 bien, sin haberle movido nada al dominio todavía.
 
+**Mirar la página una vez no alcanza: hay que contar.** En el primer despliegue,
+uno de cada ocho pedidos volvía `404` con el header `x-render-routing: no-server`,
+que es Render diciendo que no encontró instancia viva a la que mandarlo. Abierta
+a mano la página cargaba bien y el control pasaba; lo que se rompía era cuando el
+pedido perdido era el del CSS, y entonces la portada aparecía sin ningún estilo.
+
+```sh
+ok=0; fail=0
+for i in $(seq 1 40); do
+  c=$(curl -s -o /dev/null -w '%{http_code}' https://<tu-app>.onrender.com)
+  if [ "$c" = "200" ]; then ok=$((ok+1)); else fail=$((fail+1)); fi
+done
+echo "200: $ok  fallos: $fail"
+```
+
+Tiene que dar **40 de 40**. Si no:
+
+- **Scaling** tiene que decir 1 instancia.
+- **Manual Deploy → Restart service** vuelve a registrar la instancia y limpia
+  la ruta muerta.
+- Si persiste, es infraestructura de Render y va a soporte. No hay nada del lado
+  de la aplicación que produzca ese header.
+
+Y no seguir al DNS hasta que dé limpio: con el dominio ya apuntado, esto mismo se
+ve como una página rota cada ocho visitas, con clientes adentro.
+
 ### 4 · Agregar los dominios en Render
 
 En el servicio → **Settings → Custom Domains**, agregar los tres:
