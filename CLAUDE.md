@@ -82,6 +82,9 @@ para no tener que reconstruirlo leyendo todo.
   servicio, barbero, día y hora. Sin login.
 - **Panel** (`/entrar`, `/panel/*`) — Agenda, Cobros, Semana, Horarios, y para
   el dueño Servicios, Productos, Pedidos, Equipo y Ajustes agrupados bajo Local.
+  El `?` de arriba abre `/panel/ayuda`, que es la guía partida por tema.
+- **Detrás de escena** (`/detras`) — el panel visto desde afuera, sin cuenta.
+  ⚠️ Existe **solo en la barbería demo**; en cualquier otra es un 404.
 - **Vidriera** (`/productos`, `/productos/listo`) — el catálogo público. Existe
   solo si la barbería prendió `tenants.products_enabled`; si no, es un 404.
 - **Portada** (`/` en el dominio pelado) — la página de ventas. No es de
@@ -90,6 +93,13 @@ para no tener que reconstruirlo leyendo todo.
 
 ## Dónde está cada cosa
 - `src/lib/schedule.ts` — grilla de horarios. Puro: `now` entra como argumento.
+- `src/lib/panel/primeros-pasos.ts` — qué le falta a una barbería recién dada de
+  alta. Puro. Nada se guarda: cada paso se deduce del dato de verdad, cada vez.
+- `src/lib/guia.ts` — la guía partida por tema y de Markdown a HTML. Puro. El
+  texto sale de `docs/guia-del-panel.md`, que lo lee `guia-fuente.ts`: no hay
+  una copia adentro de `src/`.
+- `src/lib/detras/` — el panel visto desde afuera. `barberia` decide si acá va
+  (solo la demo) y `jornada` es el día inventado que se dibuja.
 - `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
 - `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
@@ -141,6 +151,11 @@ para no tener que reconstruirlo leyendo todo.
   (`docs/guia-para-mandar.html`) que se le manda a una barbería. La fuente no
   lleva `<!doctype>` porque está escrita para publicarse como artefacto, y sin
   eso el navegador la abre en modo quirks.
+- ⚠️ `docs/guia-del-panel.md` **lo lee la aplicación en producción**, no es solo
+  documentación. De ahí sale el botón de ayuda del panel y la guía pública del
+  detrás de escena. No se mueve de lugar ni se le cambia el nombre sin tocar
+  `src/lib/guia-fuente.ts`, y los títulos numerados (`## 4. Agenda`) son lo que
+  parte las secciones: renumerarlos desacomoda el mapa de `SECCION_POR_RUTA`.
 - `supabase/migrations/` — el esquema, en SQL versionado y numerado.
 - `brand/<slug>/` — material de referencia de cada barbería. No lo lee la app.
 
@@ -210,7 +225,13 @@ Los imports relativos dentro de los tests llevan la extensión `.ts`.
 
 Lo cubierto: grilla de horarios, ventana de reserva, agendas de varios
 barberos, conversión a UTC, validación de datos, reparto de la plata según cómo
-cobra cada uno, y armado de la tira del día.
+cobra cada uno, armado de la tira del día, qué le falta a una barbería recién
+dada de alta, y la guía de Markdown a HTML.
+
+⚠️ **La guía se prueba contra la guía de verdad**, no contra un ejemplo:
+`guia.test.ts` lee `docs/guia-del-panel.md` y dibuja las trece secciones. Es lo
+que falla el día que alguien escriba en la guía algo que el renderizador no
+cubre, y el ejemplo inventado nunca lo vería.
 
 Lo que los tests **no** pueden cubrir son las funciones de la base, las
 restricciones y los permisos. Para eso hay dos pruebas que corren contra la base
@@ -265,6 +286,22 @@ rebotaban al login sin motivo aparente.
 
 La barbería la arma `crearBarberia`, así que cada corrida ejercita también el
 alta.
+
+⚠️ **`detras.spec.ts` es la única que pide un 404 y es la más importante de
+las nuevas.** Corre contra la barbería descartable —que es exactamente el caso
+de un cliente que paga— y comprueba que `/detras` no exista ahí. Adentro de esa
+página hay material de venta nuestro: sin esa condición, cualquier local que
+pague lo tiene colgando de su propio dominio.
+
+También cuenta los formularios de `/detras` y exige cero. El argumento entero de
+esa página es que no puede escribir porque no hay con qué, y eso no lo garantiza
+ninguna revisión: lo garantiza contarlos.
+
+⚠️ **Levantar el servidor a mano y dejar que Playwright lo reuse hace fallar
+`vitrina.spec.ts`.** `reuseExistingServer` está en `true`, y la configuración le
+pasa al suyo un `NEXT_PUBLIC_ROOT_DOMAIN` con el puerto de la corrida. Sin eso,
+el `postMessage` sale a un origen que no coincide y el navegador lo descarta sin
+decir nada. Se ve como un bug de la vitrina y es el servidor equivocado.
 
 ## Dos cuentas de correo, y no son la misma
 Los mails de la barbería —confirmación de turno, pedido nuevo— salen por
@@ -430,14 +467,41 @@ aplicación compilada no lo contradice: compilada o no, en local el servidor
 igual escucha en `localhost` y el host que se pierde es el mismo. Lo que separa
 los dos mundos no es el modo sino el dominio.
 
-## El panel de prueba por visitante, pensado y postergado
+## El asistente del panel, y el panel visto desde afuera
 
-La portada deja probar la mitad del cliente; del panel solo muestra capturas.
+Tres piezas, hechas el 22 de agosto de 2026. El detalle entero está en
+`docs/asistente-del-panel.md`; lo que hay que saber sin abrirlo:
+
+- **La lista de primeros pasos**, arriba de `/panel`. Dice qué le falta a la
+  barbería y desaparece entera cuando está todo. **No necesita esquema**: cada
+  paso se deduce del dato de verdad cada vez, porque un estado guardado se
+  desincroniza el día que alguien saca un horario y ahí la lista miente. Solo
+  entran pasos que se pueden verificar: uno que no se puede tildar deja el
+  bloque para siempre en pantalla y se convierte en un cartel que nadie lee.
+  ⚠️ **La barbería demo no la ve**, porque su panel es de donde salen las fotos
+  de la portada.
+- **El botón de ayuda** (`?`) lleva a la sección de la guía que explica la
+  pantalla donde estás. El texto sale de `docs/guia-del-panel.md`, el mismo
+  archivo que se le manda a la barbería: no hay un segundo texto que mantener.
+  Eso obligó a un renderizador de Markdown escrito a mano, chico y probado
+  contra la guía de verdad. **Al escribir en la guía, quedarse adentro del
+  subconjunto que el renderizador cubre**, o agregarlo ahí y en su test.
+- **El detrás de escena** (`/detras`, solo en la demo): el panel de verdad con
+  un día inventado, sin sesión y sin ninguna acción conectada, más la guía
+  entera pública. No puede escribir porque no hay con qué, no porque los
+  botones estén deshabilitados.
+
+## El panel de prueba por visitante, pensado y descartado
+
+La portada deja probar la mitad del cliente; del panel solo mostraba capturas.
 La idea era crear una barbería descartable por visitante, sembrada con una
 semana creíble, que se borra sola a las horas. `crearBarberia` y
 `sembrarJornada` ya hacen la mitad difícil.
 
-Se frenó a propósito, y conviene releer esto antes de retomarlo:
+**Lo reemplazó el detrás de escena**, que resuelve el mismo problema sin ninguno
+de estos riesgos: se ve el panel de verdad y no hay nada que crear ni que
+borrar. Esto queda escrito porque la idea vuelve sola cada vez que alguien pide
+"que puedan probar el panel":
 
 - **Cada prueba es una barbería entera**: tenant, barberos, servicios, horarios,
   medio centenar de turnos y un usuario de `auth` que cuenta para el plan.
@@ -452,8 +516,8 @@ Se frenó a propósito, y conviene releer esto antes de retomarlo:
   pública para `anon` sin restricción de columnas, así que una columna nueva ahí
   la lee cualquiera. Iba a llevar el hash de la IP del visitante.
 
-Si se retoma: pedir el mail antes de crear nada, y resolver lo de las fotos
-antes de abrir la puerta.
+Si algún día se retomara igual: pedir el mail antes de crear nada, y resolver lo
+de las fotos antes de abrir la puerta.
 
 ## Quién usa esto de verdad
 
@@ -545,7 +609,9 @@ Tres decisiones que conviene no revertir sin pensarlo:
   (`demo.<dominio>`) y capturas sacadas del sitio en producción por
   `scripts/capturas.mts`. Recrear las pantallas en HTML se vería igual de bien
   hoy y empezaría a mentir el día que cambie el panel, sin que nadie se entere.
-  Una foto también envejece, pero se vuelve a sacar con un comando.
+  Una foto también envejece, pero se vuelve a sacar con un comando. Y del panel
+  ya no son solo fotos: abajo de la demo incrustada hay un link a `/detras`, que
+  es la pantalla de verdad, viva y recorrible.
 - **La demo se vacía todos los días.** Se puede reservar de verdad ahí adentro
   —ése es el punto—, y sin limpiar, en unas semanas no queda un horario libre
   para mostrar. Lo hace `/api/limpiar-demo`, que llama una acción programada de
@@ -713,9 +779,11 @@ solicitud ya está y no se perdió a nadie.
 
 **Pendiente: el alta sola.** Hoy Santiago corre `crear-barberia` y le pasa la
 dirección. Eso está bien para las primeras diez —hablar con cada una es cómo se
-aprende qué falta— pero no escala. Lo que hace falta es un asistente de primeros
-pasos: sin él, una barbería recién creada no tiene servicios ni horarios, y
-alguien que entra solo a un panel vacío cree que no funciona.
+aprende qué falta— pero no escala.
+
+La mitad que faltaba del lado del que entra ya está: la lista de primeros pasos
+y el botón de ayuda hacen que un panel recién creado se explique solo. Lo que
+sigue faltando es que el alta no dependa de que alguien corra un comando.
 
 ### Animaciones: el modo de falla importa más que el efecto
 
