@@ -38,6 +38,14 @@ depende de una cuenta de Vercel que ya no aloja nada.
   medio minuto en despertar, que en una página de reservas es fatal.
 - **Node 24**, fijado con la variable `NODE_VERSION=24`: no está declarado en
   `engines`, así que sin esa variable Render elige otra.
+- ⚠️ **`docs/guia-del-panel.md` tiene que estar en el servidor**, no solo en el
+  repositorio: la aplicación lo lee del disco en cada arranque para armar el
+  botón de ayuda del panel. `npm start` corre desde la raíz del repositorio, así
+  que está. Lo que lo rompería es pasar a `output: "standalone"`, que copia solo
+  lo que el rastreo de Next considera necesario y no ve una lectura hecha con
+  `path.join(process.cwd(), …)`. Si algún día se hace ese cambio, hay que
+  agregarlo a `outputFileTracingIncludes`. El síntoma no sería una caída: la
+  ayuda queda vacía y el panel sigue andando, así que nadie se entera.
 
 ### Las variables de entorno
 
