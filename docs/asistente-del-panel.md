@@ -89,20 +89,35 @@ Así que el detrás de escena tiene que ser **un recorrido que no guarda nada**:
   sirviendo para las dos cosas, que es lo que hace que valga la pena.
 - Ningún formulario que envíe. Ningún botón que escriba.
 
-Dos caminos para conseguir eso, y hay que elegir uno:
+### Por qué no alcanza con bloquear los botones
 
-1. **Capturas anotadas.** Barato y seguro. Envejece: el día que cambie el panel
-   miente, salvo que se rehagan con `capturas.mts` como ya se hace para la
-   portada.
-2. **El panel de verdad servido en modo lectura**, con una sesión especial que
-   no puede escribir. Más fiel y bastante más caro: hay que garantizar que
-   ninguna acción escriba, y eso no se garantiza escondiendo botones sino del
-   lado de la base.
+Fue lo primero que se propuso: el panel de verdad, con las opciones que
+modifican cosas deshabilitadas. **Deshabilitar un botón no bloquea nada.** Las
+Server Actions son direcciones a las que se puede mandar un POST sin pasar por
+la pantalla, así que el bloqueo tendría que estar en la base: todas las
+políticas de escritura y las diez funciones `SECURITY DEFINER`. Cada una que se
+escape es un agujero, y acá un agujero es un desconocido publicando lo que
+quiera en el dominio.
 
-El proyecto ya eligió antes "mostrar el producto de verdad" antes que dibujarlo,
-y esa decisión salió bien. Pero acá la diferencia de riesgo es grande, y la
-opción 1 con `capturas.mts` corriendo después de cada cambio del panel es la
-misma disciplina que ya funciona para la portada.
+Es la misma regla que el proyecto ya tiene escrita para los barberos: **lo
+impone RLS, no la pantalla.**
+
+### Lo que se decidió hacer
+
+**Las pantallas de verdad del panel, con datos inventados, en una página
+pública sin sesión y sin ninguna acción conectada.**
+
+No son capturas muertas: es la interfaz real, que se recorre y se ve bien en el
+celular. Y no puede escribir porque no hay con qué: sin sesión no hay a quién
+atribuirle una escritura, y sin `action` en los formularios no hay a dónde
+mandarla. El bloqueo no es una regla que hay que acordarse de poner, es la
+ausencia de la maquinaria.
+
+⚠️ **Lo primero que hay que averiguar al arrancar** es cuánto dependen esas
+pantallas de `sesionDelPanel()`. Las que son presentacionales y reciben todo por
+props entran directo; las que consultan la sesión adentro hay que partirlas. De
+eso depende si esto son dos días o cinco, y conviene medirlo antes de prometer
+una fecha.
 
 ## El panel en el celular: ya entra
 
