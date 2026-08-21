@@ -235,7 +235,7 @@ export default async function SemanaPage({
               {sinCobrar.length === 1 ? "turno atendido" : "turnos atendidos"}{" "}
               sin cobrar. Esa plata no está contada acá.
             </span>
-            <span className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">
+            <span className="text-xs font-semibold tracking-[0.08em] text-accent-text uppercase">
               Ir a cobrar ›
             </span>
           </Link>
@@ -332,7 +332,7 @@ export default async function SemanaPage({
                         <span
                           className={[
                             "tabular font-semibold",
-                            saldo > 0 ? "text-accent" : "text-muted",
+                            saldo > 0 ? "text-accent-text" : "text-muted",
                           ].join(" ")}
                         >
                           {saldo > 0

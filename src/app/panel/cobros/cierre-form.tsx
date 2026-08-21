@@ -120,7 +120,7 @@ export function CierreForm({
                       ? "text-muted"
                       : dif === 0
                         ? "text-muted"
-                        : "font-semibold text-accent",
+                        : "font-semibold text-accent-text",
                   ].join(" ")}
                 >
                   {!yaEscrito

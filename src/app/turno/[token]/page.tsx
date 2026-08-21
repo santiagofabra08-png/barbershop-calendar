@@ -139,7 +139,7 @@ export default async function PaginaDelTurno({
             ) : null}
 
             <h2 className="rise text-[11px] font-semibold tracking-[0.16em] uppercase">
-              <span className={cancelado ? "text-muted" : "text-accent"}>
+              <span className={cancelado ? "text-muted" : "text-accent-text"}>
                 {cancelado ? "Turno cancelado" : "Turno confirmado"}
               </span>
             </h2>

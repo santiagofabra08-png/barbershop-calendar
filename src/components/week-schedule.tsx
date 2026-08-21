@@ -175,7 +175,7 @@ export function WeekSchedule({
                         "flex w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-xl px-4 py-3 text-left",
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         activo
-                          ? "bg-ink text-bg glow"
+                          ? "bg-accent text-on-accent glow-accent"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -260,7 +260,7 @@ export function WeekSchedule({
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:shadow-none",
                         activo
-                          ? "bg-ink text-bg glow"
+                          ? "bg-accent text-on-accent glow-accent"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -327,7 +327,7 @@ export function WeekSchedule({
                         "transition-[background-color,color,box-shadow] duration-150 ease-out",
                         "disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink/20 disabled:line-through disabled:shadow-none",
                         activo
-                          ? "bg-accent text-surface glow-accent"
+                          ? "bg-accent text-on-accent glow-accent"
                           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
                       ].join(" ")}
                     >
@@ -376,7 +376,7 @@ export function WeekSchedule({
 
             <Link
               href={`/reservar?fecha=${diaActivo.date}&hora=${slotElegido.time}&barbero=${barberoId}&servicio=${service.id}`}
-              className="w-full rounded-lg bg-accent px-7 py-3.5 text-center text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 sm:w-auto"
+              className="w-full rounded-lg bg-accent px-7 py-3.5 text-center text-sm font-semibold tracking-[0.08em] text-on-accent uppercase transition-colors duration-150 ease-out hover:opacity-90 active:opacity-80 sm:w-auto"
             >
               Continuar
             </Link>
@@ -446,7 +446,7 @@ function TarjetaBarbero({
         "flex items-center gap-2.5 rounded-xl py-2.5 pr-4 pl-2.5 text-sm font-medium",
         "transition-[background-color,color,box-shadow] duration-150 ease-out",
         activo
-          ? "bg-ink text-bg glow"
+          ? "bg-accent text-on-accent glow-accent"
           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
       ].join(" ")}
     >
@@ -455,7 +455,7 @@ function TarjetaBarbero({
           que la fila no se desalinee. */}
       <span
         className={[
-          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden",
+          "relative flex size-11 shrink-0 items-center justify-center overflow-hidden",
           "font-display text-sm font-bold",
           sinInicial ? "rounded-lg" : "rounded-full",
           activo ? "bg-bg/15 text-bg ring-1 ring-bg/25" : "bg-ink/[0.07] text-ink ring-1 ring-ink/10",
@@ -466,7 +466,7 @@ function TarjetaBarbero({
         ) : foto ? (
           // Sin texto alternativo a propósito: el nombre está al lado y
           // repetirlo le hace escuchar dos veces lo mismo a quien usa lector.
-          <Image src={foto} alt="" fill sizes="36px" className="object-cover" />
+          <Image src={foto} alt="" fill sizes="44px" className="object-cover" />
         ) : (
           nombre.charAt(0).toUpperCase()
         )}

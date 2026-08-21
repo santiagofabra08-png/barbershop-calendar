@@ -212,7 +212,7 @@ export default async function PaginaDeReservas({
             </div>
             <span
               aria-hidden="true"
-              className="text-xs font-semibold tracking-[0.1em] text-accent uppercase"
+              className="text-xs font-semibold tracking-[0.1em] text-accent-text uppercase"
             >
               Ver ›
             </span>

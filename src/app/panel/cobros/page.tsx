@@ -146,7 +146,7 @@ export default async function CobrosPage({
             {pendientes.cantidad === 1 ? "turno" : "turnos"} de días anteriores
             sin cobrar
           </span>
-          <span className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">
+          <span className="text-xs font-semibold tracking-[0.08em] text-accent-text uppercase">
             Ir al {formatDateLong(pendientes.desde).toLowerCase()} ›
           </span>
         </Link>
@@ -414,7 +414,7 @@ function ResumenDelCierre({
                   className={
                     dif === 0
                       ? "w-20 text-right text-muted"
-                      : "w-20 text-right font-semibold text-accent"
+                      : "w-20 text-right font-semibold text-accent-text"
                   }
                 >
                   {dif === 0

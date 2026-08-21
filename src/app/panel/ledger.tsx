@@ -53,13 +53,13 @@ export function Ledger({
         if (a.tipo === "ahora") {
           return (
             <li key={`ahora-${i}`} className={GUTTER}>
-              <p className="tabular pt-px text-right text-xs font-semibold text-accent">
+              <p className="tabular pt-px text-right text-xs font-semibold text-accent-text">
                 {a.at}
               </p>
               <div className="flex items-center gap-2 pb-5">
                 <span className="size-1.5 shrink-0 rounded-full bg-accent" />
                 <span className="h-px flex-1 bg-accent/40" />
-                <span className="text-[0.65rem] font-semibold tracking-[0.18em] text-accent uppercase">
+                <span className="text-[0.65rem] font-semibold tracking-[0.18em] text-accent-text uppercase">
                   Ahora
                 </span>
               </div>

@@ -237,7 +237,7 @@ export function Catalogo({
             <button
               type="submit"
               disabled={pendiente}
-              className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60"
+              className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-on-accent uppercase transition-colors duration-150 ease-out hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:opacity-80 disabled:cursor-wait disabled:opacity-60"
             >
               {pendiente ? "Enviando…" : "Enviar el pedido"}
             </button>
@@ -305,7 +305,7 @@ function Campo({
         {...props}
       />
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-accent">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-accent-text">
           {error}
         </p>
       ) : null}

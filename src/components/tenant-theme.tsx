@@ -1,4 +1,4 @@
-import { tonoDe } from "@/lib/tenant/tono";
+import { legibleSobre, tonoDe } from "@/lib/tenant/tono";
 import type { Tenant } from "@/lib/tenant/types";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -25,13 +25,32 @@ export function TenantTheme({ tenant }: { tenant: Tenant }) {
   // con sombra. Las dos recetas viven en `globals.css`: acá solo se elige.
   const tono = tonoDe(bg);
 
+  // Y lo mismo, un piso más abajo: qué color de letra sobrevive encima del
+  // acento. Es la misma pregunta y la misma frontera de luminancia, aplicada
+  // al acento en vez de al fondo.
+  const acento = safe(colors.accent, "#000000");
+  const sobreAcento =
+    tonoDe(acento) === "oscuro"
+      ? safe(colors.surface, "#ffffff")
+      : safe(colors.ink, "#000000");
+
+  // Y el acento como tinta: si no contrasta contra la tarjeta, se oscurece
+  // hasta que se lea, conservando el matiz.
+  const acentoComoTinta = legibleSobre(
+    acento,
+    safe(colors.surface, "#ffffff"),
+    safe(colors.ink, "#000000"),
+  );
+
   const css = `:root{
     --tenant-bg:${bg};
     --tenant-surface:${safe(colors.surface, "#ffffff")};
     --tenant-ink:${safe(colors.ink, "#000000")};
     --tenant-ink-muted:${safe(colors.inkMuted, "#666666")};
-    --tenant-accent:${safe(colors.accent, "#000000")};
+    --tenant-accent:${acento};
     --tenant-accent-alt:${safe(colors.accentAlt, "#666666")};
+    --tenant-on-accent:${sobreAcento};
+    --tenant-accent-text:${acentoComoTinta};
     --glow:var(--glow-${tono});
     --glow-accent:var(--glow-accent-${tono});
   }`;

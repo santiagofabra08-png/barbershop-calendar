@@ -104,7 +104,7 @@ export function Ticket({
               <span className="text-ink">{a.name}</span>
               <span className="flex shrink-0 items-baseline gap-1">
                 <span
-                  className={`tabular ${a.esDescuento ? "text-accent" : "text-ink"}`}
+                  className={`tabular ${a.esDescuento ? "text-accent-text" : "text-ink"}`}
                 >
                   {a.esDescuento ? "−" : ""}
                   {plata(a.priceCents)}
@@ -166,7 +166,7 @@ export function Ticket({
                 className={[
                   "rounded-lg border px-3 py-2 text-sm transition-colors duration-150 ease-out",
                   a.esDescuento
-                    ? "border-dashed border-accent/50 text-accent hover:bg-accent/[0.08]"
+                    ? "border-dashed border-accent/50 text-accent-text hover:bg-accent/[0.08]"
                     : "border-ink/15 text-ink hover:border-ink/40 hover:bg-ink/[0.04]",
                   "active:bg-ink/[0.08]",
                 ].join(" ")}

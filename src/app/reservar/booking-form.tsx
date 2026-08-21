@@ -138,7 +138,7 @@ export function BookingForm({
               />
 
               {error ? (
-                <p id={idAyuda} role="alert" className="mt-2 text-sm text-accent">
+                <p id={idAyuda} role="alert" className="mt-2 text-sm text-accent-text">
                   {error}
                 </p>
               ) : campo.ayuda ? (
@@ -163,7 +163,7 @@ export function BookingForm({
       <button
         type="submit"
         disabled={pendiente}
-        className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60"
+        className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-on-accent uppercase transition-colors duration-150 ease-out hover:opacity-90 active:opacity-80 disabled:cursor-wait disabled:opacity-60"
       >
         {pendiente ? "Reservando…" : "Reservar turno"}
       </button>

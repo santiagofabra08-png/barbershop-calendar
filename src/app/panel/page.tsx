@@ -94,7 +94,7 @@ export default async function AgendaPage({
           ) : (
             <Link
               href={`/panel/cobros?d=${fecha}`}
-              className="text-accent underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-ink"
+              className="text-accent-text underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-ink"
             >
               {cortes.length - cobrados} sin cobrar
             </Link>
@@ -117,7 +117,7 @@ export default async function AgendaPage({
               ? "pedido de productos sin contestar"
               : "pedidos de productos sin contestar"}
           </span>
-          <span className="text-xs font-semibold tracking-[0.08em] text-accent uppercase">
+          <span className="text-xs font-semibold tracking-[0.08em] text-accent-text uppercase">
             Ver ›
           </span>
         </Link>

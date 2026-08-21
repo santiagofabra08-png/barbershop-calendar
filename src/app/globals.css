@@ -16,6 +16,15 @@
   --tenant-ink-muted: #666666;
   --tenant-accent: #000000;
   --tenant-accent-alt: #666666;
+  /* El texto que va ENCIMA del acento. Lo elige `TenantTheme` por contraste:
+     una barbería con acento negro necesita letras claras y una con acento
+     celeste, oscuras. Escribirlo a mano en cada botón garantiza que un día
+     una barbería quede con texto invisible. */
+  --tenant-on-accent: #ffffff;
+  /* Y el mismo acento cuando hace de TINTA, no de relleno. Un pastel sirve
+     para pintar lo elegido y no para escribir encima de una tarjeta blanca:
+     es el mismo color con dos trabajos, y solo uno lo puede hacer. */
+  --tenant-accent-text: #000000;
 
   /*
     El resplandor de lo elegido, en dos recetas.
@@ -68,6 +77,8 @@
   --color-muted: var(--tenant-ink-muted);
   --color-accent: var(--tenant-accent);
   --color-accent-alt: var(--tenant-accent-alt);
+  --color-on-accent: var(--tenant-on-accent);
+  --color-accent-text: var(--tenant-accent-text);
 
   --font-display: var(--font-playfair);
   --font-body: var(--font-montserrat);

@@ -168,7 +168,7 @@ function Ficha({
       <p
         className={[
           "tabular shrink-0 text-right text-sm",
-          agotado ? "font-semibold text-accent" : "text-muted",
+          agotado ? "font-semibold text-accent-text" : "text-muted",
         ].join(" ")}
       >
         {agotado ? "Sin stock" : `Quedan ${producto.stock}`}

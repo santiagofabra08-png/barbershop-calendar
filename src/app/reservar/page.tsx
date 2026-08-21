@@ -97,7 +97,7 @@ export default async function PaginaDeConfirmacion({
             </p>
             <Link
               href={`/?servicio=${service.id}`}
-              className="mt-6 inline-block rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90"
+              className="mt-6 inline-block rounded-lg bg-accent px-7 py-3.5 text-sm font-semibold tracking-[0.08em] text-on-accent uppercase transition-colors duration-150 ease-out hover:opacity-90 active:opacity-80"
             >
               Ver los horarios
             </Link>

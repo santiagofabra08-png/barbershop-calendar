@@ -182,7 +182,7 @@ export function CampoFoto({
       ) : null}
 
       {problema ? (
-        <p role="alert" className="mt-3 text-sm font-medium text-accent">
+        <p role="alert" className="mt-3 text-sm font-medium text-accent-text">
           {problema}
         </p>
       ) : null}

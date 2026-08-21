@@ -52,3 +52,63 @@ export function luminancia(hex: string): number {
 export function tonoDe(hex: string): Tono {
   return luminancia(hex) < 0.179 ? "oscuro" : "claro";
 }
+
+/**
+ * Contraste entre dos colores, según WCAG. Va de 1 (iguales) a 21.
+ *
+ * 4.5 es el mínimo para texto normal. Por debajo de eso no es que se lea
+ * "peor": hay gente que directamente no lo lee.
+ */
+export function contraste(a: string, b: string): number {
+  const la = luminancia(a);
+  const lb = luminancia(b);
+  const claro = Math.max(la, lb);
+  const oscuro = Math.min(la, lb);
+  return (claro + 0.05) / (oscuro + 0.05);
+}
+
+function aCanales(hex: string): [number, number, number] | null {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex.trim());
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function aHex([r, g, b]: [number, number, number]): string {
+  const dos = (v: number) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, "0");
+  return `#${dos(r)}${dos(g)}${dos(b)}`;
+}
+
+/**
+ * El acento, oscurecido lo justo para que se lea como texto.
+ *
+ * **El acento tiene dos trabajos y un color pastel solo sirve para uno.** Como
+ * relleno de lo elegido, un celeste suave es perfecto. Como tinta sobre una
+ * tarjeta blanca, no se lee: es el mismo color haciendo dos cosas distintas.
+ *
+ * Devuelve el color tal cual si ya contrasta. Si no, lo va mezclando con la
+ * tinta de la barbería hasta que pase el mínimo, así conserva el matiz: un
+ * celeste se vuelve un azul profundo, no un gris.
+ *
+ * Si aun mezclado del todo no llega, devuelve la tinta: es preferible perder
+ * el color a perder el texto.
+ */
+export function legibleSobre(color: string, fondo: string, tinta: string): string {
+  if (contraste(color, fondo) >= 4.5) return color;
+
+  const c = aCanales(color);
+  const t = aCanales(tinta);
+  if (!c || !t) return tinta;
+
+  for (let paso = 1; paso <= 10; paso++) {
+    const p = paso / 10;
+    const mezcla = aHex([
+      c[0] + (t[0] - c[0]) * p,
+      c[1] + (t[1] - c[1]) * p,
+      c[2] + (t[2] - c[2]) * p,
+    ]);
+    if (contraste(mezcla, fondo) >= 4.5) return mezcla;
+  }
+
+  return tinta;
+}
