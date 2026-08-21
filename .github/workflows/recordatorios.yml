@@ -1,0 +1,42 @@
+# El recordatorio de los turnos que empiezan dentro de las próximas dos horas.
+#
+# Cada quince minutos. La ruta no manda nada dos veces —lo impide
+# `appointments.reminder_sent_at`—, así que correr de más es gratis y correr
+# de menos no lo es: la ventana de la ruta es "de acá a dos horas", así que una
+# corrida que falla la cubre la siguiente.
+#
+# El `CRON_SECRET` es el mismo que usa la tarea que vacía la demo, y ya está
+# cargado como secreto del repositorio.
+
+name: Recordatorios de turnos
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+# Dos corridas a la vez no romperían nada, pero tampoco sirven de nada.
+concurrency:
+  group: recordatorios
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a /api/recordatorios
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secreto CRON_SECRET del repositorio."
+            exit 1
+          fi
+
+          # Al `www` y no al dominio pelado: el pelado devuelve un 301 que curl
+          # sin `-L` no sigue, y `--fail-with-body` solo falla con 400 o más.
+          # Contra el pelado esta tarea quedaría en verde sin avisarle a nadie.
+          curl --fail-with-body --silent --show-error \
+               --max-time 60 \
+               --header "Authorization: Bearer $CRON_SECRET" \
+               "https://www.turnosforbarber.com/api/recordatorios"

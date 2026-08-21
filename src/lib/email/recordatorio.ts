@@ -6,38 +6,36 @@ import { plazoEnPalabras } from "@/lib/plazo";
 import type { Tenant } from "@/lib/tenant/types";
 
 /**
- * Mail de confirmación de un turno.
+ * El recordatorio, dos horas antes del turno.
  *
- * ⚠️ Solo servidor: lee `RESEND_API_KEY`. Nunca importar desde un componente
- * con "use client".
+ * ⚠️ Solo servidor: lee `RESEND_API_KEY`.
  *
- * Regla principal: **un fallo acá nunca puede romper una reserva**. El turno
- * ya está guardado cuando esto corre. Si Resend está caído, si falta la clave
- * o si el mail rebota, se anota en el log y se sigue: el cliente igual tiene
- * su turno y su link en pantalla.
+ * **Para qué existe.** No es para que la persona se acuerde: es para que la que
+ * no va a ir avise. Una silla vacía a las tres de la tarde es plata que no
+ * vuelve, y el que iba a faltar casi nunca avisa por vergüenza de escribir.
+ * Un botón en un mail que ya tiene abierto es mucho más fácil que un mensaje.
  *
- * Por eso todo devuelve un resultado en vez de tirar excepción.
+ * Por eso lo que este mail empuja no es "confirmá": es **cancelá si no venís**.
+ * El botón que importa ya existía; lo que faltaba era el recordatorio.
+ *
+ * Igual que la confirmación: un fallo acá no rompe nada. El turno sigue en pie.
  */
 
-export type DatosConfirmacion = {
+export type DatosRecordatorio = {
   tenant: Tenant;
   para: string;
   cliente: string;
   barbero: string;
   servicio: string;
-  cuando: string; // "Sábado 1 de agosto, 15:20"
-  precio: string;
-  duracion: string;
+  /** "Hoy a las 15:00", ya en la zona horaria de la barbería. */
+  cuando: string;
   urlTurno: string;
 };
 
-/**
- * Los clientes de mail son de 2005: nada de flexbox ni de grid, todo con
- * tablas y estilos en línea. Los colores igual salen del tenant.
- */
-function armarHtml(d: DatosConfirmacion): string {
+function armarHtml(d: DatosRecordatorio): string {
   const c = d.tenant.colors;
   const [primera, ...resto] = d.tenant.name.split(" ");
+  const plazo = plazoEnPalabras(d.tenant.cancelDeadlineMinutes);
 
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8">
@@ -54,11 +52,10 @@ function armarHtml(d: DatosConfirmacion): string {
     </td></tr>
 
     <tr><td style="padding:28px 32px 0;">
-      <p style="margin:0;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:${c.accent};">Turno confirmado</p>
+      <p style="margin:0;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:${c.accent};">Te esperamos</p>
       <p style="margin:10px 0 0;font:700 24px/1.25 Georgia,'Times New Roman',serif;color:${c.ink};">${escapar(d.cuando)}</p>
       <p style="margin:8px 0 0;font:400 14px/1.5 Helvetica,Arial,sans-serif;color:${c.inkMuted};">
-        ${escapar(d.servicio)} con ${escapar(d.barbero)}<br>
-        ${escapar(d.duracion)} · ${escapar(d.precio)}
+        ${escapar(d.servicio)} con ${escapar(d.barbero)}
       </p>
     </td></tr>
 
@@ -74,8 +71,8 @@ function armarHtml(d: DatosConfirmacion): string {
     <tr><td style="padding:28px 32px 0;">
       <a href="${escapar(d.urlTurno)}" style="display:block;padding:14px 24px;background:${c.accent};color:${c.surface};font:600 12px/1 Helvetica,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;text-decoration:none;">Ver o cancelar el turno</a>
       <p style="margin:14px 0 0;font:400 13px/1.6 Helvetica,Arial,sans-serif;color:${c.inkMuted};">
-        Guardá este mail: el link de arriba es la forma de cancelar si no podés ir.
-        Se puede cancelar ${plazoEnPalabras(d.tenant.cancelDeadlineMinutes)}.
+        Si no vas a poder venir, avisanos desde ese link y le damos el lugar a
+        otra persona. Se puede cancelar ${escapar(plazo)}.
       </p>
     </td></tr>
 
@@ -90,47 +87,38 @@ function armarHtml(d: DatosConfirmacion): string {
 </body></html>`;
 }
 
-function armarTexto(d: DatosConfirmacion): string {
+function armarTexto(d: DatosRecordatorio): string {
   return [
-    `${d.tenant.name} — turno confirmado`,
+    `${d.tenant.name} — te esperamos`,
     "",
     d.cuando,
     `${d.servicio} con ${d.barbero}`,
-    `${d.duracion} · ${d.precio}`,
     d.tenant.address ? `\nDónde: ${d.tenant.address}` : "",
     "",
     `Ver o cancelar: ${d.urlTurno}`,
-    `Se puede cancelar ${plazoEnPalabras(d.tenant.cancelDeadlineMinutes)}.`,
-    "",
-    "Se paga en el local, en efectivo o por transferencia.",
+    `Si no vas a poder venir, avisanos desde ese link. Se puede cancelar ${plazoEnPalabras(d.tenant.cancelDeadlineMinutes)}.`,
   ]
     .filter(Boolean)
     .join("\n");
 }
 
-export type ResultadoEnvio =
-  | { enviado: true }
-  | { enviado: false; motivo: string };
+export type ResultadoEnvio = { enviado: true } | { enviado: false; motivo: string };
 
-export async function enviarConfirmacion(
-  d: DatosConfirmacion,
+export async function enviarRecordatorio(
+  d: DatosRecordatorio,
 ): Promise<ResultadoEnvio> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM;
 
   if (!apiKey || !from) {
-    // Sin configurar no es un error: el proyecto anda igual, sin mails.
     return { enviado: false, motivo: "RESEND_API_KEY o RESEND_FROM sin definir" };
   }
 
   try {
     const { error } = await new Resend(apiKey).emails.send({
-      // El nombre lo pone la barbería, no el entorno: en la bandeja de entrada
-      // el remitente es casi lo único que se lee antes de abrir, y ahí tiene
-      // que decir el local donde el cliente reservó.
       from: remitenteDe(d.tenant.name, from),
       to: d.para,
-      subject: `Tu turno en ${d.tenant.name} — ${d.cuando}`,
+      subject: `${d.cuando} tenés turno en ${d.tenant.name}`,
       html: armarHtml(d),
       text: armarTexto(d),
     });
