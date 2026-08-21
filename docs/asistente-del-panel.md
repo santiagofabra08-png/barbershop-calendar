@@ -16,14 +16,13 @@ diez barberías deja de ser posible.
 
 ## Lo que se decidió, y lo que se descartó
 
-**El video queda descartado.** Existe un guion de 631 líneas en
-`docs/guion-video-panel.md`, de otra sesión, para un video con voz en off de 25
-a 28 minutos. No se va a grabar. Nadie mira 25 minutos de video en el momento en
-que se abandona, que es cuando entró y no sabe qué hacer.
+**El video queda descartado.** Había un guion de 631 líneas para un video con
+voz en off de 25 a 28 minutos. No se va a grabar: nadie mira 25 minutos de video
+en el momento en que se abandona, que es cuando entró y no sabe qué hacer.
 
-⚠️ Ese archivo queda en el repositorio sin nada que lo use. Conviene borrarlo o
-marcarlo como descartado, o dentro de tres meses alguien lo lee y cree que hay
-un video.
+El archivo se sacó del árbol el 21 de agosto para que nadie lo lea después y
+crea que hay un video grabado. **Sigue en la historia de git**, en el commit
+anterior al que lo borra, por si algún día sirve un párrafo.
 
 **Lo caro ya está hecho.** `docs/guia-del-panel.md` y su versión en HTML (1584
 líneas) explican el panel entero, y hay un PDF listo para mandar. Escribir las
