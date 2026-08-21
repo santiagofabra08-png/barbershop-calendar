@@ -22,6 +22,18 @@ const acceso: { mail: string; clave: string } = JSON.parse(
   readFileSync(ARCHIVO_ACCESO, "utf8"),
 );
 
+/**
+ * El input de archivo del campo de foto.
+ *
+ * El id lo arma `CampoFoto` a partir del nombre del campo, porque el mismo
+ * componente lo usan Productos y Equipo y dos elementos no pueden compartir un
+ * id. Era `#foto-elegir` a secas cuando el campo vivía adentro del formulario
+ * de productos, y esta prueba se quedó apuntando ahí: al extraer el componente
+ * quedó buscando un elemento que ya no existe, y la prueba pasó a fallar por
+ * tiempo agotado en vez de por lo que estaba probando.
+ */
+const CAMPO = "#foto-elegir-foto";
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/entrar");
   await page.getByLabel("Mail").fill(acceso.mail);
@@ -39,7 +51,7 @@ test("carga un producto con una foto rectangular y la recorta", async ({ page })
   await expect(page.getByText(/hasta 2 MB/)).toBeVisible();
 
   // Bien rectangular a propósito: el doble de ancha que de alta.
-  await page.setInputFiles("#foto-elegir", {
+  await page.setInputFiles(CAMPO, {
     name: "producto.png",
     mimeType: "image/png",
     buffer: pngRectangulo(1200, 600),
@@ -53,7 +65,7 @@ test("carga un producto con una foto rectangular y la recorta", async ({ page })
 
   // Y la vista previa tiene que mostrar algo: si el canvas hubiera fallado,
   // el aviso podría aparecer igual y la imagen no.
-  const preview = page.locator('label[for="foto-elegir"] img');
+  const preview = page.locator(`label[for="${CAMPO.slice(1)}"] img`);
   await expect(preview).toBeVisible();
 
   const nombre = `Cera E2E ${Date.now().toString().slice(-6)}`;
@@ -142,7 +154,7 @@ test.fixme("después de guardar queda en la lista de productos", async ({ page }
 test("no acepta un archivo que no es una imagen", async ({ page }) => {
   await page.goto("/panel/productos/nuevo");
 
-  await page.setInputFiles("#foto-elegir", {
+  await page.setInputFiles(CAMPO, {
     name: "listado.txt",
     mimeType: "text/plain",
     buffer: Buffer.from("esto no es una foto"),
