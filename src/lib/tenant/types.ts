@@ -19,6 +19,13 @@ export type Tenant = {
   whatsappPhone: string | null;
   /** La URL entera del perfil, no el usuario. */
   instagramUrl: string | null;
+  /**
+   * A dónde contesta un cliente que responde el mail.
+   *
+   * El mail sale desde `turnos@`, que es lo que hace que llegue. Sin esto, la
+   * respuesta cae en el reenvío del dominio y la barbería nunca la ve.
+   */
+  replyToEmail: string | null;
 
   logoLightUrl: string | null;
   logoDarkUrl: string | null;

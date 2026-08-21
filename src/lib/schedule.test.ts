@@ -25,6 +25,7 @@ const tenant: Tenant = {
   mapsUrl: null,
   whatsappPhone: null,
   instagramUrl: null,
+  replyToEmail: null,
   logoLightUrl: null,
   logoDarkUrl: null,
   colors: {

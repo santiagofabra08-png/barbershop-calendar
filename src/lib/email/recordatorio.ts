@@ -117,6 +117,10 @@ export async function enviarRecordatorio(
   try {
     const { error } = await new Resend(apiKey).emails.send({
       from: remitenteDe(d.tenant.name, from),
+      // El remitente lo pone el dominio verificado; la respuesta, la barbería.
+      // Sin esto, quien contesta "no voy a poder ir" le escribe a una casilla
+      // que el local no lee.
+      ...(d.tenant.replyToEmail ? { replyTo: d.tenant.replyToEmail } : {}),
       to: d.para,
       subject: `${d.cuando} tenés turno en ${d.tenant.name}`,
       html: armarHtml(d),

@@ -31,6 +31,7 @@ type FilaTenant = {
   maps_url: string | null;
   whatsapp_phone: string | null;
   instagram_url: string | null;
+  reply_to_email: string | null;
   logo_light_url: string | null;
   logo_dark_url: string | null;
   color_bg: string;
@@ -50,6 +51,7 @@ type FilaTenant = {
 
 const CAMPOS_TENANT =
   "id, slug, name, timezone, currency, address, maps_url, whatsapp_phone, instagram_url, " +
+  "reply_to_email, " +
   "logo_light_url, logo_dark_url, " +
   "color_bg, color_surface, color_ink, color_ink_muted, color_accent, color_accent_alt, " +
   "min_lead_minutes, cancel_deadline_minutes, products_enabled, " +
@@ -66,6 +68,7 @@ function aTenant(fila: FilaTenant): Tenant {
     mapsUrl: fila.maps_url,
     whatsappPhone: fila.whatsapp_phone,
     instagramUrl: fila.instagram_url,
+    replyToEmail: fila.reply_to_email,
     logoLightUrl: fila.logo_light_url,
     logoDarkUrl: fila.logo_dark_url,
     colors: {

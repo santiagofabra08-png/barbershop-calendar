@@ -129,6 +129,10 @@ export async function enviarConfirmacion(
       // el remitente es casi lo único que se lee antes de abrir, y ahí tiene
       // que decir el local donde el cliente reservó.
       from: remitenteDe(d.tenant.name, from),
+      // El remitente lo pone el dominio verificado; la respuesta, la barbería.
+      // Sin esto, quien contesta "no voy a poder ir" le escribe a una casilla
+      // que el local no lee.
+      ...(d.tenant.replyToEmail ? { replyTo: d.tenant.replyToEmail } : {}),
       to: d.para,
       subject: `Tu turno en ${d.tenant.name} — ${d.cuando}`,
       html: armarHtml(d),
