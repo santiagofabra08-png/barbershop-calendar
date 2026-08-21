@@ -29,6 +29,8 @@ type FilaTenant = {
   currency: string;
   address: string | null;
   maps_url: string | null;
+  whatsapp_phone: string | null;
+  instagram_url: string | null;
   logo_light_url: string | null;
   logo_dark_url: string | null;
   color_bg: string;
@@ -47,7 +49,8 @@ type FilaTenant = {
 };
 
 const CAMPOS_TENANT =
-  "id, slug, name, timezone, currency, address, maps_url, logo_light_url, logo_dark_url, " +
+  "id, slug, name, timezone, currency, address, maps_url, whatsapp_phone, instagram_url, " +
+  "logo_light_url, logo_dark_url, " +
   "color_bg, color_surface, color_ink, color_ink_muted, color_accent, color_accent_alt, " +
   "min_lead_minutes, cancel_deadline_minutes, products_enabled, " +
   "booking_window_mode, booking_window_days, booking_week_release_dow, booking_week_release_time";
@@ -61,6 +64,8 @@ function aTenant(fila: FilaTenant): Tenant {
     currency: fila.currency,
     address: fila.address,
     mapsUrl: fila.maps_url,
+    whatsappPhone: fila.whatsapp_phone,
+    instagramUrl: fila.instagram_url,
     logoLightUrl: fila.logo_light_url,
     logoDarkUrl: fila.logo_dark_url,
     colors: {

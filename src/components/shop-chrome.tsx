@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { ContactoFlotante } from "@/components/contacto-flotante";
 import { IconoCalendario, IconoUbicacion } from "@/components/icons";
 import { PoleRule } from "@/components/pole-rule";
 import { plazoEnPalabras } from "@/lib/plazo";
@@ -173,6 +174,11 @@ export function ShopFooter({
           </p>
         </div>
       </div>
+
+      {/* Va colgado del pie porque es lo único que dibujan todas las páginas
+          públicas. Está fijo, así que dónde viva en el markup no cambia dónde
+          se ve. */}
+      <ContactoFlotante tenant={tenant} />
     </footer>
   );
 }

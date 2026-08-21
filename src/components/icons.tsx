@@ -98,3 +98,31 @@ export function IconoDescarga({ className = "size-4" }: Props) {
     </svg>
   );
 }
+
+/**
+ * WhatsApp.
+ *
+ * La burbuja con la cola y el tubo adentro. Dibujada en trazo como el resto:
+ * el logo oficial es verde y sólido, y meterlo así en una página que se pinta
+ * con los colores de cada barbería quedaría como un sticker pegado encima.
+ * Se reconoce por la forma, que es lo que se lee a 20 píxeles.
+ */
+export function IconoWhatsApp({ className = "size-4" }: Props) {
+  return (
+    <svg {...svg} className={`${base} ${className}`}>
+      <path d="M8 1.9a6.1 6.1 0 0 0-5.2 9.3l-.9 3 3.1-.8A6.1 6.1 0 1 0 8 1.9Z" />
+      <path d="M6.1 5.6c.15-.3.35-.3.5-.3h.4c.15 0 .3.02.42.3l.42 1c.05.12.03.25-.04.36l-.24.35c-.07.1-.08.22-.01.33.26.42.74.9 1.16 1.16.11.07.23.06.33-.02l.35-.26c.1-.08.24-.1.35-.05l1 .42c.28.12.3.28.3.42v.4c0 .2-.02.4-.34.56-.25.12-.58.2-.9.16-.9-.12-1.9-.74-2.62-1.47-.73-.73-1.35-1.7-1.47-2.56-.05-.32.02-.65.16-.87Z" />
+    </svg>
+  );
+}
+
+/** Instagram. El cuadrado con el lente y el punto. */
+export function IconoInstagram({ className = "size-4" }: Props) {
+  return (
+    <svg {...svg} className={`${base} ${className}`}>
+      <rect x="2.2" y="2.2" width="11.6" height="11.6" rx="3.4" />
+      <circle cx="8" cy="8" r="2.9" />
+      <circle cx="11.4" cy="4.6" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

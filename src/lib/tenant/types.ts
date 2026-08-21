@@ -15,6 +15,10 @@ export type Tenant = {
 
   address: string | null;
   mapsUrl: string | null;
+  /** El WhatsApp del local, normalizado como +598XXXXXXXX. */
+  whatsappPhone: string | null;
+  /** La URL entera del perfil, no el usuario. */
+  instagramUrl: string | null;
 
   logoLightUrl: string | null;
   logoDarkUrl: string | null;

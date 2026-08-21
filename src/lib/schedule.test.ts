@@ -23,6 +23,8 @@ const tenant: Tenant = {
   currency: "UYU",
   address: null,
   mapsUrl: null,
+  whatsappPhone: null,
+  instagramUrl: null,
   logoLightUrl: null,
   logoDarkUrl: null,
   colors: {
