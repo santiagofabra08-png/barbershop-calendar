@@ -36,6 +36,7 @@ export default async function NuevoBarberoPage() {
           displayName: "",
           email: null,
           acceptsBookings: true,
+          photoUrl: null,
           // Comisión al 50% es el arreglo más común con un empleado, y quien
           // agrega a alguien casi siempre está agregando a un empleado.
           pay: { model: "commission", percent: 50 },

@@ -3,6 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  borrarFotoPorUrl,
+  fotoDelFormulario,
+  subirFoto,
+  urlDeLaRuta,
+} from "@/lib/panel/fotos";
+import { FOTO_BARBERO } from "@/lib/panel/imagen";
 import { sesionDelPanel } from "@/lib/panel/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -100,16 +107,29 @@ export async function crearBarbero(
 
   const sb = await createClient();
 
+  let photoUrl: string | null = null;
+  const foto = fotoDelFormulario(formData);
+  if (foto) {
+    const subida = await subirFoto(sb, sesion.tenant.id, "equipo", foto, FOTO_BARBERO);
+    if (!subida.ok) return { error: subida.error };
+    photoUrl = urlDeLaRuta(subida.path);
+  }
+
   const { error } = await sb.from("barbers").insert({
     tenant_id: sesion.tenant.id,
     display_name: nombre,
     email,
     role: "barber",
     accepts_bookings: formData.get("accepts_bookings") === "on",
+    photo_url: photoUrl,
     ...cobro.valores,
   });
 
-  if (error) return { error: `No se pudo guardar: ${error.message}` };
+  if (error) {
+    // Si la fila no entró, la foto queda huérfana en el bucket. Se limpia acá.
+    await borrarFotoPorUrl(sb, photoUrl);
+    return { error: `No se pudo guardar: ${error.message}` };
+  }
 
   revalidatePath("/panel/equipo");
   redirect("/panel/equipo");
@@ -136,18 +156,45 @@ export async function guardarBarbero(
 
   const sb = await createClient();
 
+  const { data: actual } = await sb
+    .from("barbers")
+    .select("photo_url")
+    .eq("id", id)
+    .eq("tenant_id", sesion.tenant.id)
+    .maybeSingle();
+
+  const anterior = (actual as { photo_url: string | null } | null)?.photo_url ?? null;
+
+  let photoUrl = anterior;
+  const foto = fotoDelFormulario(formData);
+  if (foto) {
+    const subida = await subirFoto(sb, sesion.tenant.id, "equipo", foto, FOTO_BARBERO);
+    if (!subida.ok) return { error: subida.error };
+    photoUrl = urlDeLaRuta(subida.path);
+  } else if (formData.get("quitar_foto") === "1") {
+    photoUrl = null;
+  }
+
   const { error } = await sb
     .from("barbers")
     .update({
       display_name: nombre,
       email,
       accepts_bookings: formData.get("accepts_bookings") === "on",
+      photo_url: photoUrl,
       ...cobro.valores,
     })
     .eq("id", id)
     .eq("tenant_id", sesion.tenant.id);
 
-  if (error) return { error: `No se pudo guardar: ${error.message}` };
+  if (error) {
+    if (photoUrl !== anterior) await borrarFotoPorUrl(sb, photoUrl);
+    return { error: `No se pudo guardar: ${error.message}` };
+  }
+
+  // La vieja recién se borra cuando la nueva ya está guardada: al revés, un
+  // error deja al barbero sin foto y sin forma de recuperarla.
+  if (photoUrl !== anterior) await borrarFotoPorUrl(sb, anterior);
 
   revalidatePath("/panel/equipo");
   revalidatePath(`/panel/equipo/${id}`);

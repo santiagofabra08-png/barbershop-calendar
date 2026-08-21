@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 
 import type { EstadoEquipo } from "@/app/panel/equipo/actions";
+import { CampoFoto } from "@/components/panel/campo-foto";
+import { FOTO_BARBERO } from "@/lib/panel/imagen";
 import { NOMBRE_MODELO, RESENIA_MODELO } from "@/lib/panel/pay-copy";
 import type { Pay, PaymentModel } from "@/lib/payroll";
 
@@ -28,6 +30,7 @@ export type BarberoInicial = {
   email: string | null;
   acceptsBookings: boolean;
   pay: Pay;
+  photoUrl: string | null;
 };
 
 export function BarberForm({
@@ -49,11 +52,26 @@ export function BarberForm({
   // servidor del formulario.
   const [modelo, setModelo] = useState<PaymentModel>(inicial.pay.model);
 
+  // Mientras se recorta la foto no se puede guardar: el archivo todavía no
+  // está puesto en el formulario y se guardaría sin ella.
+  const [preparando, setPreparando] = useState(false);
+
   return (
     <form action={enviar} className="mt-6">
       {inicial.id ? <input type="hidden" name="id" value={inicial.id} /> : null}
 
       <div className="card space-y-5 px-5 py-5">
+        {/* La cara va primero: es lo que ve el cliente al elegir con quién
+            reservar, antes que cualquier otro dato de esta pantalla. */}
+        <CampoFoto
+          espec={FOTO_BARBERO}
+          etiqueta="Foto"
+          nombreCampo="foto"
+          urlGuardada={inicial.photoUrl}
+          redonda
+          onPreparando={setPreparando}
+        />
+
         <div>
           <label htmlFor="display_name" className={etiqueta}>
             Nombre
@@ -230,7 +248,7 @@ export function BarberForm({
 
       <button
         type="submit"
-        disabled={pendiente}
+        disabled={pendiente || preparando}
         className="mt-6 w-full rounded-lg bg-accent px-6 py-4 text-sm font-semibold tracking-[0.08em] text-surface uppercase transition-colors duration-150 ease-out hover:bg-ink active:bg-ink/90 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
       >
         {pendiente ? "Guardando…" : textoBoton}

@@ -117,7 +117,7 @@ export async function cargarBarberia(
     await Promise.all([
       sb
         .from("barbers")
-        .select("id, display_name, accepts_bookings")
+        .select("id, display_name, accepts_bookings, photo_url")
         .eq("tenant_id", tenant.id)
         .order("sort_order"),
       sb
@@ -140,6 +140,7 @@ export async function cargarBarberia(
       id: b.id as string,
       displayName: b.display_name as string,
       acceptsBookings: b.accepts_bookings as boolean,
+      photoUrl: (b.photo_url as string | null) ?? null,
     })),
     services: (services ?? []).map((s) => ({
       id: s.id as string,

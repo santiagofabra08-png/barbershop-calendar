@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 
@@ -203,6 +204,7 @@ export function WeekSchedule({
               <li key={barber.id}>
                 <TarjetaBarbero
                   nombre={barber.displayName}
+                  foto={barber.photoUrl}
                   activo={barberoId === barber.id}
                   onClick={() => elegirBarbero(barber.id)}
                 />
@@ -424,11 +426,14 @@ function Paso({
 function TarjetaBarbero({
   nombre,
   activo,
+  foto,
   sinInicial = false,
   onClick,
 }: {
   nombre: string;
   activo: boolean;
+  /** La cara del barbero. Sin foto va la inicial, que es el caso normal. */
+  foto?: string | null;
   sinInicial?: boolean;
   onClick: () => void;
 }) {
@@ -445,14 +450,23 @@ function TarjetaBarbero({
           : "bg-ink/[0.04] text-ink hover:bg-ink/[0.09] active:bg-ink/[0.14]",
       ].join(" ")}
     >
+      {/* La forma dice qué hay adentro: círculo si es una persona, cuadrado si
+          es "el primero que haya", que no lo es. Mismo tamaño en los dos para
+          que la fila no se desalinee. */}
       <span
         className={[
-          "flex size-8 shrink-0 items-center justify-center rounded-lg font-display text-sm font-bold",
-          activo ? "bg-bg/15 text-bg" : "bg-ink/[0.07] text-ink",
+          "relative flex size-9 shrink-0 items-center justify-center overflow-hidden",
+          "font-display text-sm font-bold",
+          sinInicial ? "rounded-lg" : "rounded-full",
+          activo ? "bg-bg/15 text-bg ring-1 ring-bg/25" : "bg-ink/[0.07] text-ink ring-1 ring-ink/10",
         ].join(" ")}
       >
         {sinInicial ? (
           <IconoGrupo className="size-4 opacity-80" />
+        ) : foto ? (
+          // Sin texto alternativo a propósito: el nombre está al lado y
+          // repetirlo le hace escuchar dos veces lo mismo a quien usa lector.
+          <Image src={foto} alt="" fill sizes="36px" className="object-cover" />
         ) : (
           nombre.charAt(0).toUpperCase()
         )}

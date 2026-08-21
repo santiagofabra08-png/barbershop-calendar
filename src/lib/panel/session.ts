@@ -21,6 +21,7 @@ export type BarberoDelPanel = {
   phone: string | null;
   role: "owner" | "barber";
   acceptsBookings: boolean;
+  photoUrl: string | null;
   isActive: boolean;
   sortOrder: number;
   pay: Pay;
@@ -34,7 +35,7 @@ export type SesionPanel = {
 };
 
 export const CAMPOS_BARBERO =
-  "id, display_name, email, phone, role, accepts_bookings, is_active, sort_order, " +
+  "id, display_name, email, phone, role, accepts_bookings, photo_url, is_active, sort_order, " +
   "payment_model, commission_percent, pay_amount_cents, pay_period";
 
 type FilaBarbero = {
@@ -44,6 +45,7 @@ type FilaBarbero = {
   phone: string | null;
   role: "owner" | "barber";
   accepts_bookings: boolean;
+  photo_url: string | null;
   is_active: boolean;
   sort_order: number;
   payment_model: "commission" | "salary" | "chair_rent" | "revenue_only";
@@ -84,6 +86,7 @@ export function aBarbero(fila: FilaBarbero): BarberoDelPanel {
     phone: fila.phone,
     role: fila.role,
     acceptsBookings: fila.accepts_bookings,
+    photoUrl: fila.photo_url,
     isActive: fila.is_active,
     sortOrder: fila.sort_order,
     pay: aPay(fila),

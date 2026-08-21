@@ -40,6 +40,27 @@ export const FOTO_PRODUCTO: EspecDeImagen = {
     "Si la sacás con el celular, poné el producto en el medio: se recorta al cuadrado.",
 };
 
+/**
+ * La cara del barbero, en el selector de la página pública.
+ *
+ * 400 y no 800 como el producto: se muestra en un círculo de 40 px. Pedir el
+ * doble de resolución de la que se ve es cobrarle datos al dueño por nada.
+ *
+ * El texto de ayuda dice "de la cara" y no "cuadrada" porque el problema real
+ * no es la forma: las fotos que manda una barbería son de producción, con la
+ * tijera adelante y la cara chica al fondo. Recortadas a 40 px eso no es una
+ * persona, es una mano.
+ */
+export const FOTO_BARBERO: EspecDeImagen = {
+  lado: 400,
+  cuadrada: true,
+  tiposAceptados: ["image/jpeg", "image/png", "image/webp"],
+  pesoMaximoBytes: 2 * MB,
+  ayuda:
+    "De la cara, mirando a cámara. Cuadrada, 400 × 400 px. JPG, PNG o WebP, " +
+    "hasta 2 MB. Se recorta al cuadrado, así que la cara va en el medio.",
+};
+
 export const LOGO: EspecDeImagen = {
   lado: 400,
   cuadrada: false,

@@ -53,6 +53,11 @@ export type Barber = {
   id: string;
   displayName: string;
   acceptsBookings: boolean;
+  /**
+   * La cara, si la subieron. Null es lo normal: la mayoría de las barberías
+   * no sube ninguna y ahí va la inicial.
+   */
+  photoUrl: string | null;
 };
 
 /** Un tramo de horario habitual. `weekday`: 0 = domingo … 6 = sábado. */

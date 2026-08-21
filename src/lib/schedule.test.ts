@@ -47,9 +47,9 @@ const corte: Service = {
   priceCents: 30000,
 };
 
-const facundo: Barber = { id: "f", displayName: "Facundo", acceptsBookings: true };
-const jaimito: Barber = { id: "j", displayName: "Jaimito", acceptsBookings: true };
-const contador: Barber = { id: "c", displayName: "Contador", acceptsBookings: false };
+const facundo: Barber = { id: "f", displayName: "Facundo", acceptsBookings: true, photoUrl: null };
+const jaimito: Barber = { id: "j", displayName: "Jaimito", acceptsBookings: true, photoUrl: null };
+const contador: Barber = { id: "c", displayName: "Contador", acceptsBookings: false, photoUrl: null };
 
 // Facundo: martes a sábado, 14 a 21. Jaimito: jueves y viernes, 16 a 21.
 const horarios: WorkingHour[] = [

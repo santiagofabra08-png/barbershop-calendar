@@ -63,6 +63,7 @@ export default async function FichaBarberoPage({
           email: barbero.email,
           acceptsBookings: barbero.acceptsBookings,
           pay: barbero.pay,
+          photoUrl: barbero.photoUrl,
         }}
       />
 

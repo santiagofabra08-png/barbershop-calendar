@@ -3,61 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { FOTO_PRODUCTO, revisarArchivo } from "@/lib/panel/imagen";
+import {
+  borrarFoto,
+  fotoDelFormulario,
+  subirFoto as subirFotoAlBucket,
+} from "@/lib/panel/fotos";
+import { FOTO_PRODUCTO } from "@/lib/panel/imagen";
 import { sesionDelPanel } from "@/lib/panel/session";
 import { createClient } from "@/lib/supabase/server";
 
 export type EstadoProducto = { error?: string; ok?: string };
-
-const BUCKET = "tenant-assets";
-
-/** El cliente de Supabase tal como lo devuelve el servidor, con sus tipos. */
-type Cliente = Awaited<ReturnType<typeof createClient>>;
-
-/**
- * Guarda la foto y devuelve su ruta.
- *
- * La foto llega ya recortada y achicada por el navegador, así que lo que sube
- * son 60 KB. Igual se revisa formato y peso de este lado: el formulario avisa,
- * pero un formulario se puede armar a mano.
- *
- * La ruta arranca con el id de la barbería porque esa es la separación entre
- * locales en Storage —la política de `storage.objects` compara ese primer tramo
- * contra la barbería de quien sube—. No hay forma de escribir en la carpeta de
- * otro.
- */
-async function subirFoto(
-  sb: Cliente,
-  tenantId: string,
-  archivo: File,
-): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
-  const problema = revisarArchivo(archivo.type, archivo.size, {
-    ...FOTO_PRODUCTO,
-    // El navegador re-codifica a WebP; el servidor tiene que aceptar eso además
-    // de lo que la persona eligió.
-    tiposAceptados: [...FOTO_PRODUCTO.tiposAceptados, "image/png"],
-  });
-  if (problema) return { ok: false, error: problema };
-
-  const extension = archivo.type === "image/webp" ? "webp" : "png";
-  const path = `${tenantId}/productos/${crypto.randomUUID()}.${extension}`;
-
-  const { error } = await sb.storage.from(BUCKET).upload(path, archivo, {
-    contentType: archivo.type,
-    // Cada foto tiene nombre nuevo, así que nunca pisa a otra. Se cachea fuerte
-    // porque la URL cambia sola cuando cambia la foto.
-    cacheControl: "31536000",
-  });
-
-  if (error) return { ok: false, error: `No se pudo subir la foto: ${error.message}` };
-  return { ok: true, path };
-}
-
-/** Borra una foto que ya no usa nadie. Que falle no es motivo para frenar. */
-async function borrarFoto(sb: Cliente, path: string | null) {
-  if (!path) return;
-  await sb.storage.from(BUCKET).remove([path]);
-}
 
 type Campos = {
   name: string;
@@ -95,10 +50,6 @@ function camposDelProducto(
 }
 
 /** La foto del formulario, si mandaron una. */
-function fotoDelFormulario(formData: FormData): File | null {
-  const foto = formData.get("foto");
-  return foto instanceof File && foto.size > 0 ? foto : null;
-}
 
 export async function crearProducto(
   _previo: EstadoProducto,
@@ -115,7 +66,7 @@ export async function crearProducto(
   let imagePath: string | null = null;
   const foto = fotoDelFormulario(formData);
   if (foto) {
-    const subida = await subirFoto(sb, sesion.tenant.id, foto);
+    const subida = await subirFotoAlBucket(sb, sesion.tenant.id, "productos", foto, FOTO_PRODUCTO);
     if (!subida.ok) return { error: subida.error };
     imagePath = subida.path;
   }
@@ -171,7 +122,7 @@ export async function guardarProducto(
   let imagePath = anterior;
   const foto = fotoDelFormulario(formData);
   if (foto) {
-    const subida = await subirFoto(sb, sesion.tenant.id, foto);
+    const subida = await subirFotoAlBucket(sb, sesion.tenant.id, "productos", foto, FOTO_PRODUCTO);
     if (!subida.ok) return { error: subida.error };
     imagePath = subida.path;
   } else if (formData.get("quitar_foto") === "1") {
