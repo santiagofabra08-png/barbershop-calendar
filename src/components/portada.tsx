@@ -449,6 +449,27 @@ export function Portada() {
           <div className="mt-8">
             <Demo url={urlDemo} dominio={dominio} />
           </div>
+
+          {/*
+            El link va acá abajo y no arriba, a propósito: recién después de
+            reservar en el teléfono dibujado tiene sentido la pregunta "¿y del
+            otro lado qué pasa?". Ofrecerlo antes es pedirle que mire el panel
+            a alguien que todavía no vio para qué sirve.
+
+            No es una sección más de esta página: es la pantalla del panel de
+            verdad, y por eso vive en el dominio de la demo y no acá.
+          */}
+          <p className="mt-8 max-w-2xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
+            ¿Y del otro lado?{" "}
+            <a
+              href={`${urlDemo}/detras`}
+              className="font-medium text-[color:var(--barbicide)] underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-[color:var(--esmalte)] focus-visible:text-[color:var(--esmalte)] focus-visible:outline-none"
+            >
+              Mirá el panel por dentro
+            </a>
+            : la agenda de un día, el mensaje que le mandás al cliente, y la
+            guía entera antes de pagar nada.
+          </p>
         </div>
       </section>
 

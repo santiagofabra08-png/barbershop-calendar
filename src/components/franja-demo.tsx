@@ -148,14 +148,29 @@ export function FranjaDemo({
               no existe: es la demo de Turnos for Barber.
             </p>
 
-            {urlPortada !== "" ? (
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+              {urlPortada !== "" ? (
+                <a
+                  href={urlPortada}
+                  className="inline-flex items-center justify-center rounded-lg bg-[color:var(--barbicide)] px-6 py-3.5 text-sm font-semibold text-[color:var(--tiza)] hover:bg-[color:var(--esmalte)] active:bg-[color:var(--esmalte)]"
+                >
+                  Ver cómo funciona
+                </a>
+              ) : null}
+
+              {/*
+                Relativo a propósito: esto se dibuja solo adentro de la demo, y
+                `/detras` es una página de esta misma barbería. Armarla con el
+                dominio raíz sería mandar a la persona a dar una vuelta por la
+                portada para volver al mismo lugar.
+              */}
               <a
-                href={urlPortada}
-                className="mt-5 inline-flex items-center justify-center rounded-lg bg-[color:var(--barbicide)] px-6 py-3.5 text-sm font-semibold text-[color:var(--tiza)] hover:bg-[color:var(--esmalte)] active:bg-[color:var(--esmalte)]"
+                href="/detras"
+                className="text-sm font-medium text-[color:var(--barbicide)] underline decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-[color:var(--esmalte)] focus-visible:text-[color:var(--esmalte)] focus-visible:outline-none"
               >
-                Ver cómo funciona
+                Mirá el panel por dentro ›
               </a>
-            ) : null}
+            </div>
           </div>
         </div>
       </section>

@@ -10,6 +10,7 @@ import {
   cargarServicios,
   cargarTurnos,
 } from "@/lib/panel/data";
+import { SLUG_DEMO } from "@/lib/demo";
 import { contarPedidosNuevos } from "@/lib/panel/pedidos";
 import type { EstadoDelLocal } from "@/lib/panel/primeros-pasos";
 import { sesionDelPanel } from "@/lib/panel/session";
@@ -37,6 +38,20 @@ export default async function AgendaPage({
   const { d } = await searchParams;
   const fecha = d && FECHA.test(d) ? d : hoy.date;
 
+  /*
+   * La lista de primeros pasos, y las dos barberías que no la ven.
+   *
+   * Un barbero no la ve porque los cinco pasos llevan a pantallas que no puede
+   * abrir: sería pedirle que arregle algo que no puede tocar.
+   *
+   * ⚠️ Y la barbería de demostración tampoco, que es menos obvio. Su panel es
+   * de donde `scripts/capturas.mts` saca las fotos que muestra la portada, y
+   * ahí arriba un "para terminar de armar tu página" convierte la pantalla que
+   * dice "tu día ya está armado" en la de un producto a medio configurar. No es
+   * una barbería dándose de alta: es la vidriera.
+   */
+  const muestraPasos = esDuenio && tenant.slug !== SLUG_DEMO;
+
   const [turnos, equipo, servicios, pedidosNuevos, conHorario] =
     await Promise.all([
       cargarTurnos(tenant, fecha, fecha),
@@ -45,13 +60,13 @@ export default async function AgendaPage({
       contarPedidosNuevos(tenant),
       // Solo hace falta para la lista de primeros pasos, que solo ve el dueño.
       // Un barbero abriendo su agenda no paga esta consulta.
-      esDuenio ? cargarBarberosConHorario(tenant) : new Set<string>(),
+      muestraPasos ? cargarBarberosConHorario(tenant) : new Set<string>(),
     ]);
 
   // Lo que le falta al local para estar armado. Se calcula siempre y el
   // componente decide si hay algo que mostrar: cuando no falta nada devuelve
   // null y acá arriba no queda ni un hueco.
-  const estadoDelLocal: EstadoDelLocal | null = esDuenio
+  const estadoDelLocal: EstadoDelLocal | null = muestraPasos
     ? {
         tieneLogoClaro: Boolean(tenant.logoLightUrl),
         tieneLogoOscuro: Boolean(tenant.logoDarkUrl),

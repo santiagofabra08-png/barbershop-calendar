@@ -25,6 +25,7 @@ export function Ledger({
   hoy,
   diaPasado,
   nombrePorBarbero,
+  soloLectura = false,
 }: {
   turnos: TurnoDelPanel[];
   tenant: Tenant;
@@ -36,6 +37,16 @@ export function Ledger({
   diaPasado: boolean;
   /** Con más de un barbero a la vista, cada turno dice de quién es. */
   nombrePorBarbero: Map<string, string> | null;
+  /**
+   * La agenda dibujada afuera del panel, sin sesión y sin nada que escriba.
+   *
+   * La usa el detrás de escena. Los botones siguen a la vista (esconderlos
+   * mostraría una agenda que no es la que se compra) pero no cuelgan de ningún
+   * formulario: no hay Server Action detrás, así que no hay a dónde mandar
+   * nada. El bloqueo no es una regla que haya que acordarse de poner, es que
+   * la maquinaria no está.
+   */
+  soloLectura?: boolean;
 }) {
   const tira = armarTira(turnos, ahora);
 
@@ -100,6 +111,7 @@ export function Ledger({
                   (ahora !== null &&
                     enMinutos(a.turno.startLocal) <= enMinutos(ahora))
                 }
+                soloLectura={soloLectura}
               />
             </div>
           </li>
@@ -109,18 +121,25 @@ export function Ledger({
   );
 }
 
+/** Las clases de los tres botones chicos del turno, en un solo lugar. */
+const BOTON =
+  "rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase";
+const BOTON_VIVO = `${BOTON} transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]`;
+
 function Turno({
   turno,
   tenant,
   hoy,
   nombrePorBarbero,
   yaEmpezo,
+  soloLectura,
 }: {
   turno: TurnoDelPanel;
   tenant: Tenant;
   hoy: string;
   nombrePorBarbero: Map<string, string> | null;
   yaEmpezo: boolean;
+  soloLectura: boolean;
 }) {
   const barbero = nombrePorBarbero?.get(turno.barberId) ?? null;
 
@@ -136,16 +155,27 @@ function Turno({
           ) : null}
         </div>
 
-        <form action={borrarBloqueo}>
-          <input type="hidden" name="id" value={turno.id} />
+        {soloLectura ? (
           <button
-            type="submit"
+            type="button"
+            disabled
             aria-label="Quitar el bloqueo"
-            className="flex size-6 items-center justify-center rounded-md text-muted transition-colors duration-150 ease-out hover:bg-ink/10 hover:text-ink active:bg-ink/15"
+            className="flex size-6 items-center justify-center rounded-md text-muted"
           >
             <span aria-hidden="true">×</span>
           </button>
-        </form>
+        ) : (
+          <form action={borrarBloqueo}>
+            <input type="hidden" name="id" value={turno.id} />
+            <button
+              type="submit"
+              aria-label="Quitar el bloqueo"
+              className="flex size-6 items-center justify-center rounded-md text-muted transition-colors duration-150 ease-out hover:bg-ink/10 hover:text-ink active:bg-ink/15"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </form>
+        )}
       </div>
     );
   }
@@ -220,27 +250,40 @@ function Turno({
         {turno.source === "panel" ? <Chip>Cargado a mano</Chip> : null}
 
         {yaEmpezo ? (
-          <form action={marcarAsistencia}>
-            <input type="hidden" name="id" value={turno.id} />
-            <input type="hidden" name="vino" value={falto ? "1" : "0"} />
-            <button
-              type="submit"
-              className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"
-            >
+          soloLectura ? (
+            <button type="button" disabled className={BOTON}>
               {falto ? "Sí vino" : "No vino"}
             </button>
-          </form>
+          ) : (
+            <form action={marcarAsistencia}>
+              <input type="hidden" name="id" value={turno.id} />
+              <input type="hidden" name="vino" value={falto ? "1" : "0"} />
+              <button type="submit" className={BOTON_VIVO}>
+                {falto ? "Sí vino" : "No vino"}
+              </button>
+            </form>
+          )
         ) : null}
 
         {turno.clientPhone ? (
-          <a
-            href={linkDeWhatsApp(turno.clientPhone, recordatorio)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-muted uppercase transition-colors duration-150 ease-out hover:border-ink/40 hover:text-ink active:bg-ink/[0.06]"
-          >
-            {recordatorio ? "Recordar" : "WhatsApp"}
-          </a>
+          soloLectura ? (
+            // Afuera del panel el link no se dibuja como link: el teléfono es
+            // inventado, y `wa.me` con un número que no existe contesta que la
+            // dirección es inválida. Se muestra el botón, que es lo que hay
+            // que entender, y el mensaje que sale de tocarlo se ve al lado.
+            <button type="button" disabled className={`ml-auto ${BOTON}`}>
+              {recordatorio ? "Recordar" : "WhatsApp"}
+            </button>
+          ) : (
+            <a
+              href={linkDeWhatsApp(turno.clientPhone, recordatorio)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`ml-auto ${BOTON_VIVO}`}
+            >
+              {recordatorio ? "Recordar" : "WhatsApp"}
+            </a>
+          )
         ) : null}
       </div>
     </div>
