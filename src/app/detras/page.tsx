@@ -87,10 +87,12 @@ export default async function DetrasDeEscenaPage() {
         <h1 className="titulo-producto mt-3 text-3xl leading-tight sm:text-4xl">
           Del otro lado del mostrador
         </h1>
+        {/* A esta página se llega desde la portada, desde la demo, o por un
+            link suelto. La primera frase no puede dar por sentado que ya vio
+            la parte del cliente: para el que cae de afuera sería falso. */}
         <p className="mt-4 max-w-2xl leading-relaxed text-[color:color-mix(in_oklab,var(--esmalte)_72%,transparent)]">
-          Ya viste lo que ve tu cliente. Esto es lo que ves vos: la pantalla que
-          abrís a la mañana. Es la de verdad, con un día inventado adentro, y
-          acá no se puede tocar nada.
+          Esto es lo que ve el barbero: la pantalla que abrís a la mañana. Es la
+          de verdad, con un día inventado adentro, y acá no se puede tocar nada.
         </p>
 
         {/* ---- La agenda, viva ---------------------------------------- */}
@@ -193,8 +195,13 @@ export default async function DetrasDeEscenaPage() {
                 src: "/portada/panel-cobros.png",
                 alt: "La pantalla de Cobros, con el ticket de un turno y el cierre de caja.",
                 titulo: "Cobros",
+                // ⚠️ Acá decía "y al final del día la caja cuadra sola", que no
+                // es lo que hace. El cierre no cuadra nada: vos contás la plata
+                // y él te muestra al lado lo que registró. Prometer que cuadra
+                // sola es prometer que no hay que contar, y el día que alguien
+                // lo descubre lo cuenta.
                 texto:
-                  "Cada turno abre un ticket con lo que el cliente vino a hacerse. Se le suma lo que pidió sobre la marcha, se elige con qué pagó, y al final del día la caja cuadra sola.",
+                  "Cada turno abre un ticket con lo que el cliente vino a hacerse. Se le suma lo que pidió sobre la marcha y con qué pagó. Al cerrar el día contás la plata que hay, y al lado aparece lo que registró el sistema.",
               },
               {
                 src: "/portada/panel-semana.png",
