@@ -306,3 +306,27 @@ export async function cargarEquipo(tenant: Tenant): Promise<BarberoDelPanel[]> {
 
   return (data ?? []).map((f) => aBarbero(f as never));
 }
+
+/**
+ * Los ids de barbero que tienen al menos un tramo de horario cargado.
+ *
+ * Se usa para saber quién no aparece en la página. Un barbero recién agregado
+ * desde el panel arranca sin ningún horario, y hasta que alguien se lo cargue
+ * la página no tiene ni una hora que ofrecer con él: existe en el panel y no
+ * existe para el cliente.
+ *
+ * Trae solo la columna del id, sin distinct: son unas pocas decenas de filas
+ * por barbería y el Set las junta acá.
+ */
+export async function cargarBarberosConHorario(
+  tenant: Tenant,
+): Promise<Set<string>> {
+  const sb = await createClient();
+
+  const { data } = await sb
+    .from("working_hours")
+    .select("barber_id")
+    .eq("tenant_id", tenant.id);
+
+  return new Set((data ?? []).map((f) => f.barber_id as string));
+}

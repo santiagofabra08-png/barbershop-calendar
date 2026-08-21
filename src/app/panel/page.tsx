@@ -3,8 +3,15 @@ import { redirect } from "next/navigation";
 
 import { Ledger } from "@/app/panel/ledger";
 import { QuickAdd } from "@/app/panel/quick-add";
-import { cargarEquipo, cargarServicios, cargarTurnos } from "@/lib/panel/data";
+import { PrimerosPasos } from "@/components/panel/primeros-pasos";
+import {
+  cargarBarberosConHorario,
+  cargarEquipo,
+  cargarServicios,
+  cargarTurnos,
+} from "@/lib/panel/data";
 import { contarPedidosNuevos } from "@/lib/panel/pedidos";
+import type { EstadoDelLocal } from "@/lib/panel/primeros-pasos";
 import { sesionDelPanel } from "@/lib/panel/session";
 import {
   addDays,
@@ -30,12 +37,34 @@ export default async function AgendaPage({
   const { d } = await searchParams;
   const fecha = d && FECHA.test(d) ? d : hoy.date;
 
-  const [turnos, equipo, servicios, pedidosNuevos] = await Promise.all([
-    cargarTurnos(tenant, fecha, fecha),
-    cargarEquipo(tenant),
-    cargarServicios(tenant),
-    contarPedidosNuevos(tenant),
-  ]);
+  const [turnos, equipo, servicios, pedidosNuevos, conHorario] =
+    await Promise.all([
+      cargarTurnos(tenant, fecha, fecha),
+      cargarEquipo(tenant),
+      cargarServicios(tenant),
+      contarPedidosNuevos(tenant),
+      // Solo hace falta para la lista de primeros pasos, que solo ve el dueño.
+      // Un barbero abriendo su agenda no paga esta consulta.
+      esDuenio ? cargarBarberosConHorario(tenant) : new Set<string>(),
+    ]);
+
+  // Lo que le falta al local para estar armado. Se calcula siempre y el
+  // componente decide si hay algo que mostrar: cuando no falta nada devuelve
+  // null y acá arriba no queda ni un hueco.
+  const estadoDelLocal: EstadoDelLocal | null = esDuenio
+    ? {
+        tieneLogoClaro: Boolean(tenant.logoLightUrl),
+        tieneLogoOscuro: Boolean(tenant.logoDarkUrl),
+        tieneDireccion: Boolean(tenant.address),
+        tieneWhatsApp: Boolean(tenant.whatsappPhone),
+        serviciosActivos: servicios.length,
+        barberosSinHorario: equipo
+          .filter(
+            (b) => b.isActive && b.acceptsBookings && !conHorario.has(b.id),
+          )
+          .map((b) => b.displayName),
+      }
+    : null;
 
   // Los cancelados no se dibujan: liberaron el horario, así que el hueco que
   // dejaron es la información, no ellos.
@@ -59,6 +88,8 @@ export default async function AgendaPage({
 
   return (
     <>
+      {estadoDelLocal ? <PrimerosPasos estado={estadoDelLocal} /> : null}
+
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">
