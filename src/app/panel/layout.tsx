@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { salir } from "@/app/entrar/actions";
+import { BotonDeAyuda } from "@/app/panel/boton-ayuda";
 import { PanelNav, type Seccion } from "@/app/panel/nav";
 import { PoleRule } from "@/components/pole-rule";
 import { TenantTheme } from "@/components/tenant-theme";
@@ -79,6 +80,8 @@ export default async function PanelLayout({
                 secciones={secciones}
                 variante="linea"
               />
+
+              <BotonDeAyuda />
 
               {/* El nombre propio es la puerta a la cuenta propia. Va acá y no
                   en la navegación: la navegación es del trabajo, esto es de
