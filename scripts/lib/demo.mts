@@ -37,6 +37,23 @@ export const BARBERIA_DEMO: BarberiaNueva = {
   timezone: "America/Montevideo",
   moneda: "UYU",
   direccion: "Av. Siempre Abierta 1100",
+
+  /**
+   * El contacto de la demo es el de Turnos for Barber, a propósito.
+   *
+   * Barbería Modelo no existe, así que un WhatsApp inventado no lo atiende
+   * nadie y un Instagram inventado lleva a la cuenta de un desconocido. Como
+   * el visitante que toca esos botones está evaluando el producto y no
+   * buscando un corte, mandarlo acá es lo honesto y además es un canal de
+   * venta más.
+   *
+   * ⚠️ Esto vale **solo para la demo**. En una barbería de verdad son los datos
+   * del local: si algún día se copia este bloque a otro alta, el cliente
+   * termina mandándole sus consultas a Santiago.
+   */
+  whatsapp: "+59892731522",
+  instagram: "https://www.instagram.com/santifab_/",
+
   // Papel cálido y rojo de poste. Elegida para que contraste con la porcelana
   // y el azul de la portada: incrustada tiene que leerse como otra cosa, no
   // como una continuación de la página que la contiene.

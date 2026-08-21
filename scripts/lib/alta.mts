@@ -53,6 +53,20 @@ export type BarberiaNueva = {
   timezone: string;
   moneda: string;
   direccion?: string | null;
+  /**
+   * Por dónde se le pregunta al local lo que la página no contesta.
+   *
+   * Van acá y no solo en el panel porque la demo se rehace entera cada vez que
+   * se corre `barberia-demo --rehacer`, y lo que no siembra el alta vuelve a
+   * quedar en `null`. Así estuvo: el código para mostrarlos ya estaba
+   * desplegado y los botones no aparecían en ningún lado, porque nunca hubo
+   * dato que mostrar.
+   *
+   * El teléfono se guarda normalizado (`+598XXXXXXXX`), que es lo que necesita
+   * el link de `wa.me`.
+   */
+  whatsapp?: string | null;
+  instagram?: string | null;
   colores: Colores;
   ventana: Ventana;
   minLead: number;
@@ -80,7 +94,21 @@ export const PALETAS: Record<string, { nombre: string; colores: Colores }> = {
       surface: "#FFFFFF",
       ink: "#111111",
       inkMuted: "#6B6B6B",
-      accent: "#D0021B",
+      /*
+       * Rojo de poste, no rojo de alerta.
+       *
+       * Era `#D0021B`, saturado casi al máximo. Sobre un papel cálido y
+       * desaturado como este `bg`, esa distancia de croma vibra: el botón
+       * elegido se leía como una advertencia en vez de como el esmalte
+       * pintado de un poste. Se le bajó el croma y se profundizó el valor
+       * dejando el matiz donde estaba (352.7° → 354.7°), que es lo que
+       * conserva la identidad.
+       *
+       * De paso el texto blanco encima pasó de 5.66 a 6.87 de contraste.
+       * Cualquier reemplazo tiene que seguir dando 4.5 como piso: `on-accent`
+       * es blanco y acá se apoya el botón de confirmar.
+       */
+      accent: "#B01D2A",
       accentAlt: "#1D3FA3",
     },
   },
@@ -308,6 +336,8 @@ export async function crearBarberia(
         timezone: datos.timezone,
         currency: datos.moneda,
         address: datos.direccion ?? null,
+        whatsapp_phone: datos.whatsapp ?? null,
+        instagram_url: datos.instagram ?? null,
         color_bg: datos.colores.bg,
         color_surface: datos.colores.surface,
         color_ink: datos.colores.ink,
