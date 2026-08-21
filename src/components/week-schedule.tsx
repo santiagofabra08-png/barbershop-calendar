@@ -181,10 +181,13 @@ export function WeekSchedule({
                     >
                       <span className="text-sm font-medium">{s.name}</span>
                       <span
-                        className={`tabular text-sm ${activo ? "opacity-75" : "text-muted"}`}
+                        // Sobre el acento el precio va atenuado, pero no tanto:
+                        // 75% por 60% son 45% efectivo, y eso sobre un celeste
+                        // claro no llega al mínimo de contraste para leerse.
+                        className={`tabular text-sm ${activo ? "opacity-85" : "text-muted"}`}
                       >
                         {formatPrice(s.priceCents, tenant.currency)}
-                        <span className="opacity-60">
+                        <span className="opacity-75">
                           {" · "}
                           {formatDuration(s.durationMinutes)}
                         </span>

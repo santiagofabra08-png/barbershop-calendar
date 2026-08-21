@@ -39,6 +39,10 @@ Don't add extra libraries without asking.
 
 ## Notifications
 - Send an email confirmation automatically when a booking is made.
+- **A reminder email goes out two hours before the appointment**, with the same
+  cancel link (`src/lib/email/recordatorio.ts`, `/api/recordatorios`, fired
+  every 15 minutes by `.github/workflows/recordatorios.yml`). It exists so the
+  person who is not coming cancels, not so anyone remembers.
 - For WhatsApp reminders: the dashboard shows tomorrow's bookings with a button that opens WhatsApp with the message pre-filled (`src/lib/whatsapp.ts`). Owner taps to send.
 - Don't build automated/unofficial WhatsApp sending — it risks getting the shop's number banned.
 - Whatever the landing page claims about a feature has to be true of the code. The pre-filled message was promised there for two weeks before it existed; the guide, which described the button honestly, was the only thing that caught it.
@@ -89,6 +93,20 @@ para no tener que reconstruirlo leyendo todo.
 - `src/lib/payroll.ts` — recuento y reparto de la plata. Puro.
 - `src/lib/panel/day-strip.ts` — la agenda del día como tira. Puro.
 - `src/lib/validation.ts` — nombre, teléfono y mail del cliente.
+- `src/lib/plazo.ts` — el plazo de cancelación dicho como lo diría una persona.
+  Puro. Devuelve la frase entera y no los pedazos, porque el castellano no deja
+  componerla: "una hora" y "30 minutos" no llevan el mismo artículo.
+- `src/lib/tenant/tono.ts` — luminancia, contraste y `legibleSobre`. Puro. De
+  acá sale la receta del resplandor y el color de la letra sobre el acento.
+- `src/lib/panel/fotos.ts` — subir y borrar fotos del panel. Recibe el cliente
+  de Supabase ya armado en vez de crearlo.
+- `src/components/panel/campo-foto.tsx` — el campo de subir foto, compartido
+  entre Productos y Equipo. Recibe la URL ya armada: los productos guardan la
+  ruta del bucket y los barberos y los logos guardan la URL entera, y el campo
+  no tiene por qué saber cuál usa cada tabla.
+- `src/components/contacto-flotante.tsx` — el WhatsApp y el Instagram del
+  local, abajo a la derecha. En la paleta de la barbería y no en verde y
+  violeta, y por debajo de la barra del turno elegido.
 - `src/lib/whatsapp.ts` — los mensajes ya escritos (el recordatorio del turno y
   el del pedido) y el link a `wa.me`. Puro:
   `hoy` entra como argumento, que es lo que deja probar que el turno de mañana
@@ -437,10 +455,18 @@ Se frenó a propósito, y conviene releer esto antes de retomarlo:
 Si se retoma: pedir el mail antes de crear nada, y resolver lo de las fotos
 antes de abrir la puerta.
 
-## Ninguna barbería de la base es un cliente todavía
+## Quién usa esto de verdad
 
 Conviene saberlo antes de pesar cualquier riesgo, porque cambia todas las
-cuentas: **hoy no hay una sola persona usando esto para trabajar.**
+cuentas.
+
+**AL Studio (`alstudio`) es la primera barbería real**, dada de alta el 20 de
+agosto de 2026. Avenida Italia 4557, Malvín. Dos socios, Agustín y Lucas, que
+entran los dos con la misma cuenta. Los datos y las decisiones del alta están
+en `brand/alstudio/notas.md`.
+
+Desde ese día **un despliegue le puede arruinar la tarde a alguien**, y eso ya
+no es una abstracción. Todo lo demás en la base sigue siendo nuestro:
 
 - **Tropi Barbershop no es un cliente.** Es la maqueta con la que se construyó
   la plataforma: un local concreto que sirvió para no diseñar en el aire. Nadie
@@ -455,9 +481,12 @@ cuentas: **hoy no hay una sola persona usando esto para trabajar.**
 - **Barbería Modelo** (`demo`) es la que muestra la portada. Se vacía sola todos
   los días.
 
-Mientras esto siga así, **una migración o un cambio grande no le arruina el día
-a nadie**, y es el momento más barato para hacerlos. La primera barbería real
-entra a partir de agosto de 2026; desde ese día la cuenta es otra.
+**Cada barbería real que entra destapa algo que la maqueta tapaba.** AL Studio
+lo hizo dos veces el primer día: el plazo de cancelación estaba escrito a mano
+como "una hora" en cuatro textos y era verdad por casualidad, porque la maqueta
+lo tenía en 60; y el acento se usaba como relleno y como tinta a la vez, algo
+que solo se rompe cuando alguien elige un color claro. Al dar de alta la
+siguiente, conviene mirar qué valores eligió distintos.
 
 ## El resplandor de lo elegido
 Lo que está elegido ahora mismo lleva `.glow` (o `.glow-accent`), y nada más.
@@ -476,6 +505,33 @@ la misma frontera que la pregunta "¿acá funciona un halo claro?".
 
 Al agregar un color nuevo a una barbería, esto se acomoda solo. Al agregar una
 pieza que se elige, usar la clase y no escribir una sombra a mano.
+
+### Lo elegido se pinta con el acento, y la letra la decide el contraste
+
+Todo lo que está elegido —el servicio, el día, el barbero, la hora— lleva
+`bg-accent text-on-accent`. Antes había dos mecanismos: unas piezas se
+invertían a tinta y otras usaban el acento con `text-surface` escrito a mano.
+Con un acento oscuro los dos se veían igual y la diferencia no molestaba; con
+uno claro, las letras blancas desaparecen.
+
+`--tenant-on-accent` lo resuelve: `TenantTheme` mira la luminancia del acento y
+elige tinta o superficie. Es la misma pregunta que ya decidía la receta del
+resplandor, un piso más abajo.
+
+⚠️ **El acento tiene un segundo trabajo, y un color claro no lo puede hacer.**
+En trece archivos es también el color del texto: los errores, los saldos, "Ver
+›". Un celeste pastel pinta bien un botón y no se lee sobre una tarjeta blanca.
+Para eso está `--tenant-accent-text`, que sale de `legibleSobre`: devuelve el
+acento tal cual si ya contrasta, y si no lo mezcla con la tinta hasta pasar el
+mínimo, conservando el matiz. Un celeste se vuelve azul profundo, no gris.
+
+Al escribir una pieza nueva: `text-accent-text` para texto, `bg-accent` con
+`text-on-accent` para relleno. **Nunca `text-surface` a mano sobre el acento**,
+que es exactamente lo que se rompió.
+
+Y el hover de un botón de acento no puede saltar a tinta: con acento claro eso
+deja letras negras sobre negro. Se atenuúa con opacidad, que preserva la
+relación entre el fondo y la letra sea cual sea el color.
 
 ## La portada, y por qué muestra el producto en vez de dibujarlo
 
